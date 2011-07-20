@@ -1,0 +1,8 @@
+# Ignore Mac OS X finder / resources
+.DS_Store
+.swp
+__MACOSX/
+
+# Don't check in ba(c)k(up) files
+.bak
+.old
