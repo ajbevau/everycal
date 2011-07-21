@@ -9,6 +9,7 @@ require( 'check-ecp1-defined.php' );
 // Add action hooks
 add_action( 'init', 'ecp1_register_events' );
 add_action( 'init', 'ecp1_register_calendars' );
+add_action( 'ecp1_calendar_edit_form_fields', 'ecp1_calendar_custom_fields', 10, 2 );
 
 // Function that creates the ECP1 Custom Post Types
 function ecp1_register_events() {
@@ -78,6 +79,23 @@ function ecp1_register_calendars() {
 	
 	// Register the custom taxonomy to the custom type
 	register_taxonomy( 'ecp1_calendar', 'ecp1_event', $ecp1_cal_args );
+}
+
+// Function that adds custom fields to the calendar taxonomy
+function ecp1_calendar_custom_fields($tag, $taxonomy) {
+	$calendar_url = get_metadata($tag->taxonomy, $tag->term_id, 'ecp1_calendar_external_url', true);
+	if ( ! $calendar_url )
+		$calendar_url = '';
+	#TODO: ESCAPE THE URL PROPERLY
+?>
+	<tr class="form-field">
+		<th scope="row" valign="top"><label for="ecp1_calendar_external_url">External Link</label></th>
+		<td>
+			<input id="ecp1_calendar_external_url" name="ecp1_calendar_external_url" type="text" value="<?php echo $calendar_url; ?>" /><br/>
+			<p class="description">The URL of an external calendar you would like to display locally in this calendar. <em>Note: You cannot add events to calendars that have external URLs.</em></p>
+		</td>
+	</tr>
+<?php
 }
 
 ?>
