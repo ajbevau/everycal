@@ -21,7 +21,7 @@ function ecp1_settings_register() {
 // Add menu page
 function ecp1_add_options_page() {
 	add_options_page( __( 'Every Calendar +1 Options' ), __( 'EveryCal+1' ), 'manage_options', 'ecp1_global', 'ecp1_render_options_page' );
-	add_submenu_page( 'edit.php?post_type=ecp1_calendar', 'Events', 'Events', 'publish_posts', 'ecp1_event' );
+	add_submenu_page( 'edit.php?post_type=ecp1_calendar', _x( 'New Event', 'ecp1_event'), _x( 'New Event', 'ecp1_event' ), 'publish_posts', 'post-new.php?post_type=ecp1_event' );
 }
 
 // Draw the option page
@@ -34,7 +34,7 @@ function ecp1_render_options_page() {
 			<?php $options = get_option( 'exp1_global' ); ?>
 			<table class="form-table">
 				<tr valign="top">
-					<th scope="row"><?php _e( 'Enable Maps / Provider' );</th>
+					<th scope="row"><?php _e( 'Enable Maps / Provider' ); ?></th>
 					<td>
 						<input id="ecp1_global[use_maps]" name="ecp1_global[use_maps]" type="checkbox" value="1" <?php checked( '1', $options['use_maps'] ); ?> />
 						<select id="ecp1_global[use_maps]" name="ecp1_global[map_provider]">
