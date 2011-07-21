@@ -21,6 +21,7 @@ function ecp1_settings_register() {
 // Add menu page
 function ecp1_add_options_page() {
 	add_options_page( __( 'Every Calendar +1 Options' ), __( 'EveryCal+1' ), 'manage_options', 'ecp1_global', 'ecp1_render_options_page' );
+	add_submenu_page( 'edit.php?post_type=ecp1_calendar', 'Events', 'Events', 'publish_posts', 'ecp1_event' );
 }
 
 // Draw the option page

@@ -45,7 +45,7 @@ function ecp1_register_types() {
 	
 	// Custom calendar post type arguments
 	$ecp1_cal_args = array(
-		'labels' => $ecp1_evt_labels,
+		'labels' => $ecp1_cal_labels,
 		'description' => __( 'EveryCal+1 Events' ),
 		'public' => true,
 		'exclude_from_search' => true, # don't show events unless the plugin says to
@@ -64,7 +64,7 @@ function ecp1_register_types() {
 		'public' => true,
 		'exclude_from_search' => true, # don't show events unless the plugin says to
 		'show_ui' => true,
-		'show_in_menu' => 'calendar',
+		'show_in_menu' => 'edit.php?post_type=ecp1_calendar',
 		'capability_type' => 'post', # capabilities match posts
 		'supports' => array( 'title', 'thumbnail', 'excerpt', 'editor' ),
 		'show_in_nav_menus' => false
