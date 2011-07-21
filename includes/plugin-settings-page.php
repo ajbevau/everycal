@@ -25,7 +25,7 @@ function ecp1_add_options_page() {
 	
 	// Add new event to the calendar and remove new calendar for neatness
 	add_submenu_page( 'edit.php?post_type=ecp1_calendar', _x( 'New Event', 'ecp1_event'), _x( 'New Event', 'ecp1_event' ), 'publish_posts', 'post-new.php?post_type=ecp1_event' );
-	remove_submenu_page( 'edit.php?post_type=ecp1_calendar', 'new-post.php?post_type=ecp1_calendar' );
+	remove_submenu_page( 'edit.php?post_type=ecp1_calendar', 'post-new.php?post_type=ecp1_calendar' );
 }
 
 // Draw the option page
