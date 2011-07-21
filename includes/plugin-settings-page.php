@@ -33,7 +33,7 @@ function ecp1_render_options_page() {
 			<?php $options = get_option( 'exp1_global' ); ?>
 			<table class="form-table">
 				<tr valign="top">
-					<th scope="row"><?php _e( 'Enable Maps / Provider' );</th>
+					<th scope="row"><?php _e( 'Enable Maps / Provider' ); ?></th>
 					<td>
 						<input id="ecp1_global[use_maps]" name="ecp1_global[use_maps]" type="checkbox" value="1" <?php checked( '1', $options['use_maps'] ); ?> />
 						<select id="ecp1_global[use_maps]" name="ecp1_global[map_provider]">
