@@ -12,10 +12,9 @@ function ecp1_print_admin_styles() {
 	global $post_type;
 	if ( 'ecp1_calendar' != $post_type && 'ecp1_event' != $post_type )
 		return; // Only render if looking at our custom post types
-?>
-	/* Every Calendar +1 Admin Styling */
-	div.ecp1_meta input.ecp1_url {width:300px;}
-<?php
+	$f2 = plugins_url( '/css/ecp1-admin.css', dirname( __FILE__ ) );
+	//wp_enqueue_style( 'ecp1_admin_style', $f2 );
+	printf( '<link rel="stylesheet" href="%s" type="text/css" media="all" />%s', $f2, "\n" );
 }
 
 // Make sure jQuery and jQuery UI are enqueued
@@ -56,12 +55,6 @@ function ecp1_calendar_updated_messages() {
 			date_i18n( __( 'M j, Y @ G:i' ), strtotime( $post->post_date ) ), esc_url( get_permalink( $post_ID ) ) ),
 		10 => sprintf( __( 'Calendar draft updated. <a target="_blank" href="%s">Preview calendar...</a>' ), esc_url( add_query_arg( 'preview', 'true', get_permalink( $post_ID ) ) ) ),
 	);
-	
-	return $messages;
-}
-add_filter( 'post_updated_messages', 'ecp1_event_updated_messages' );
-function ecp1_event_updated_messages() {
-	global $post, $post_ID;
 	
 	// Custom update messages for the events
 	$messages['ecp1_event'] = array(

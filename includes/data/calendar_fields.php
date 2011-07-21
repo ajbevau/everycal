@@ -4,7 +4,7 @@
  */
 
 // Make sure we're included from within the plugin
-require( '../check-ecp1-defined.php' );
+require( 'check-ecp1-defined.php' );
 
 // Add filters and hooks to add columns and display them
 add_filter( 'manage_edit-ecp1_calendar_columns', 'ecp1_calendar_edit_columns' );
@@ -12,7 +12,7 @@ add_action( 'manage_posts_custom_column', 'ecp1_calendar_custom_columns' );
 add_action( 'admin_init', 'ecp1_calendar_meta_fields' );
 
 // Function that adds extra columns to the post type
-function tf_events_edit_columns( $columns ) {
+function ecp1_calendar_edit_columns( $columns ) {
 
 	$columns = array(
 		'title' => 'Name', # Default field title
@@ -25,7 +25,7 @@ function tf_events_edit_columns( $columns ) {
 // Function that adds values to the custom columns
 function ecp1_calendar_custom_columns( $column ) {
 	global $post;
-	$custom = get_post_custom();
+	$custom = get_post_custom( $post->ID );
 	
 	// act based on the column that is being rendered
 	switch ( $column ) {
@@ -33,13 +33,15 @@ function ecp1_calendar_custom_columns( $column ) {
 		case 'ecp1_cal_description':
 			$ecp1_excerpt = get_the_excerpt();
 			if ( '' != $ecp1_excerpt )
-				printf( '<p>%s</p>', $ecp1_exerpt );
-			
-			$ecp1_url = $custom['ecp1_external_url'];
-			if ( '' != $ecp1_url )
-				printf( '<p>%s: %s</p>', __( 'From' ), $ecp1_url );
-			break;
+				printf( '%s<br/>', $ecp1_excerpt );
 		
+			if ( isset( $custom['ecp1_external_url'] ) ) {	
+				$ecp1_url = urldecode( $custom['ecp1_external_url'][0] );
+				if ( '' != $ecp1_url )
+					printf( '<strong>%s</strong>: %s', __( 'From' ), $ecp1_url );
+			}
+
+			break;
 	}
 }
 
@@ -53,7 +55,9 @@ function ecp1_calendar_meta_form() {
 	// Get the post and its custom data
 	global $post;
 	$custom = get_post_custom( $post->ID );
-	$ecp1_url = $custom['ecp1_external_url'];
+	$ecp1_url = '';
+	if ( isset( $custom['ecp1_external_url'] ) )
+		$ecp1_url = $custom['ecp1_external_url'][0];
 	
 	// Sanitize and do security checks
 	if ( '' != $ecp1_url )
