@@ -32,6 +32,7 @@ require_once( 'includes/custom-post-type.php' );
 
 // If displaying the administration dashboard load admin UI
 if ( is_admin() ) {
+	include_once( 'includes/custom-post-admin.php' );
 	include_once( 'includes/plugin-settings-page.php' );
 	// TODO
 }
