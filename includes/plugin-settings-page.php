@@ -20,8 +20,12 @@ function ecp1_settings_register() {
 
 // Add menu page
 function ecp1_add_options_page() {
+	// Add the settings / options menu item
 	add_options_page( __( 'Every Calendar +1 Options' ), __( 'EveryCal+1' ), 'manage_options', 'ecp1_global', 'ecp1_render_options_page' );
+	
+	// Add new event to the calendar and remove new calendar for neatness
 	add_submenu_page( 'edit.php?post_type=ecp1_calendar', _x( 'New Event', 'ecp1_event'), _x( 'New Event', 'ecp1_event' ), 'publish_posts', 'post-new.php?post_type=ecp1_event' );
+	remove_submenu_page( 'edit.php?post_type=ecp1_calendar', 'new-post.php?post_type=ecp1_calendar' );
 }
 
 // Draw the option page
