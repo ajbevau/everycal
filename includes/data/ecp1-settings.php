@@ -37,7 +37,7 @@ function _ecp1_get_options( $key=null, $reload_from_db=false ) {
 	
 	// Read the database settings if they haven't been or are needed again
 	if ( ! $_ecp1_settings['_db'] || $reload_from_db ) {
-		$dbopts = get_options( ECP1_GLOBAL_OPTIONS );
+		$dbopts = get_option( ECP1_GLOBAL_OPTIONS );
 		
 		// Loop over the default settings and load values where appropriate
 		foreach( $_ecp1_settings as $key=>$defaults ) {
@@ -73,21 +73,21 @@ function _ecp1_option_is_default( $key ) {
 }
 
 // Creates an HTML select of all timezones 
-// based entirely on http://neo22s.com/timezone-select-for-php/
+// Based on http://neo22s.com/timezone-select-for-php/
 function _ecp1_timezone_select( $id, $pick='_', $extra_attrs=null ) {
 	$outstr = sprintf( '<select id="%s" name="%s" %s>', $id, $id, $extra_attrs );
-	$outstr .= sprintf( '<option value="_" %s>%s</option>', selected( '_', $pick ), __( 'WordPress Default' ) );
+	$outstr .= sprintf( '<option value="_"%s>%s</option>', '_' == $pick ? ' selected="selected"' : '', __( 'WordPress Default' ) );
 	$timezone_identifiers = DateTimeZone::listIdentifiers();
 	foreach( $timezone_identifiers as $value ) {
-		if ( preg_match( '/^(America|Antartica|Arctic|Asia|Atlantic|Europe|Indian|Pacific)\//', $value ) ){
-			$ex = explode( '/', $value ); //obtain continent,city	
+		if ( preg_match( '/^(Africa|America|Antartica|Arctic|Asia|Atlantic|Australia|Europe|Indian|Pacific)\//', $value ) ){
+			$ex = explode( '/', $value ); //obtain continent and city	
 			if ( $continent != $ex[0] ) {
 				if ( '' != $continent ) $outstr .= sprintf( '</optgroup>' );
 				$outstr .= sprintf( '<optgroup label="%s">', $ex[0] );
 			}
-			$city = $ex[1];
+			$city = isset( $ex[2] ) ? $ex[2] : $ex[1]; // Continent/Country/City
 			$continent = $ex[0]; // for next loop
-			$outstr .= sprintf( '<option value="%s" %s>%s</option>', $value, selected( $value, $pick ), $city );
+			$outstr .= sprintf( '<option value="%s"%s>%s</option>', $value, $value == $pick ? ' selected="selected"' : '', $city );
 		}
 	}
 	$outstr .= sprintf( '</optgroup></select>' );

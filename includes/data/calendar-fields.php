@@ -25,11 +25,11 @@ function _ecp1_parse_calendar_custom() {
 	if ( is_array( $custom ) ) {
 		foreach( array_keys( $ecp1_calendar_fields ) as $key ) {
 			if ( isset( $custom[$key] ) )
-				$ecp1_calendar_fields[$key][0] == $custom[$key];
+				$ecp1_calendar_fields[$key][0] = $custom[$key];
 			else
-				$ecp1_calendar_fields[$key][0] == $ecp1_calendar_fields[$key][1];
+				$ecp1_calendar_fields[$key][0] = $ecp1_calendar_fields[$key][1];
 		}
-	} else {
+	} elseif ( '' != $custom ) { // if the setting exists but is something else
 		printf( '<pre>%s</pre>', __( 'Every Calendar +1 plugin found non-array meta fields for this calendar.' ) );
 	}
 }
@@ -63,14 +63,15 @@ function ecp1_calendar_edit_columns( $columns ) {
 function ecp1_calendar_custom_columns( $column ) {
 	global $ecp1_calendar_fields;
 	_ecp1_parse_calendar_custom();
+
 	
 	// act based on the column that is being rendered
 	switch ( $column ) {
 		
 		case 'ecp1_cal_description':
-			if ( ! _ecp1_calendar_is_default( 'ecp1_description' ) ) 
-				printf( '%s<br/>', htmlspecialchars( $ecp1_calendar_fields['ecp1_description'] ) );
-			printf( '<strong>%s</strong>: %s', __( 'From' ), urldecode( $ecp1_calendar_fields['ecp1_external_url'] ) );
+			if ( ! _ecp1_calendar_meta_is_default( 'ecp1_description' ) ) 
+				printf( '%s<br/>', htmlspecialchars( $ecp1_calendar_fields['ecp1_description'][0] ) );
+			printf( '<strong>%s</strong>: %s', __( 'From' ), urldecode( $ecp1_calendar_fields['ecp1_external_url'][0] ) );
 			break;
 		
 	}
@@ -110,7 +111,7 @@ function ecp1_calendar_meta_form() {
 <?php
 	// Check if local calendars can change event timezones
 	$disabled_str = _ecp1_get_option( 'tz_change' ) ? null : 'disabled="disabled"';
-	print _ecp1_timezone_select( 'ecp1_timezone', $ecp1_tz, $disabled_str );
+	echo _ecp1_timezone_select( 'ecp1_timezone', $ecp1_tz, $disabled_str );
 	if ( ! is_null( $disabled_str ) )
 		printf( '<em>%s</em>', __( 'Every Calendar +1 settings prevent TZ change.' ) );
 ?>
@@ -152,17 +153,21 @@ function ecp1_calendar_save() {
 	// Verify the timezone is valid if not error out
 	$ecp1_timezone = '';
 	if ( isset( $_POST['ecp1_timezone'] ) ) {
-		try {
-			$dtz = timezone_open( $_POST['ecp1_timezone'] );
-			$ecp1_timezone = $dtz->getName();
-		} catch( Exception $tzmiss ) {
-			return $post->ID;
+		if ( '_' == $_POST['ecp1_timezone'] ) {
+			$ecp1_timezone = $_POST['ecp1_timezone'];
+		} else {
+			try {
+				$dtz = new DateTimeZone( $_POST['ecp1_timezone'] );
+				$ecp1_timezone = $dtz->getName();
+			} catch( Exception $tzmiss ) {
+				return $post->ID;
+			}
 		}
 	}
 	
 	// Create an array to save as post meta (automatically serialized)
 	$save_fields = array();
-	foreach( array_keys( $ecp1_calendar_fields as $key ) ) {
+	foreach( array_keys( $ecp1_calendar_fields ) as $key ) {
 		if ( $$key != $ecp1_calendar_fields[$key][1] ) // i.e. not default
 			$save_fields[$key] = $$key;
 	}
