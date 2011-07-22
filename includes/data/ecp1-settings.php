@@ -55,7 +55,7 @@ function _ecp1_get_options( $key=null, $reload_from_db=false ) {
 	$real_settings = array();
 	foreach( $_ecp1_settings as $key=>$values ) {
 		if ( is_array( $values ) )
-			$real_settings[$key] = isset( $values['value' ) ? $values['value'] : $values['default'];
+			$real_settings[$key] = isset( $values['value'] ) ? $values['value'] : $values['default'];
 	}
 	
 	// Finally return the whole array

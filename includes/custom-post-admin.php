@@ -93,7 +93,7 @@ function ecp1_add_help_text($contextual_help, $screen_id, $screen) {
 }
 
 // Now that everything is defined add extra fields to the calendar and event types
-include_once( 'data/calendar_fields.php' );
-include_once( 'data/event_fields.php' );
+include_once( 'data/calendar-fields.php' );
+include_once( 'data/event-fields.php' );
 
 ?>
