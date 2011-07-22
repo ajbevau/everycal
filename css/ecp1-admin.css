@@ -1,2 +1,3 @@
 /* Every Calendar +1 Admin Styling */
-div.ecp1_meta input.ecp1_url {width:300px;}
+div.ecp1_meta input.ecp1_url {width:70%;}
+div.ecp1_meta textarea.ecp1_big {width:70%;height:100px;}

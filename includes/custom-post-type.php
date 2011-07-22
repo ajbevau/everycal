@@ -51,7 +51,7 @@ function ecp1_register_types() {
 		#TODO: 'menu_icon' => get_bloginfo( 'plugin_url' ).'/img/cal_16.png',
 		'menu_position' => 30,
 		'capability_type' => 'post', # capabilities match posts
-		'supports' => array( 'title', 'excerpt' ),
+		'supports' => array( 'title' ),
 		'show_in_nav_menus' => false
 	);
 	

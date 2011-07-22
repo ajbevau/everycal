@@ -6,3 +6,6 @@ __MACOSX/
 # Don't check in ba(c)k(up) files
 .bak
 .old
+
+# Test scripts for debugging
+test.php

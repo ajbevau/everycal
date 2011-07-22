@@ -8,8 +8,8 @@ require( 'check-ecp1-defined.php' );
 
 // Define the map providers
 $ecp1_maps = array(
-	'none' => array( 'id' => 0, 'name' => 'Disabled' ),
-	'google' => array( 'id' => 1, 'name' => 'Google Maps', 'classname' => 'ECP1GoogleMaps', 'filename' => 'maps/google.php' ),
+	'none' => array( 'name' => 'None' ),
+	'google' => array( 'name' => 'Google Maps', 'classname' => 'ECP1GoogleMaps', 'filename' => 'maps/google.php' ),
 );
 
 ?>

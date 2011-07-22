@@ -14,9 +14,9 @@ TODO: Create a better brief and full description in the readme.txt file.
 
 == Installation ==
 
-The best way to install this plugin is through your WordPress Admin.
+This plugin requires PHP5.
 
-Alternatively upload all of the plugins files to the '/wp-content/plugins/everycalplus1' directory.
+The best way to install this plugin is through your WordPress Admin. Alternatively upload all of the plugins files to the '/wp-content/plugins/everycalplus1' directory.
 
 Once the plugin has been installed/uploaded you need to Activate this plugin in the 'Plugins' Admin panel.
 
