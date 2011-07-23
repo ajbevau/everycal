@@ -43,13 +43,13 @@ function ecp1_render_options_page() {
 				<tr valign="top">
 					<th scope="row"><?php _e( 'Enable Maps / Provider' ); ?></th>
 					<td>
-						<input id="ecp1_global[use_maps]" name="ecp1_global[use_maps]" type="checkbox" value="1" <?php checked( true, $options['use_maps'] ); ?> />
-						<select id="ecp1_global[map_provider]" name="ecp1_global[map_provider]">
+						<input id="<?php echo ECP1_GLOBAL_OPTIONS; ?>[use_maps]" name="<?php echo ECP1_GLOBAL_OPTIONS; ?>[use_maps]" type="checkbox" value="1" <?php checked( '1', $options['use_maps'] ); ?> />
+						<select id="<?php echo ECP1_GLOBAL_OPTIONS; ?>[map_provider]" name="<?php echo ECP1_GLOBAL_OPTIONS; ?>[map_provider]">
 <?php
 	// For each map provider create an entry
 	$map_providers = ecp1_map_providers();
 	foreach( $map_providers as $slug=>$details ) 
-		printf( '<option value="%s" %s>%s</option>', $slug, selected( $slug, $options['map_provider'] ), $details['name'] );
+		printf( '<option value="%s" %s>%s</option>', $slug, $slug == $options['map_provider'] ? ' selected="selected"' : '', $details['name'] );
 ?>
 						</select>
 					</td>
@@ -57,7 +57,7 @@ function ecp1_render_options_page() {
 				<tr valign="top">
 					<th scope="row"><?php _e( 'Allow Timezone Changes' ); ?></th>
 					<td>
-						<input id="ecp1_global[tz_change]" name="ecp1_global[tz_change]" type="checkbox" value="1" <?php checked( true, $options['tz_change'] ); ?> /><br/>
+						<input id="<?php echo ECP1_GLOBAL_OPTIONS; ?>[tz_change]" name="<?php echo ECP1_GLOBAL_OPTIONS; ?>[tz_change]" type="checkbox" value="1" <?php checked( '1', $options['tz_change'] ); ?> />
 						<em><?php _e( 'Note: by default calendars will use the WordPress Timezone setting.' ); ?></em>
 					</td>
 				</tr>
@@ -73,24 +73,24 @@ function ecp1_render_options_page() {
 // Sanitize and validate input. Accepts an array, return a sanitized array.
 function ecp1_validate_options_page( $input ) {
 	// Check the map provider is valid
-	if ( isset( $input[ECP1_GLOBAL_OPTIONS]['map_provider'] ) ) {
+	if ( isset( $input['map_provider'] ) ) {
 		$map_providers = ecp1_map_providers();
-		if ( ! array_key_exists( $input[ECP1_GLOBAL_OPTIONS]['map_provider'], $map_providers ) ) {
+		if ( ! array_key_exists( $input['map_provider'], $map_providers ) ) {
 			// Not a valid map selected: use default (none)
-			$input[ECP1_GLOBAL_OPTIONS]['map_provider'] = _ecp1_option_get_default( 'map_provider' );
+			$input['map_provider'] = _ecp1_option_get_default( 'map_provider' );
 		}
 	} else {
 		// Use default map provider
-		$input[ECP1_GLOBAL_OPTIONS]['map_provider'] = _ecp1_option_get_default( 'map_provider' );
+		$input['map_provider'] = _ecp1_option_get_default( 'map_provider' );
 	}
 	
 	// If the use_map/timezone setting is given then set to true otherwise to false
 	$boolean_options = array( 'use_maps', 'tz_change' );
 	foreach( $boolean_options as $key ) {
-		if ( isset( $input[ECP1_GLOBAL_OPTIONS][$key] ) && '1' == $input[ECP1_GLOBAL_OPTIONS][$key] ) {
-			$input[ECP1_GLOBAL_OPTIONS][$key] = true;
+		if ( isset( $input[$key] ) && '1' == $input[$key] ) {
+			$input[$key] = 1;
 		} else {
-			$input[ECP1_GLOBAL_OPTIONS][$key] = false;
+			$input[$key] = 0;
 		}
 	}
 	

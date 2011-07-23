@@ -17,14 +17,14 @@ $_ecp1_settings = array(
 	'_db' => false,
 
 	// Should a map be available for the event location: default true
-	'use_maps' => array( 'default'=>true ),
+	'use_maps' => array( 'default' => 1 ),
 	
 	// Which Map Provider should be used: default none
 	// Should be set to a key out of the Map Providers array
 	'map_provider' => array( 'default' => 'none' ),
 	
 	// Allow calendars to change the timezone they're for from WordPress: default true
-	'tz_change' => array( 'default' => true ),
+	'tz_change' => array( 'default' => 1 ),
 
 );
 
@@ -42,7 +42,7 @@ function _ecp1_get_options( $option_key=null, $reload_from_db=false ) {
 		// Loop over the default settings and load values where appropriate
 		foreach( $_ecp1_settings as $key=>$defaults ) {
 			if ( isset( $dbopts[$key] ) )
-				$_ecp1_options[$key]['value'] = $dbopts['key'];
+				$_ecp1_options[$key]['value'] = $dbopts[$key];
 		}
 	}
 	
