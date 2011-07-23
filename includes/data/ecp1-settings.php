@@ -100,7 +100,7 @@ function _ecp1_timezone_select( $id, $pick='_', $extra_attrs=null ) {
 			// create an offset value so people can pick the right place
 			$dtz = new DateTimeZone( $value );
 			$offset = $dtz->getOffset( new DateTime( 'now' ) );
-			$offset = 'UTC' . ( $offset < 0 ? '-' : '+' ) . ( abs( $offset/3600 ) );
+			$offset = 'UTC' . ( $offset < 0 ? ' - ' : ' + ' ) . ( abs( $offset/3600 ) );
 			
 			$city = str_replace( '_', ' ', ( isset( $ex[2] ) ? $ex[2] : $ex[1] ) ); // Continent/Country/City
 			$continent = $ex[0]; // for next loop

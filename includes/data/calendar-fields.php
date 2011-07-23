@@ -90,7 +90,7 @@ function ecp1_calendar_custom_columns( $column ) {
 				try {
 					$dtz = new DateTimeZone( $ecp1_calendar_fields['ecp1_timezone'][0] );
 					$offset = $dtz->getOffset( new DateTime( 'now' ) );
-					$offset = 'UTC' . ( $offset < 0 ? '-' : '+' ) . ( abs( $offset/3600 ) );
+					$offset = 'UTC' . ( $offset < 0 ? ' - ' : ' + ' ) . ( abs( $offset/3600 ) );
 					printf ( '%s (%s)', $dtz->getName(), $offset );
 				} catch( Exception $tzmiss ) {
 					// not a valid timezone
