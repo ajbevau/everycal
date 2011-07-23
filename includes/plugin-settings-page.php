@@ -37,7 +37,7 @@ function ecp1_render_options_page() {
 	<div class="wrap">
 		<h2><?php _e( 'Every Calendar +1 Options' ); ?></h2>
 		<form method="post" action="options.php">
-			<?php settings_fields( 'ecp1_global_options' ); ?>
+			<?php settings_fields( ECP1_OPTIONS_GROUP ); ?>
 			<?php $options = _ecp1_get_options(); ?>
 			<table class="form-table">
 				<tr valign="top">
