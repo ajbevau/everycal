@@ -31,8 +31,8 @@ $_ecp1_settings = array(
 // Helper function that returns the whole options array or just the 
 // value if a key specified - where the key is not in the database
 // the default value is returned.
-function _ecp1_get_option( $key, $reload_from_db=false ) { return _ecp1_get_options( $key, $reload_from_db ); }
-function _ecp1_get_options( $key=null, $reload_from_db=false ) {
+function _ecp1_get_option( $option_key, $reload_from_db=false ) { return _ecp1_get_options( $option_key, $reload_from_db ); }
+function _ecp1_get_options( $option_key=null, $reload_from_db=false ) {
 	global $_ecp1_settings;
 	
 	// Read the database settings if they haven't been or are needed again
@@ -48,8 +48,11 @@ function _ecp1_get_options( $key=null, $reload_from_db=false ) {
 	
 	// Do they just want the value of the key option?
 	// This is done here for a minor efficiency boost
-	if ( ! is_null( $key ) )
-		return isset( $_ecp1_settings[$key]['value'] ) ? $_ecp1_settings[$key]['value'] : $_ecp1_settings[$key]['default'] ;
+	if ( ! is_null( $option_key ) ) {
+		if ( ! array_key_exists( $option_key, $_ecp1_settings ) )
+			return null;
+		return isset( $_ecp1_settings[$option_key]['value'] ) ? $_ecp1_settings[$option_key]['value'] : $_ecp1_settings[$option_key]['default'] ;
+	}
 		
 	// Build an array of the actual values
 	$real_settings = array();
@@ -65,11 +68,19 @@ function _ecp1_get_options( $key=null, $reload_from_db=false ) {
 // Tests if the option is at it's default value
 function _ecp1_option_is_default( $key ) {
 	global $_ecp1_settings;
-	if ( ! isset( $_ecp1_settings[$key] ) )
+	if ( ! array_key_exists( $key, $_ecp1_settings ) )
 		return false;	// Unknown key
 	if ( ! isset( $_ecp1_settings[$key]['value'] ) )
 		return true;	// No value MUST BE default
 	return $_ecp1_settings[$key]['default'] == $_ecp1_settings[$key]['value'];
+}
+
+// Returns the default value for the given option
+function _ecp1_option_get_default( $key ) {
+	global $_ecp1_settings;
+	if ( ! array_key_exists( $key, $_ecp1_settings ) )
+		return null;
+	return $_ecp1_settings[$key]['default'];
 }
 
 // Creates an HTML select of all timezones 
