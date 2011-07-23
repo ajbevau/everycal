@@ -102,7 +102,7 @@ function _ecp1_timezone_select( $id, $pick='_', $extra_attrs=null ) {
 			$offset = $dtz->getOffset( new DateTime( 'now' ) );
 			$offset = 'UTC' . ( $offset < 0 ? '-' : '+' ) . ( abs( $offset/3600 ) );
 			
-			$city = isset( $ex[2] ) ? $ex[2] : $ex[1]; // Continent/Country/City
+			$city = str_replace( '_', ' ', ( isset( $ex[2] ) ? $ex[2] : $ex[1] ) ); // Continent/Country/City
 			$continent = $ex[0]; // for next loop
 			$outstr .= sprintf( '<option value="%s"%s>%s (%s)</option>', $value, $value == $pick ? ' selected="selected"' : '', $city, $offset );
 		}
