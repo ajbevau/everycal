@@ -42,7 +42,7 @@ function _ecp1_get_options( $option_key=null, $reload_from_db=false ) {
 		// Loop over the default settings and load values where appropriate
 		foreach( $_ecp1_settings as $key=>$defaults ) {
 			if ( isset( $dbopts[$key] ) )
-				$_ecp1_options[$key]['value'] = $dbopts[$key];
+				$_ecp1_settings[$key]['value'] = $dbopts[$key];
 		}
 	}
 	
@@ -96,9 +96,15 @@ function _ecp1_timezone_select( $id, $pick='_', $extra_attrs=null ) {
 				if ( '' != $continent ) $outstr .= sprintf( '</optgroup>' );
 				$outstr .= sprintf( '<optgroup label="%s">', $ex[0] );
 			}
+			
+			// create an offset value so people can pick the right place
+			$dtz = new DateTimeZone( $value );
+			$offset = $dtz->getOffset( new DateTime( 'now' ) );
+			$offset = 'UTC' . ( $offset < 0 ? '-' : '+' ) . ( abs( $offset/3600 ) );
+			
 			$city = isset( $ex[2] ) ? $ex[2] : $ex[1]; // Continent/Country/City
 			$continent = $ex[0]; // for next loop
-			$outstr .= sprintf( '<option value="%s"%s>%s</option>', $value, $value == $pick ? ' selected="selected"' : '', $city );
+			$outstr .= sprintf( '<option value="%s"%s>%s (%s)</option>', $value, $value == $pick ? ' selected="selected"' : '', $city, $offset );
 		}
 	}
 	$outstr .= sprintf( '</optgroup></select>' );

@@ -89,7 +89,9 @@ function ecp1_calendar_custom_columns( $column ) {
 			} else {
 				try {
 					$dtz = new DateTimeZone( $ecp1_calendar_fields['ecp1_timezone'][0] );
-					printf ( '%s', $dtz->getName() );
+					$offset = $dtz->getOffset( new DateTime( 'now' ) );
+					$offset = 'UTC' . ( $offset < 0 ? '-' : '+' ) . ( abs( $offset/3600 ) );
+					printf ( '%s (%s)', $dtz->getName(), $offset );
 				} catch( Exception $tzmiss ) {
 					// not a valid timezone
 					printf ( '<span class="ecp1_error">%s</span>', __( 'Timezone is invalid' ) );
@@ -137,7 +139,7 @@ function ecp1_calendar_meta_form() {
 	$disabled_str = _ecp1_get_option( 'tz_change' ) ? null : 'disabled="disabled"';
 	echo _ecp1_timezone_select( 'ecp1_timezone', $ecp1_tz, $disabled_str );
 	if ( ! is_null( $disabled_str ) )
-		printf( '<em>%s</em>', __( 'Every Calendar +1 settings prevent TZ change.' ) );
+		printf( '<em>%s</em>', __( 'Every Calendar +1 settings prevent change: WordPress TZ will be used.' ) );
 ?>
 				</td>
 			</tr>

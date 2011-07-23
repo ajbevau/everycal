@@ -49,7 +49,7 @@ function ecp1_render_options_page() {
 	// For each map provider create an entry
 	$map_providers = ecp1_map_providers();
 	foreach( $map_providers as $slug=>$details ) 
-		printf( '<option value="%s" %s>%s</option>', $slug, $slug == $options['map_provider'] ? ' selected="selected"' : '', $details['name'] );
+		printf( '<option value="%s"%s>%s</option>', $slug, $slug == $options['map_provider'] ? ' selected="selected"' : '', $details['name'] );
 ?>
 						</select>
 					</td>
