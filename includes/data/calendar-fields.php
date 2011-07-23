@@ -29,9 +29,12 @@ function _ecp1_parse_calendar_custom() {
 			else
 				$ecp1_calendar_fields[$key][0] = $ecp1_calendar_fields[$key][1];
 		}
-	} elseif ( '' != $custom ) { // if the setting exists but is something else
+	} elseif ( '' == $custom ) { // it does not exist yet (reset to defaults so empty settings don't display previous calendars details)
+		foreach( $ecp1_calendar_fields as $key=>$values )
+			$ecp1_calendar_fields[$key][0] = $ecp1_calendar_fields[$key][1];
+	} else { // if the setting exists but is something else
 		printf( '<pre>%s</pre>', __( 'Every Calendar +1 plugin found non-array meta fields for this calendar.' ) );
-	}
+	} 
 }
 
 // Function that returns true if value is default
@@ -53,7 +56,8 @@ function ecp1_calendar_edit_columns( $columns ) {
 
 	$columns = array(
 		'title' => 'Name', # Default field title
-		'ecp1_cal_description' => 'Description' # Will show description<br/>url
+		'ecp1_cal_description' => 'Description', # Will show description<br/>url
+		'ecp1_tz' => 'Timezone', # Calendar timezone
 	);
 	
 	return $columns;
@@ -71,7 +75,27 @@ function ecp1_calendar_custom_columns( $column ) {
 		case 'ecp1_cal_description':
 			if ( ! _ecp1_calendar_meta_is_default( 'ecp1_description' ) ) 
 				printf( '%s<br/>', htmlspecialchars( $ecp1_calendar_fields['ecp1_description'][0] ) );
-			printf( '<strong>%s</strong>: %s', __( 'From' ), urldecode( $ecp1_calendar_fields['ecp1_external_url'][0] ) );
+
+			if ( _ecp1_calendar_meta_is_default( 'ecp1_external_url' ) )
+				printf( '<strong>%s</strong>', __( 'Local calendar' ) );
+			else
+				printf( '<strong>%s</strong>: %s', __( 'From' ), urldecode( $ecp1_calendar_fields['ecp1_external_url'][0] ) );
+
+			break;
+		
+		case 'ecp1_tz':
+			if ( _ecp1_calendar_meta_is_default( 'ecp1_timezone' ) ) {
+				printf( '%s', __( 'WordPress Default' ) );
+			} else {
+				try {
+					$dtz = new DateTimeZone( $ecp1_calendar_fields['ecp1_timezone'][0] );
+					printf ( '%s', $dtz->getName() );
+				} catch( Exception $tzmiss ) {
+					// not a valid timezone
+					printf ( '<span class="ecp1_error">%s</span>', __( 'Timezone is invalid' ) );
+				}				
+			}
+			
 			break;
 		
 	}

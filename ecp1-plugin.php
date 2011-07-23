@@ -25,7 +25,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
 // Allow plugin files to load by defining scope of plugin
-define( 'ECP1_PLUGIN', 'YESHERE' );
+define( 'ECP1_PLUGIN', true );
 
 // Define the Custom Post Type
 require_once( 'includes/custom-post-type.php' );

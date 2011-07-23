@@ -47,7 +47,8 @@ function ecp1_render_options_page() {
 						<select id="ecp1_global[map_provider]" name="ecp1_global[map_provider]">
 <?php
 	// For each map provider create an entry
-	foreach( $ecp1_maps as $slug=>$details ) 
+	$map_providers = ecp1_map_providers();
+	foreach( $map_providers as $slug=>$details ) 
 		printf( '<option value="%s" %s>%s</option>', $slug, selected( $slug, $options['map_provider'] ), $details['name'] );
 ?>
 						</select>
