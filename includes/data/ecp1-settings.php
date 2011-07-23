@@ -4,7 +4,7 @@
  */
 
 // Make sure we're included from within the plugin
-require( 'check-ecp1-defined.php' );
+require( ECP1_DIR . '/includes/check-ecp1-defined.php' );
 
 // Define the database option name the plugin uses
 define( 'ECP1_OPTIONS_GROUP', 'ecp1_options' );

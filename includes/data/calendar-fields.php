@@ -4,10 +4,10 @@
  */
 
 // Make sure we're included from within the plugin
-require( 'check-ecp1-defined.php' );
+require( ECP1_DIR . '/includes/check-ecp1-defined.php' );
 
 // Make sure the options fields / functions have been loaded
-require_once( 'ecp1-settings.php' );
+require_once( ECP1_DIR . '/includes/data/ecp1-settings.php' );
 
 // An array of meta field names and default values
 $ecp1_calendar_fields = array( 

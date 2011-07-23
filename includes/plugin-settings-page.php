@@ -4,13 +4,13 @@
  */
 
 // Make sure we're included from within the plugin
-require( 'check-ecp1-defined.php' );
+require( ECP1_DIR . '/includes/check-ecp1-defined.php' );
 
 // Load the maps interface so we know which map implementations exist
-require_once( 'map-providers.php' );
+require_once( ECP1_DIR . '/includes/map-providers.php' );
 
 // Load the plugin settings and helper functions
-require_once( 'data/ecp1-settings.php' );
+require_once( ECP1_DIR . '/includes/data/ecp1-settings.php' );
 
 // Add action hooks
 add_action( 'admin_init', 'ecp1_settings_register' );

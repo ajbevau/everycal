@@ -4,7 +4,7 @@
  */
 
 // Make sure we're included from within the plugin
-require( 'check-ecp1-defined.php' );
+require( ECP1_DIR . '/includes/check-ecp1-defined.php' );
 
 // Add the CSS
 add_action( 'admin_print_styles', 'ecp1_print_admin_styles', 100 );
@@ -93,7 +93,7 @@ function ecp1_add_help_text($contextual_help, $screen_id, $screen) {
 }
 
 // Now that everything is defined add extra fields to the calendar and event types
-include_once( 'data/calendar-fields.php' );
-include_once( 'data/event-fields.php' );
+include_once( ECP1_DIR . '/includes/data/calendar-fields.php' );
+include_once( ECP1_DIR . '/includes/data/event-fields.php' );
 
 ?>

@@ -1,1 +1,0 @@
-../check-ecp1-defined.php

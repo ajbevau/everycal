@@ -4,7 +4,7 @@
  */
 
 // Make sure we're included from within the plugin
-require( 'check-ecp1-defined.php' );
+require( ECP1_DIR . '/includes/check-ecp1-defined.php' );
 
 // Define the map providers
 $_ecp1_maps = array(
