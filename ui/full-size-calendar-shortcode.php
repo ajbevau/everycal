@@ -21,7 +21,7 @@ function ecp1_full_size_calendar( $atts ) {
 		return sprintf( '<span class="ecp1_error">%s</span>', __( 'Unknown calendar: could not display.' ) );
 	
 	// Finally return the complete string (TODO)
-	return "<p>A FULL CALENDAR GOES HERE: {$name}";
+	return ecp1_render_calendar( null );
 }
 
 ?>

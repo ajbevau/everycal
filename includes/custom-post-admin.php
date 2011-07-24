@@ -7,30 +7,26 @@
 require( ECP1_DIR . '/includes/check-ecp1-defined.php' );
 
 // Add the CSS
-add_action( 'admin_print_styles', 'ecp1_print_admin_styles', 100 );
-function ecp1_print_admin_styles() {
+add_action( 'admin_enqueue_scripts', 'ecp1_add_admin_styles', 100 );
+function ecp1_add_admin_styles() {
 	global $post_type;
-	if ( 'ecp1_calendar' != $post_type && 'ecp1_event' != $post_type )
-		return; // Only render if looking at our custom post types
-	$f2 = plugins_url( '/css/ecp1-admin.css', dirname( __FILE__ ) );
-	//wp_enqueue_style( 'ecp1_admin_style', $f2 );
-	printf( '<link rel="stylesheet" href="%s" type="text/css" media="all" />%s', $f2, "\n" );
+	if ( 'ecp1_calendar' == $post_type || 'ecp1_event' == $post_type ) {
+		wp_register_style( 'ecp1_admin_style', plugins_url( '/css/ecp1-admin.css', dirname( __FILE__ ) ) );
+		wp_enqueue_style( 'ecp1_admin_style' );
+	}
 }
 
 // Make sure jQuery and jQuery UI are enqueued
-add_action( 'admin_print_scripts', 'ecp1_print_admin_scripts', 100 );
-function ecp1_print_admin_scripts() {
+add_action( 'admin_enqueue_scripts', 'ecp1_add_admin_scripts', 100 );
+function ecp1_add_admin_scripts() {
 	global $post_type;
-	if ( 'ecp1_calendar' != $post_type && 'ecp1_event' != $post_type )
-		return; // Only render if looking at our custom post types
-
-	// Use the WordPress queue so don't double load things
-	// Remember this will load jQuery in no-conflict mode
-	// 	jQuery(document).ready(function($) {
-	// 		$() will work as an alias for jQuery() inside of this function
-	// 	});
-	wp_enqueue_script( 'jquery' );
-	wp_enqueue_script( 'jquery-ui' );
+	if ( 'ecp1_calendar' == $post_type || 'ecp1_event' == $post_type ) {
+		// Use the WordPress queue so don't double load things
+		// 	jQuery(document).ready(function($) {
+		// 	});
+		wp_enqueue_script( 'jquery' );
+		wp_enqueue_script( 'jquery-ui' );
+	}
 }
 
 // Add filters to make sure calendar and events display instead of post

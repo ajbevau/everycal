@@ -6,16 +6,17 @@
 // Make sure we're included from within the plugin
 require( ECP1_DIR . '/includes/check-ecp1-defined.php' );
 
-// If we're in a event post type then register a filter
-if ( 'ecp1_event' != $post_type ) {
-	add_filter( 'the_content', 'ecp1_post_as_event' );
-}
+// Add a filter that checks if this is an event and then re-configures the content if so
+add_filter( 'the_content', 'ecp1_post_as_event' );
 
-// Renders a event into the post
-function ecp1_post_as_event() {
+// Renders an event into the post
+function ecp1_post_as_event( $content ) {
 	global $post;
-	$s .= "<p>DISPLAY AN EVENT WITH DEFAULTS</p><p><pre>".print_r($post,true);"</pre></p>";
-	return $s;
+	if ( is_single() && 'ecp1_event' == $post->post_type ) {
+		// Only make the changes if this is a single post display of an ECP1 Event
+		$content = "<p>DISPLAY AN EVENT WITH DEFAULTS</p><p><pre>".print_r($post,true);"</pre></p>";
+	}
+	return $content;
 }
 
 ?>
