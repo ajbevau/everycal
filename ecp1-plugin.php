@@ -43,10 +43,10 @@ if ( is_admin() ) {
 
 	// If the event/calendar is requested directly render it
 	include_once( ECP1_DIR . '/ui/calendar-post.php' );
-	include_once( ECP1_DIR . '/ui/event-post' );
+	include_once( ECP1_DIR . '/ui/event-post.php' );
 
 	// Register the shortcodes for a full-sized calendar
-	include_once( ECP1_DIR . '/ui/full-sized-calendar-shortcode.php' );
+	include_once( ECP1_DIR . '/ui/full-size-calendar-shortcode.php' );
 }
 
 ?>

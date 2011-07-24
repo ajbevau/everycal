@@ -11,18 +11,17 @@ $_ecp1_dynamic_calendar_script = null;
 
 // Enqueue the jQuery and jQuery UI scripts that FullCalendar requires
 // + Enqueue the FulLCalendar JS and CSS
-add_action( 'wp_enqueue_scripts', 'ecp1_add_jquery' );
-function ecp1_add_jquery() {
-	global $post;
-	if ( is_single() && ( 'ecp1_calendar' == $post->post_type || 'ecp1_event' == $post->post_type ) ) {
+add_action( 'wp_enqueue_scripts', 'ecp1_add_client_scripts' );
+function ecp1_add_client_scripts() {
+	if ( is_single() || is_page() ) {
 		// jQuery and jQuery UI first as they're required by FullCalendar
 		wp_enqueue_script( 'jquery' );
-		wp_enqueue_script( 'jquery-ui' );
+		//wp_enqueue_script( 'jquery-ui' );
 		
 		// Register the FullCalendar scripts and styles
 		wp_register_style( 'ecp1_fullcalendar_style_all', plugins_url( '/fullcalendar/fullcalendar.css', dirname( __FILE__ ) ), false, false, 'all' );
 		wp_register_style( 'ecp1_fullcalendar_style_print', plugins_url( '/fullcalendar/fullcalendar.print.css', dirname( __FILE__ ) ), false, array( 'ecp1_fullcalendar_style_all' ), 'print' );
-		wp_register_script( 'ecp1_fullcalendar_script', plugins_url( '/fullcalendar/fullcalendar.js', dirname( __FILE__ ) ), array( 'jquery', 'jquery-ui' ) );
+		wp_register_script( 'ecp1_fullcalendar_script', plugins_url( '/fullcalendar/fullcalendar.js', dirname( __FILE__ ) ), array( 'jquery' ) );
 		// TODO: Register the minified version of the script
 		
 		// Enqueue the registered scripts and styles
@@ -41,17 +40,25 @@ function ecp1_render_calendar( $calendar ) {
 	add_action( 'wp_print_footer_scripts', 'ecp1_print_fullcalendar_load' );
 	
 	// Now build the actual JS that will be loaded
-	$_ecp1_dynamic_calendar_script = 'alert("this is it");';
+	$_ecp1_dynamic_calendar_script = <<<ENDOFSCRIPT
+jQuery(document).ready(function($) {
+	// $() will work as an alias for jQuery() inside of this function
+	$('#ecp1_calendar').empty().fullCalendar({
+		// Calendar Options
+		weekends: true
+	});
+});
+ENDOFSCRIPT;
 	
 	// Now return HTML that the above script will use
-	return sprintf( '<div id="#ecp1_calendar">%s</div>', __( 'Loading...' ) );
+	return sprintf( '<div id="ecp1_calendar">%s</div>', __( 'Loading...' ) );
 }
 
 // Function to print the dynamic load script 
 function ecp1_print_fullcalendar_load() {
 	global $_ecp1_dynamic_calendar_script;
-	if ( null != $ecp1_dynamic_calendar_script ) {
-		echo $_ecp1_dynamic_calendar_script;
+	if ( null != $_ecp1_dynamic_calendar_script ) {
+		printf( '%s<!-- Every Calendar +1 Init -->%s<script type="text/javascript">%s%s%s</script>%s', "\n", "\n", "\n", $_ecp1_dynamic_calendar_script, "\n", "\n" );
 	}
 }
 
