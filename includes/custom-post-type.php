@@ -23,7 +23,7 @@ function ecp1_register_types() {
 		'search_items' => __( 'Search Calendars' ),
 		'not_found' => __( 'No calendars found for your criteria!' ),
 		'not_found_in_trash' => __( 'No calendars found in trash' ),
-		'parent_item_colon' => ''
+		'parent_item_colon' => '',
 	);
 	
 	// Custom labels for the event post type
@@ -38,7 +38,7 @@ function ecp1_register_types() {
 		'search_items' => __( 'Search Events' ),
 		'not_found' => __( 'No events found for your criteria!' ),
 		'not_found_in_trash' => __( 'No events found in trash' ),
-		'parent_item_colon' => ''
+		'parent_item_colon' => '',
 	);
 	
 	// Custom calendar post type arguments
@@ -52,7 +52,8 @@ function ecp1_register_types() {
 		'menu_position' => 30,
 		'capability_type' => 'post', # capabilities match posts
 		'supports' => array( 'title' ),
-		'show_in_nav_menus' => false
+		'rewrite' => array( 'slug' => 'calendar' ),
+		'show_in_nav_menus' => false,
 	);
 	
 	// Custom event post type arguments
@@ -65,7 +66,8 @@ function ecp1_register_types() {
 		'show_in_menu' => 'edit.php?post_type=ecp1_calendar',
 		'capability_type' => 'post', # capabilities match posts
 		'supports' => array( 'title', 'thumbnail', 'excerpt' ), //'editor' ),
-		'show_in_nav_menus' => false
+		'rewrite' => array( 'slug' => 'event' ),
+		'show_in_nav_menus' => false,
 	);
 	
 	// Register the custom post type

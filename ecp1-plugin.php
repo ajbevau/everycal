@@ -40,9 +40,13 @@ if ( is_admin() ) {
 } else {
 	// Make sure all the client side libraries get enqueued
 	include_once( ECP1_DIR . '/ui/client-enqueueing.php' );
-	
+
+	// If the event/calendar is requested directly render it
+	include_once( ECP1_DIR . '/ui/calendar-post.php' );
+	include_once( ECP1_DIR . '/ui/event-post' );
+
 	// Register the shortcodes for a full-sized calendar
-	include_once( ECP1_DIR . '/ui/full-sized-calendar.php' );
+	include_once( ECP1_DIR . '/ui/full-sized-calendar-shortcode.php' );
 }
 
 ?>
