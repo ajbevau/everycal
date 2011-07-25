@@ -1,7 +1,8 @@
 /* Every Calendar +1 Client Styling */
 #ecp1_calendar .fc table {border-bottom:none;margin-bottom:0;}
 #ecp1_calendar .fc-header td, #ecp1_calendar .fc-header th {border-top:none;}
+#ecp1_event ul.ecp1_event-details {margin:0;}
 #ecp1_event ul.ecp1_event-details li {list-style-type:none;}
-#ecp1_event span.ecp1_event-title {vertical-align:top;width:60px;display:inline-block;}
+#ecp1_event span.ecp1_event-title {vertical-align:top;width:120px;display:inline-block;}
 #ecp1_event span.ecp1_event-text {vertical-align:top;display:inline-block;}
 #ecp1_event span.ecp1_event-text_wide {vertical-align:top;display:block;padding-left:0.5em;}

@@ -133,10 +133,10 @@ function ecp1_render_event( $event ) {
 	$ecp1_time = 'start - end';
 	
 	// String placeholder for the summary text
-	$ecp1_summary = 'summary text';
+	$ecp1_summary = isset( $event['ecp1_summary'] ) ? $event['ecp1_summary'] : '';
 	
 	// String placeholders for the location and map coords if enabled
-	$ecp1_location = 'a location string';
+	$ecp1_location = isset( $event['ecp1_localtion'] ) ? $event['ecp1_location'] : '';
 	$ecp1_map_placeholder = '';
 	if ( _ecp1_get_option('use_maps') ) {
 		$ecp1_map_placeholder = '<div id="ecp1_event_map">Loading map...</div>';
@@ -153,8 +153,8 @@ ENDOFSCRIPT;
 	// the calendar uses ONSITE description in preference (which means people will come
 	// to this post page and then be able to offsite click).
 	$ecp1_info = '';
-	$ecp1_desc = isset( $event['description'] ) && '' != $event['description'] ? htmlspecialchars( $event['description'] ) : null;
-	$ecp1_url = isset( $event['url'] ) && '' != $event['description'] ? urldecode( $event['url'] ) : null;
+	$ecp1_desc = isset( $event['ecp1_description'] ) && '' != $event['ecp1_description'] ? htmlspecialchars( $event['ecp1_description'] ) : null;
+	$ecp1_url = isset( $event['ecp1_url'] ) && '' != $event['ecp1_description'] ? urldecode( $event['ecp1_url'] ) : null;
 	if ( ! is_null( $ecp1_desc ) && ! is_null( $ecp1_url ) ) {
 		// Both given so render as description<br/>Read more...
 		$ecp1_info = sprintf( '<p>%s</p><p><a href="%s" target="_blank">%s</a></p>', $ecp1_desc, $ecp1_url, __( 'Read more ...' ) );
