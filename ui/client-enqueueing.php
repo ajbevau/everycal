@@ -98,7 +98,7 @@ function ecp1_render_calendar( $calendar ) {
 	$events_url = '/todo/noevents-here.php'; // TODO: Make this specific to calendar
 	if ( array_key_exists( 'ecp1_external_url', $calendar ) && _ecp1_get_option( 'use_external_cals' ) ) {
 		if ( '' != $calendar['ecp1_external_url'] ) { // a url has been given
-			$events_url = $calendar['ecp1_external_url'];
+			$events_url = urldecode( $calendar['ecp1_external_url'] );
 		}
 	}
 	

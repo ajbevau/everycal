@@ -6,13 +6,23 @@
 // Make sure we're included from within the plugin
 require( ECP1_DIR . '/includes/check-ecp1-defined.php' );
 
+// Functions that will enqueue CSS / JS based on param
+function ecp1_enqueue_admin_css() {
+	wp_register_style( 'ecp1_admin_style', plugins_url( '/css/ecp1-admin.css', dirname( __FILE__ ) ) );
+	wp_enqueue_style( 'ecp1_admin_style' );
+}
+// Now for the JS
+function ecp1_enqueue_admin_js() {
+	wp_enqueue_script( 'jquery' );
+	//wp_enqueue_script( 'jquery-ui' );
+}
+
 // Add the CSS
 add_action( 'admin_enqueue_scripts', 'ecp1_add_admin_styles', 100 );
 function ecp1_add_admin_styles() {
 	global $post_type;
 	if ( 'ecp1_calendar' == $post_type || 'ecp1_event' == $post_type ) {
-		wp_register_style( 'ecp1_admin_style', plugins_url( '/css/ecp1-admin.css', dirname( __FILE__ ) ) );
-		wp_enqueue_style( 'ecp1_admin_style' );
+		ecp1_enqueue_admin_css();
 	}
 }
 
@@ -21,11 +31,7 @@ add_action( 'admin_enqueue_scripts', 'ecp1_add_admin_scripts', 100 );
 function ecp1_add_admin_scripts() {
 	global $post_type;
 	if ( 'ecp1_calendar' == $post_type || 'ecp1_event' == $post_type ) {
-		// Use the WordPress queue so don't double load things
-		// 	jQuery(document).ready(function($) {
-		// 	});
-		wp_enqueue_script( 'jquery' );
-		wp_enqueue_script( 'jquery-ui' );
+		ecp1_enqueue_admin_js();
 	}
 }
 

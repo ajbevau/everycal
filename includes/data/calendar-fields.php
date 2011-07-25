@@ -15,7 +15,7 @@ $ecp1_calendar_fields = array(
 	'ecp1_external_url' => array( '', ''),
 	'ecp1_timezone' => array( '', '_'),
 	'ecp1_first_day' => array( '', -1 ),
-	'ecp1_default_view' => array( '', 'month' ),
+	'ecp1_default_view' => array( '', 'none' ),
 );
 
 // Function to parse the custom post fields into the fields above
@@ -121,7 +121,7 @@ function ecp1_calendar_meta_form() {
 	$ecp1_url = _ecp1_calendar_meta_is_default( 'ecp1_external_url' ) ? '' : urldecode( $ecp1_calendar_fields['ecp1_external_url'][0] );
 	$ecp1_tz = _ecp1_calendar_meta_is_default( 'ecp1_timezone' ) ? '_' : $ecp1_calendar_fields['ecp1_timezone'][0];
 	$ecp1_defview = _ecp1_calendar_meta_is_default( 'ecp1_default_view' ) ? '' : $ecp1_calendar_fields['ecp1_default_view'][0];
-	$ecp1_first_day = _ecp1_calendar_meta_is_default( 'ecp1_first_day' ) ? '' : $ecp1_calendar_fields['ecp1_first_day'][0];
+	$ecp1_first_day = _ecp1_calendar_meta_is_default( 'ecp1_first_day' ) ? '-1' : $ecp1_calendar_fields['ecp1_first_day'][0];
 	
 	// Output the meta box with a custom nonce
 ?>
@@ -158,9 +158,9 @@ function ecp1_calendar_meta_form() {
 			<tr valign="top">
 				<th scope="row"><label for="ecp1_default_view"><?php _e( 'Default View' ); ?></label></th>
 				<td>
-					<input id="ecp1_default_view-month" name="ecp1_default_view" value="month" <?php checked( 'month', $ecp1_defview ); ?>/><label for="ecp1_default_view-month"><?php _e( 'Month' ); ?></label>
-					<input id="ecp1_default_view-week" name="ecp1_default_view" value="week" <?php checked( 'week', $ecp1_defview ); ?>/><label for="ecp1_default_view-week"><?php _e( 'Week' ); ?></label>
-					<input id="ecp1_default_view-day" name="ecp1_default_view" value="day" <?php checked( 'day', $ecp1_defview ); ?>/><label for="ecp1_default_view-day"><?php _e( 'Day' ); ?></label><br/>
+					<input id="ecp1_default_view-month" type="radio"  name="ecp1_default_view" value="month" <?php checked( 'month', $ecp1_defview ); ?>/><label for="ecp1_default_view-month"><?php _e( 'Month' ); ?></label>
+					<input id="ecp1_default_view-week" type="radio" name="ecp1_default_view" value="week" <?php checked( 'week', $ecp1_defview ); ?>/><label for="ecp1_default_view-week"><?php _e( 'Week' ); ?></label>
+					<input id="ecp1_default_view-day" type="radio" name="ecp1_default_view" value="day" <?php checked( 'day', $ecp1_defview ); ?>/><label for="ecp1_default_view-day"><?php _e( 'Day' ); ?></label><br/>
 					<label for="ecp1_first_day"><?php _e( 'First day of the week:' ); ?></label><select id="ecp1_first_day" name="ecp1_first_day"><option value="-1"><?php _e( 'WordPress Default' );?></option>
 <?php
 	// Loop over the days of the week
@@ -224,6 +224,20 @@ function ecp1_calendar_save() {
 				return $post->ID;
 			}
 		}
+	}
+
+	// Verify month|week|day is the value for default view
+	$ecp1_default_view = 'none';
+	if ( isset( $_POST['ecp1_default_view'] ) &&
+			in_array( $_POST['ecp1_default_view'], array( 'month', 'week', 'day' ) ) ) {
+		$ecp1_default_view = $_POST['ecp1_default_view'];
+	}
+	
+	// Week start day should be 0<=X<=6
+	$ecp1_first_day = -1;
+	if ( isset( $_POST['ecp1_first_day'] ) && is_numeric( $_POST['ecp1_first_day'] ) &&
+			( 0 <= $_POST['ecp1_first_day'] && $_POST['ecp1_first_day'] <= 6 ) ) {
+		$ecp1_first_day = intval( $_POST['ecp1_first_day'] );
 	}
 	
 	// Create an array to save as post meta (automatically serialized)
