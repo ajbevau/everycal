@@ -169,13 +169,13 @@ ENDOFSCRIPT;
 	$outstr = <<<ENDOFHTML
 <div id="ecp1_event">
 	<ul class="ecp1_event-details">
-		<li><span class="ecp1_event-title"><strong>$p['when']:</strong></span><span class="ecp1_event-text">$ecp1_time</span></li>
-		<li><span class="ecp1_event-title"><strong>$p['where']:</strong></span>
+		<li><span class="ecp1_event-title"><strong>$pwhen:</strong></span><span class="ecp1_event-text">$ecp1_time</span></li>
+		<li><span class="ecp1_event-title"><strong>$pwhere:</strong></span>
 			<span class="ecp1_event-text">
 				<div>$ecp1_location</div>
 				$ecp1_map_placeholder
 			</span></li>
-		<li><span class="ecp1_event-title"><strong>$p['summary']:</strong></span><span class="ecp1_event-text_wide">$ecp1_summary</span></li>
+		<li><span class="ecp1_event-title"><strong>$psummary:</strong></span><span class="ecp1_event-text_wide">$ecp1_summary</span></li>
 	</ul>
 	<div class="ecp1_event-description">$ecp1_info</div>
 </div>
