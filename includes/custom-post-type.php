@@ -65,7 +65,7 @@ function ecp1_register_types() {
 		'show_ui' => true,
 		'show_in_menu' => 'edit.php?post_type=ecp1_calendar',
 		'capability_type' => 'post', # capabilities match posts
-		'supports' => array( 'title', 'thumbnail', 'excerpt' ), //'editor' ),
+		'supports' => array( 'title', 'thumbnail', 'excerpt', 'editor' ),
 		'rewrite' => array( 'slug' => 'event' ),
 		'show_in_nav_menus' => false,
 	);
