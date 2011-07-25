@@ -36,22 +36,57 @@ function ecp1_add_client_scripts() {
 function ecp1_render_calendar( $calendar ) {
 	global $_ecp1_dynamic_calendar_script;
 	
+	// Make sure the calendar provided is valid
+	if ( ! is_array( $calendar ) )
+		return sprintf( '<div id="ecp1_calendar" class="ecp1_error">%s</div>', __( 'Invalid calendar cannot display.' ) );
+	
+	// Extract the calendar fields or go to defaults
+
+	$first_day = get_option( 'start_of_week ' );	// 0=Sunday 6=Saturday (uses WordPress)
+	if ( array_key_exists( 'ecp1_first_day', $calendar ) && is_numeric( $calendar['ecp1_first_day'] ) &&
+			( 0 <= $calendar['ecp1_first_day'] && $calendar['ecp1_first_day'] <= 6 ) {
+		$first_day = $calendar['ecp1_first_day'];
+	}
+	
+	$description = '';	// Text based description make sure it's escaped
+	if ( array_key_exists( 'ecp1_description', $calendar ) ) {
+		$description = htmlspecialchars( $calendar['ecp1_description'] );
+	}
+	
+	$timezone = get_option( 'timezone_string' );	// Timezone events in this calendar occur in
+	if ( array_key_exists( 'ecp1_timezone', $calendar ) ) {
+		// TODO: Check valid TZ etc..
+	}
+	
+	$default_view = 'month';	// How the calendar displays by default
+	if ( array_key_exists( 'ecp1_default_view', $calendar ) &&
+			in_array( $calendar['ecp1_default_view'], array( 'month', 'week', 'day' ) ) {
+		$default_view = $calendar['ecp1_default_view'];
+	}
+	
 	// Register a hook to print the static JS to load FullCalendar on #ecp1_calendar
 	add_action( 'wp_print_footer_scripts', 'ecp1_print_fullcalendar_load' );
 	
 	// Now build the actual JS that will be loaded
+	// TODO: Add eventClick function
+	// TODO: Add Event Sources
 	$_ecp1_dynamic_calendar_script = <<<ENDOFSCRIPT
 jQuery(document).ready(function($) {
 	// $() will work as an alias for jQuery() inside of this function
 	$('#ecp1_calendar').empty().fullCalendar({
-		// Calendar Options
-		weekends: true
+		header: { left: 'prev next today', center: 'title', right: 'month agendaWeek agendaDay' },
+		timeFormat: { agenda: 'h:mmtt( - h:mmtt	)', '': 'h(:mm)tt' },
+		weekends: true,
+		defaultView: $default_view,
+		allDaySlot: false
 	});
 });
 ENDOFSCRIPT;
 	
 	// Now return HTML that the above script will use
-	return sprintf( '<div id="ecp1_calendar">%s</div>', __( 'Loading...' ) );
+	$description = '' != $description ? '<p><strong>' . $description . '</strong></p>';
+	$timezone = '<p><em>Events occur at ' . $timezone . ' local time.</em></p>';
+	return sprintf( '<div id="ecp1_calendar">%s%s%s</div>', $description, __( 'Loading...' ), $timezone );
 }
 
 // Function to print the dynamic load script 

@@ -20,6 +20,9 @@ function ecp1_full_size_calendar( $atts ) {
 	if ( is_null( $name ) )
 		return sprintf( '<span class="ecp1_error">%s</span>', __( 'Unknown calendar: could not display.' ) );
 	
+	// Load the calendar with it's options
+	$c = get_post_meta( $post->ID, 'ecp1_calendar', true );
+	
 	// Finally return the complete string (TODO)
 	return ecp1_render_calendar( null );
 }
