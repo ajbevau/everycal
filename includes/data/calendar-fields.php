@@ -209,7 +209,7 @@ function ecp1_calendar_save() {
 	// Escape any nasty in the description
 	$ecp1_description = '';
 	if ( isset( $_POST['ecp1_description'] ) )
-		$ecp1_description = $_POST['ecp1_description'];
+		$ecp1_description = wp_filter_post_kses( $_POST['ecp1_description'] );
 	
 	// Verify the timezone is valid if not error out
 	$ecp1_timezone = '';

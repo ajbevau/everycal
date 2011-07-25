@@ -35,7 +35,7 @@ function ecp1_render_calendar( $calendar ) {
 	
 	$description = '';	// Text based description make sure it's escaped
 	if ( array_key_exists( 'ecp1_description', $calendar ) ) {
-		$description = htmlspecialchars( $calendar['ecp1_description'] );
+		$description = wp_filter_post_kses( $calendar['ecp1_description'] );
 	}
 	
 	$timezone = get_option( 'timezone_string' );	// Timezone events in this calendar occur in
@@ -153,7 +153,7 @@ ENDOFSCRIPT;
 	// the calendar uses ONSITE description in preference (which means people will come
 	// to this post page and then be able to offsite click).
 	$ecp1_info = '';
-	$ecp1_desc = isset( $event['ecp1_description'] ) && '' != $event['ecp1_description'] ? htmlspecialchars( $event['ecp1_description'] ) : null;
+	$ecp1_desc = isset( $event['ecp1_description'] ) && '' != $event['ecp1_description'] ? wp_filter_post_kses( $event['ecp1_description'] ) : null;
 	$ecp1_url = isset( $event['ecp1_url'] ) && '' != $event['ecp1_description'] ? urldecode( $event['ecp1_url'] ) : null;
 	if ( ! is_null( $ecp1_desc ) && ! is_null( $ecp1_url ) ) {
 		// Both given so render as description<br/>Read more...

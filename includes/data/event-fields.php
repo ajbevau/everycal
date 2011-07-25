@@ -261,7 +261,7 @@ function ecp1_event_save() {
 	// Escape any nasty in the summary (it's meant to be HTML free)
 	$ecp1_summary = $ecp1_event_fields['ecp1_summary'][1];
 	if ( isset( $_POST['ecp1_summary'] ) )
-		$ecp1_summary = strip_tags( $_POST['ecp1_summary'] );
+		$ecp1_summary = wp_filter_nohtml_kses( $_POST['ecp1_summary'] );
 	
 	// URL Encode the external URL
 	$ecp1_url = $ecp1_event_fields['ecp1_url'][1];
@@ -271,7 +271,7 @@ function ecp1_event_save() {
 	// Escape any nasty in the description
 	$ecp1_description = $ecp1_event_fields['ecp1_description'][1];
 	if ( isset( $_POST['ecp1_description'] ) )
-		$ecp1_description = $_POST['ecp1_description'];
+		$ecp1_description = wp_filter_post_kses( $_POST['ecp1_description'] );
 	
 	// Is this a full day event?
 	$ecp1_full_day = $ecp1_event_fields['ecp1_full_day'][1];
