@@ -44,7 +44,7 @@ function ecp1_render_calendar( $calendar ) {
 
 	$first_day = get_option( 'start_of_week ' );	// 0=Sunday 6=Saturday (uses WordPress)
 	if ( array_key_exists( 'ecp1_first_day', $calendar ) && is_numeric( $calendar['ecp1_first_day'] ) &&
-			( 0 <= $calendar['ecp1_first_day'] && $calendar['ecp1_first_day'] <= 6 ) {
+			( 0 <= $calendar['ecp1_first_day'] && $calendar['ecp1_first_day'] <= 6 ) ) {
 		$first_day = $calendar['ecp1_first_day'];
 	}
 	
@@ -55,12 +55,23 @@ function ecp1_render_calendar( $calendar ) {
 	
 	$timezone = get_option( 'timezone_string' );	// Timezone events in this calendar occur in
 	if ( array_key_exists( 'ecp1_timezone', $calendar ) ) {
-		// TODO: Check valid TZ etc..
+		try {
+			$dtz = new DateTimeZone( $calendar['ecp1_timezone'] );
+			$offset = $dtz->getOffset( new DateTime( 'now' ) );
+			$offset = 'UTC' . ( $offset < 0 ? ' - ' : ' + ' ) . ( abs( $offset/3600 ) );
+			$name = str_replace( '_', ' ', str_replace( '/', '-&gt;', $dtz->getName() ) );
+			$timezone = sprintf ( '%s (%s)', $name, $offset );
+		} catch( Exception $tzmiss ) {
+			// not a valid timezone
+			$timezone = __( 'Unknown' );
+		}				
+	} elseif ( $timezone == null ) {
+		$timezone = 'UTC';
 	}
 	
 	$default_view = 'month';	// How the calendar displays by default
 	if ( array_key_exists( 'ecp1_default_view', $calendar ) &&
-			in_array( $calendar['ecp1_default_view'], array( 'month', 'week', 'day' ) ) {
+			in_array( $calendar['ecp1_default_view'], array( 'month', 'week', 'day' ) ) ) {
 		$default_view = $calendar['ecp1_default_view'];
 	}
 	
@@ -84,7 +95,7 @@ jQuery(document).ready(function($) {
 ENDOFSCRIPT;
 	
 	// Now return HTML that the above script will use
-	$description = '' != $description ? '<p><strong>' . $description . '</strong></p>';
+	$description = '' != $description ? '<p><strong>' . $description . '</strong></p>' : '';
 	$timezone = '<p><em>Events occur at ' . $timezone . ' local time.</em></p>';
 	return sprintf( '<div id="ecp1_calendar">%s%s%s</div>', $description, __( 'Loading...' ), $timezone );
 }
