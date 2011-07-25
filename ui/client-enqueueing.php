@@ -6,6 +6,10 @@
 // Make sure we're included from within the plugin
 require( ECP1_DIR . '/includes/check-ecp1-defined.php' );
 
+// We need the calendar providers for script enqueueing
+require_once( ECP1_DIR . '/includes/external-calendar-providers.php' );
+require_once( ECP1_DIR . '/includes/data/ecp1-settings.php' );
+
 // Define a global variable for the dynamic FullCalendar load script
 $_ecp1_dynamic_calendar_script = null;
 
@@ -22,14 +26,22 @@ function ecp1_add_client_scripts() {
 		wp_register_style( 'ecp1_fullcalendar_style_all', plugins_url( '/fullcalendar/fullcalendar.css', dirname( __FILE__ ) ), false, false, 'all' );
 		wp_register_style( 'ecp1_fullcalendar_style_print', plugins_url( '/fullcalendar/fullcalendar.print.css', dirname( __FILE__ ) ), false, array( 'ecp1_fullcalendar_style_all' ), 'print' );
 		wp_register_style( 'ecp1_client_style', plugins_url( '/css/ecp1-client.css', dirname( __FILE__ ) ), false, array( 'ecp1_fullcalendar_style_all' ), 'all' );
-		wp_register_script( 'ecp1_fullcalendar_script', plugins_url( '/fullcalendar/fullcalendar.js', dirname( __FILE__ ) ), array( 'jquery' ) );
-		// TODO: Register the minified version of the script
+		wp_register_script( 'ecp1_fullcalendar_script', plugins_url( '/fullcalendar/fullcalendar.min.js', dirname( __FILE__ ) ), array( 'jquery' ) );
 		
 		// Enqueue the registered scripts and styles
 		wp_enqueue_style( 'ecp1_fullcalendar_style_all' );
 		wp_enqueue_style( 'ecp1_fullcalendar_style_print' );
 		wp_enqueue_style( 'ecp1_client_style' );
 		wp_enqueue_script( 'ecp1_fullcalendar_script' );
+		
+		// Are there any enabled external calendar providers we should enqueue?
+		$providers = ecp1_calendar_providers();
+		foreach( $providers as $provider=>$details ) {
+			if ( _ecp1_calendar_provider_enabled( $provider ) ) {
+				wp_register_script( 'ecp1_calendar_provider-' . $provider, plugins_url( '/fullcalendar/' . $details['fullcal_plugin'], dirname( __FILE__ ) ), array( 'ecp1_fullcalendar_script' ) );
+				wp_enqueue_script( 'ecp1_calendar_provider-' . $provider );
+			}
+		}
 	}
 }
 
@@ -57,16 +69,20 @@ function ecp1_render_calendar( $calendar ) {
 	
 	$timezone = get_option( 'timezone_string' );	// Timezone events in this calendar occur in
 	if ( array_key_exists( 'ecp1_timezone', $calendar ) ) {
-		try {
-			$dtz = new DateTimeZone( $calendar['ecp1_timezone'] );
-			$offset = $dtz->getOffset( new DateTime( 'now' ) );
-			$offset = 'UTC' . ( $offset < 0 ? ' - ' : ' + ' ) . ( abs( $offset/3600 ) );
-			$name = str_replace( '_', ' ', str_replace( '/', '-&gt;', $dtz->getName() ) );
-			$timezone = sprintf ( '%s (%s)', $name, $offset );
-		} catch( Exception $tzmiss ) {
-			// not a valid timezone
-			$timezone = __( 'Unknown' );
-		}				
+		// Only use the name if NOT WordPress Default
+		if ( '_' != $calendar['ecp1_timezone'] ) {
+			try {
+				$dtz = new DateTimeZone( $calendar['ecp1_timezone'] );
+				$offset = $dtz->getOffset( new DateTime( 'now' ) );
+				$offset = 'UTC' . ( $offset < 0 ? ' - ' : ' + ' ) . ( abs( $offset/3600 ) );
+				$ex = explode( '/', $dtz->getName() );
+				$name = str_replace( '_', ' ', ( isset( $ex[2] ) ? $ex[2] : $ex[1] ) ); // Continent/Country/City
+				$timezone = sprintf ( '%s (%s)', $name, $offset );
+			} catch( Exception $tzmiss ) {
+				// not a valid timezone
+				$timezone = __( 'Unknown' );
+			}
+		}
 	} elseif ( $timezone == null ) {
 		$timezone = 'UTC';
 	}
@@ -77,21 +93,35 @@ function ecp1_render_calendar( $calendar ) {
 		$default_view = $calendar['ecp1_default_view'];
 	}
 	
+	// If the calendar has an external URL and they're enabled use it
+	// otherwise by default will request events on this particular calendar
+	$events_url = '/todo/noevents-here.php'; // TODO: Make this specific to calendar
+	if ( array_key_exists( 'ecp1_external_url', $calendar ) && _ecp1_get_option( 'use_external_cals' ) ) {
+		if ( '' != $calendar['ecp1_external_url'] ) { // a url has been given
+			$events_url = $calendar['ecp1_external_url'];
+		}
+	}
+	
 	// Register a hook to print the static JS to load FullCalendar on #ecp1_calendar
 	add_action( 'wp_print_footer_scripts', 'ecp1_print_fullcalendar_load' );
 	
 	// Now build the actual JS that will be loaded
 	// TODO: Add eventClick function
+	// TODO: Event Colors + Featured Events Source
 	// TODO: Add Event Sources
+	// TODO: Add currentTimezone to events hash
 	$_ecp1_dynamic_calendar_script = <<<ENDOFSCRIPT
 jQuery(document).ready(function($) {
 	// $() will work as an alias for jQuery() inside of this function
 	$('#ecp1_calendar div.fullcal').empty().fullCalendar({
-		header: { left: 'prev next today', center: 'title', right: 'month agendaWeek agendaDay' },
+		header: { left: 'prev,next today', center: 'title', right: 'month,agendaWeek,agendaDay' },
 		timeFormat: { agenda: 'h:mmtt( - h:mmtt	)', '': 'h(:mm)tt' },
 		weekends: true,
 		defaultView: '$default_view',
-		allDaySlot: false
+		allDaySlot: false,
+		events: {
+			url: '$events_url'
+		}
 	});
 });
 ENDOFSCRIPT;

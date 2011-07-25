@@ -12,8 +12,10 @@ require_once( ECP1_DIR . '/includes/data/ecp1-settings.php' );
 // An array of meta field names and default values
 $ecp1_calendar_fields = array( 
 	'ecp1_description' => array( '', ''), // value, default
-	'ecp1_external_url' => array( '', 'N/A'),
+	'ecp1_external_url' => array( '', ''),
 	'ecp1_timezone' => array( '', '_'),
+	'ecp1_first_day' => array( '', -1 ),
+	'ecp1_default_view' => array( '', 'month' ),
 );
 
 // Function to parse the custom post fields into the fields above
@@ -118,6 +120,8 @@ function ecp1_calendar_meta_form() {
 	$ecp1_desc = _ecp1_calendar_meta_is_default( 'ecp1_description' ) ? '' : htmlspecialchars( $ecp1_calendar_fields['ecp1_description'][0] );
 	$ecp1_url = _ecp1_calendar_meta_is_default( 'ecp1_external_url' ) ? '' : urldecode( $ecp1_calendar_fields['ecp1_external_url'][0] );
 	$ecp1_tz = _ecp1_calendar_meta_is_default( 'ecp1_timezone' ) ? '_' : $ecp1_calendar_fields['ecp1_timezone'][0];
+	$ecp1_defview = _ecp1_calendar_meta_is_default( 'ecp1_default_view' ) ? '' : $ecp1_calendar_fields['ecp1_default_view'][0];
+	$ecp1_first_day = _ecp1_calendar_meta_is_default( 'ecp1_first_day' ) ? '' : $ecp1_calendar_fields['ecp1_first_day'][0];
 	
 	// Output the meta box with a custom nonce
 ?>
@@ -128,10 +132,17 @@ function ecp1_calendar_meta_form() {
 				<th scope="row"><label for="ecp1_description"><?php _e( 'Description' ); ?></label></th>
 				<td><textarea id="ecp1_description" name="ecp1_description" class="ecp1_big"><?php echo $ecp1_desc; ?></textarea></td>
 			</tr>
+<?php
+	// Check if external calendars are enabled
+	if ( _ecp1_get_option( 'use_external_cals' ) ) {
+?>
 			<tr valign="top">
 				<th scope="row"><label for="ecp1_external_url"><?php _e( 'External URL' ); ?></label></th>
 				<td><input id="ecp1_external_url" name="ecp1_external_url" type="text" class="ecp1_url" value="<?php echo $ecp1_url; ?>" /></td>
 			</tr>
+<?php
+	}
+?>
 			<tr valign="top">
 				<th scope="row"><label for="ecp1_timezone"><?php _e( 'Timezone' ); ?></label></th>
 				<td>
@@ -142,6 +153,29 @@ function ecp1_calendar_meta_form() {
 	if ( ! is_null( $disabled_str ) )
 		printf( '<em>%s</em>', __( 'Every Calendar +1 settings prevent change: WordPress TZ will be used.' ) );
 ?>
+				</td>
+			</tr>
+			<tr valign="top">
+				<th scope="row"><label for="ecp1_default_view"><?php _e( 'Default View' ); ?></label></th>
+				<td>
+					<input id="ecp1_default_view-month" name="ecp1_default_view" value="month" <?php checked( 'month', $ecp1_defview ); ?>/><label for="ecp1_default_view-month"><?php _e( 'Month' ); ?></label>
+					<input id="ecp1_default_view-week" name="ecp1_default_view" value="week" <?php checked( 'week', $ecp1_defview ); ?>/><label for="ecp1_default_view-week"><?php _e( 'Week' ); ?></label>
+					<input id="ecp1_default_view-day" name="ecp1_default_view" value="day" <?php checked( 'day', $ecp1_defview ); ?>/><label for="ecp1_default_view-day"><?php _e( 'Day' ); ?></label><br/>
+					<label for="ecp1_first_day"><?php _e( 'First day of the week:' ); ?></label><select id="ecp1_first_day" name="ecp1_first_day"><option value="-1"><?php _e( 'WordPress Default' );?></option>
+<?php
+	// Loop over the days of the week
+	foreach( array(
+		0 => __( 'Sunday' ),
+		1 => __( 'Monday' ),
+		2 => __( 'Tuesday' ),
+		3 => __( 'Wednesday' ),
+		4 => __( 'Thursday' ),
+		5 => __( 'Friday' ),
+		6 => __( 'Saturday' ) ) as $id=>$day ) {
+		printf( '<option value="%s"%s>%s</option>', $id, $id == $ecp1_first_day ? ' selected="selected"' : '', $day );
+		}
+?>
+					</select>
 				</td>
 			</tr>
 		</table>

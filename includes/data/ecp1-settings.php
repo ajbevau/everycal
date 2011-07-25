@@ -25,6 +25,13 @@ $_ecp1_settings = array(
 	
 	// Allow calendars to change the timezone they're for from WordPress: default true
 	'tz_change' => array( 'default' => 1 ),
+	
+	// 3rd party / external calendar plugins for Full Calendar
+	'use_external_cals' => array( 'default' => 1 ),
+	
+	// Which External Providers should be used (comma separated list)
+	// List should come from the External Calendar Providers array
+	'_external_cal_providers' => array( 'default' => 'google' ),
 
 );
 
@@ -81,6 +88,22 @@ function _ecp1_option_get_default( $key ) {
 	if ( ! array_key_exists( $key, $_ecp1_settings ) )
 		return null;
 	return $_ecp1_settings[$key]['default'];
+}
+
+// Returns true or false if the given external calendar provider is enabled
+function _ecp1_calendar_provider_enabled( $provider ) {
+	$option = _ecp1_get_option( 'use_external_cals' );
+	if ( $option ) {
+		$option = _ecp1_get_option( '_external_cal_providers' );
+		$providers = explode( ',', $option );
+		return in_array( $provider, $providers );
+	}
+	return false;
+}
+
+// Returns true or false if the given calendar post id should display featured events
+function _ecp1_calendar_show_featured( $post_id ) {
+	return false; // TODO
 }
 
 // Creates an HTML select of all timezones 

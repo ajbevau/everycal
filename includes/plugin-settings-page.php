@@ -9,6 +9,9 @@ require( ECP1_DIR . '/includes/check-ecp1-defined.php' );
 // Load the maps interface so we know which map implementations exist
 require_once( ECP1_DIR . '/includes/map-providers.php' );
 
+// Load the external calendars interface so we know which ones exist
+require_once( ECP1_DIR . '/includes/external-calendar-providers.php' );
+
 // Load the plugin settings and helper functions
 require_once( ECP1_DIR . '/includes/data/ecp1-settings.php' );
 
@@ -41,6 +44,13 @@ function ecp1_render_options_page() {
 			<?php $options = _ecp1_get_options(); ?>
 			<table class="form-table">
 				<tr valign="top">
+				<tr valign="top">
+					<th scope="row"><?php _e( 'Allow Timezone Changes' ); ?></th>
+					<td>
+						<input id="<?php echo ECP1_GLOBAL_OPTIONS; ?>[tz_change]" name="<?php echo ECP1_GLOBAL_OPTIONS; ?>[tz_change]" type="checkbox" value="1" <?php checked( '1', $options['tz_change'] ); ?> />
+						<em><?php _e( 'Note: by default calendars will use the WordPress Timezone setting.' ); ?></em>
+					</td>
+				</tr>
 					<th scope="row"><?php _e( 'Enable Maps / Provider' ); ?></th>
 					<td>
 						<input id="<?php echo ECP1_GLOBAL_OPTIONS; ?>[use_maps]" name="<?php echo ECP1_GLOBAL_OPTIONS; ?>[use_maps]" type="checkbox" value="1" <?php checked( '1', $options['use_maps'] ); ?> />
@@ -54,11 +64,28 @@ function ecp1_render_options_page() {
 						</select>
 					</td>
 				</tr>
-				<tr valign="top">
-					<th scope="row"><?php _e( 'Allow Timezone Changes' ); ?></th>
+					<th scope="row"><?php _e( 'Enable External Calendar Providers' ); ?></th>
 					<td>
-						<input id="<?php echo ECP1_GLOBAL_OPTIONS; ?>[tz_change]" name="<?php echo ECP1_GLOBAL_OPTIONS; ?>[tz_change]" type="checkbox" value="1" <?php checked( '1', $options['tz_change'] ); ?> />
-						<em><?php _e( 'Note: by default calendars will use the WordPress Timezone setting.' ); ?></em>
+<?php
+	// For each provider display a checkbox do rows of 3
+	$cal_providers = ecp1_calendar_providers();
+	$display_counter = 0;
+	foreach( $cal_providers as $name=>$details ) {
+		if ( 0 == $display_counter)
+			printf( '<div class="ecp1_checkbox_row">' );
+?>
+		<span class="ecp1_checkbox_block">
+			<input id="<?php printf( '%s[cal_providers][%s]', ECP1_GLOBAL_OPTIONS, $name ); ?>" name="<?php printf( '%s[cal_providers][%s]', ECP1_GLOBAL_OPTIONS, $name ); ?>" type="checkbox" value="<?php printf( '%s[cal_providers][%s]', ECP1_GLOBAL_OPTIONS, $name ); ?>"<?php echo _ecp1_calendar_provider_enabled( $name ) ? ' checked="checked' : '' ?> />
+			<label for="<?php printf( '%s[cal_providers][%s]', ECP1_GLOBAL_OPTIONS, $name ); ?>"><?php echo $details['name']; ?></label>
+		</span>
+<?php
+		$display_counter += 1;
+		if ( 2 == $display_counter) { // i.e. 3 displayed
+			printf( '</div>' );
+			$display_counter = 0;
+		}
+	}
+?>
 					</td>
 				</tr>
 			</table>
@@ -93,6 +120,15 @@ function ecp1_validate_options_page( $input ) {
 			$input[$key] = 0;
 		}
 	}
+	
+	// Rebuild the _external_cal_providers CSV list from the checkboxes
+	$external_providers = '';
+	$cal_providers = ecp1_calendar_providers();
+	foreach( $cal_providers as $name=>$details ){
+		if ( isset( $input['cal_provider'][$name] ) )
+			$external_providers .= $name . ',';
+	}
+	$input['_external_cal_providers'] = trim( $external_providers, ',' );
 	
 	// Return the sanitized array
 	return $input;
