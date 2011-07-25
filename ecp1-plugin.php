@@ -42,6 +42,7 @@ if ( is_admin() ) {
 	include_once( ECP1_DIR . '/ui/client-enqueueing.php' );
 
 	// If the event/calendar is requested directly render it
+	include_once( ECP1_DIR . '/ui/client-render.php' );
 	include_once( ECP1_DIR . '/ui/calendar-post.php' );
 	include_once( ECP1_DIR . '/ui/event-post.php' );
 
