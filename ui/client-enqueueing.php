@@ -21,12 +21,14 @@ function ecp1_add_client_scripts() {
 		// Register the FullCalendar scripts and styles
 		wp_register_style( 'ecp1_fullcalendar_style_all', plugins_url( '/fullcalendar/fullcalendar.css', dirname( __FILE__ ) ), false, false, 'all' );
 		wp_register_style( 'ecp1_fullcalendar_style_print', plugins_url( '/fullcalendar/fullcalendar.print.css', dirname( __FILE__ ) ), false, array( 'ecp1_fullcalendar_style_all' ), 'print' );
+		wp_register_style( 'ecp1_client_style', plugins_url( '/css/ecp1-client.css', dirname( __FILE__ ) ), false, array( 'ecp1_fullcalendar_style_all' ), 'all' );
 		wp_register_script( 'ecp1_fullcalendar_script', plugins_url( '/fullcalendar/fullcalendar.js', dirname( __FILE__ ) ), array( 'jquery' ) );
 		// TODO: Register the minified version of the script
 		
 		// Enqueue the registered scripts and styles
 		wp_enqueue_style( 'ecp1_fullcalendar_style_all' );
 		wp_enqueue_style( 'ecp1_fullcalendar_style_print' );
+		wp_enqueue_style( 'ecp1_client_style' );
 		wp_enqueue_script( 'ecp1_fullcalendar_script' );
 	}
 }
@@ -84,11 +86,11 @@ function ecp1_render_calendar( $calendar ) {
 	$_ecp1_dynamic_calendar_script = <<<ENDOFSCRIPT
 jQuery(document).ready(function($) {
 	// $() will work as an alias for jQuery() inside of this function
-	$('#ecp1_calendar').empty().fullCalendar({
+	$('#ecp1_calendar div.fullcal').empty().fullCalendar({
 		header: { left: 'prev next today', center: 'title', right: 'month agendaWeek agendaDay' },
 		timeFormat: { agenda: 'h:mmtt( - h:mmtt	)', '': 'h(:mm)tt' },
 		weekends: true,
-		defaultView: $default_view,
+		defaultView: '$default_view',
 		allDaySlot: false
 	});
 });
@@ -97,7 +99,7 @@ ENDOFSCRIPT;
 	// Now return HTML that the above script will use
 	$description = '' != $description ? '<p><strong>' . $description . '</strong></p>' : '';
 	$timezone = '<p><em>Events occur at ' . $timezone . ' local time.</em></p>';
-	return sprintf( '<div id="ecp1_calendar">%s%s%s</div>', $description, __( 'Loading...' ), $timezone );
+	return sprintf( '<div id="ecp1_calendar">%s<div class="fullcal">%s</div>%s</div>', $description, __( 'Loading...' ), $timezone );
 }
 
 // Function to print the dynamic load script 
