@@ -3,6 +3,9 @@
 .swp
 __MACOSX/
 
+# Ignore the Windows Thumbs.db
+Thumbs.db
+
 # Don't check in ba(c)k(up) files
 .bak
 .old
