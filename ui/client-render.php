@@ -137,7 +137,11 @@ function ecp1_render_event( $event ) {
 	// Then there is no useful information in the time fields so don't display them
 	if ( 'Y' == $event['ecp1_full_day'] && '0001' == date( 'Hi', $event['ecp1_start_ts'] ) && '2359' == date( 'Hi', $event['ecp1_end_ts'] ) )
 		$datef = get_option( 'date_format' );
-	$ecp1_time = sprintf( '%s - %s %s', date( $datef, $event['ecp1_start_ts'] ), 
+	// If the dates are the same and full day just say that
+	if ( 'Y' == $event['ecp1_full_day'] && date( 'Ymj', $event['ecp1_start_ts'] ) == date( 'Ymj', $event['ecp1_end_ts' ] ) )
+		$ecp1_time = sprintf( '%s %s', date( $datef, $event['ecp1_start_ts'] ), __( '(all day)' ) );
+	else 
+		$ecp1_time = sprintf( '%s - %s %s', date( $datef, $event['ecp1_start_ts'] ), 
 					date( $datef, $event['ecp1_end_ts'] ), 'Y' == $event['ecp1_full_day'] ? __( '(all day)' ) : '' );
 	
 	// String placeholder for the summary text
