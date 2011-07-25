@@ -128,6 +128,7 @@ function ecp1_render_event( $event ) {
 	$pwhen = __( 'When' );
 	$pwhere = __( 'Where' );
 	$psummary = __( 'Quick Info' );
+	$pdetail = __( 'Details' );
 	
 	// String placeholder for the time this event runs for
 	$ecp1_time = 'start - end';
@@ -176,8 +177,8 @@ ENDOFSCRIPT;
 				$ecp1_map_placeholder
 			</span></li>
 		<li><span class="ecp1_event-title"><strong>$psummary:</strong></span><span class="ecp1_event-text_wide">$ecp1_summary</span></li>
+		<li><span class="ecp1_event-title"><strong>$pdetails:</strong></span><span class="ecp1_event-text_wide">$ecp1_info</span></li>
 	</ul>
-	<div class="ecp1_event-description">$ecp1_info</div>
 </div>
 ENDOFHTML;
 
