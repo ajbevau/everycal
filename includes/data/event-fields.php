@@ -224,7 +224,7 @@ function _ecp1_time_select_trio( $base_key, $select_value_ts ) {
 	
 	$outstr = sprintf( '<select id="%s-hour" name="%s-hour"><option value=""></option>', $base_key, $base_key );
 	for( $i=1; $i<=12; $i++ )
-		$outstr .= sprintf( '<option value="%s"%s">%s</option>', $i, $i == $select_hours ? ' selected="selected"' : '', $i );
+		$outstr .= sprintf( '<option value="%s"%s>%s</option>', $i, $i == $select_hours ? ' selected="selected"' : '', $i );
 	$outstr .= sprintf( '</select><select id="%s-min" name="%s-min"><option value=""></option>', $base_key, $base_key );
 	for( $i=0; $i<=59; $i++ ) {
 		$display_i = $i < 10 ? '0' . $i : $i;
