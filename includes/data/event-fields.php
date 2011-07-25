@@ -82,32 +82,40 @@ function ecp1_event_custom_columns( $column ) {
 	switch ( $column ) {
 		
 		case 'ecp1_dates':
-			$allday = $ecp1_event_fields['ecp1_full_day'];
-			$start = $ecp1_event_fields['ecp1_start_ts'];
-			$end = $ecp1_event_fields['ecp1_end_ts'];
-			$outstr = sprintf( '<strong>%s:</strong> %s', __( 'Start' ), date( $datef, $start ) ) );
-			if ( 'N' == $allday ) {
-				$outstr .= sprintf( ' %s<br/>', date( $timef, $start ) );
-				$outstr .= sprintf( '<strong>%s:</strong> %s %s', __( 'End' ), date( $datef . ' ' . $timef, $end ) );
+			$allday = $ecp1_event_fields['ecp1_full_day'][0];
+			$start = $ecp1_event_fields['ecp1_start_ts'][0];
+			$end = $ecp1_event_fields['ecp1_end_ts'][0];
+			if ( '' != $start && is_numeric( $start ) ) {
+				$outstr = sprintf( '<strong>%s:</strong> %s', __( 'Start' ), date( $datef, $start ) );
+				if ( 'N' == $allday ) {
+					$outstr .= sprintf( ' %s<br/>', date( $timef, $start ) );
+					if ( '' != $end && is_numeric( $end ) ) {
+						$outstr .= sprintf( '<strong>%s:</strong> %s', __( 'End' ), date( $datef . ' ' . $timef, $end ) );
+					} else {
+						$outstr .= __( 'No end date given.' );
+					}
+				} else {
+					$outstr .= sprintf( '<br/>%s', __( 'Running all day' ) );
+				}
 			} else {
-				$outstr .= sprintf( '<br/>%s', __( 'Running all day' ) );
+				$outstr = __( 'No start date given.' );
 			}
 			
 			printf( $outstr );
 			break;
 		
 		case 'ecp1_location':
-			$outstr = htmlspecialchars( $ecp1_event_fields['ecp1_location'] );
+			$outstr = htmlspecialchars( $ecp1_event_fields['ecp1_location'][0] );
 			if ( ! _ecp1_event_meta_is_default( 'ecp1_coord_lat' ) || ! _ecp1_event_meta_is_default( 'ecp1_coord_lng' ) ) {
-				$outstr .= sprintf('<br/><em>%s:</em> %s', __( 'Lat' ), $ecp1_event_fields['ecp1_coord_lat'] );
-				$outstr .= sprintf('<br/><em>%s:</em> %s', __( 'Long' ), $ecp1_event_fields['ecp1_coord_lng'] );
+				$outstr .= sprintf('<br/><em>%s:</em> %s', __( 'Lat' ), $ecp1_event_fields['ecp1_coord_lat'][0] );
+				$outstr .= sprintf('<br/><em>%s:</em> %s', __( 'Long' ), $ecp1_event_fields['ecp1_coord_lng'][0] );
 			}
 			
 			printf( $outstr );
 			break;
 		
 		case 'ecp1_summary':
-			printf( '%s', htmlspecialchars( $ecp1_event_fields['ecp1_summary'] ) );
+			printf( '%s', htmlspecialchars( $ecp1_event_fields['ecp1_summary'][0] ) );
 			break;
 		
 	}
@@ -216,7 +224,7 @@ function _ecp1_time_select_trio( $base_key, $select_value_ts ) {
 	
 	$outstr = sprintf( '<select id="%s-hour" name="%s-hour"><option value=""></option>', $base_key, $base_key );
 	for( $i=1; $i<=12; $i++ )
-		$outstr .= sprintf( '<option value="%s"%s">%s</option>', $i, $i == $select_hours ? ' selected="selected"' : '', $i )
+		$outstr .= sprintf( '<option value="%s"%s">%s</option>', $i, $i == $select_hours ? ' selected="selected"' : '', $i );
 	$outstr .= sprintf( '</select><select id="%s-min" name="%s-min"><option value=""></option>', $base_key, $base_key );
 	for( $i=0; $i<=59; $i++ ) {
 		$display_i = $i < 10 ? '0' . $i : $i;
