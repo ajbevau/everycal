@@ -136,14 +136,14 @@ function ecp1_render_event( $event ) {
 	$ecp1_summary = isset( $event['ecp1_summary'] ) ? $event['ecp1_summary'] : '';
 	
 	// String placeholders for the location and map coords if enabled
-	$ecp1_location = isset( $event['ecp1_localtion'] ) ? $event['ecp1_location'] : '';
+	$ecp1_location = isset( $event['ecp1_location'] ) ? $event['ecp1_location'] : '';
 	$ecp1_map_placeholder = '';
 	if ( _ecp1_get_option('use_maps') ) {
 		$ecp1_map_placeholder = '<div id="ecp1_event_map">Loading map...</div>';
 		$_ecp1_dynamic_event_script = <<<ENDOFSCRIPT
 jQuery(document).ready(function($) {
 	// $() will work as an alias for jQuery() inside of this function
-	$('#ecp1_event #ecp1_event_map').append('<p>DYNAMIC</p>');
+	$('#ecp1_event #ecp1_event_map').append('<div>DYNAMIC</div>');
 });
 ENDOFSCRIPT;
 	}
@@ -157,13 +157,13 @@ ENDOFSCRIPT;
 	$ecp1_url = isset( $event['ecp1_url'] ) && '' != $event['ecp1_description'] ? urldecode( $event['ecp1_url'] ) : null;
 	if ( ! is_null( $ecp1_desc ) && ! is_null( $ecp1_url ) ) {
 		// Both given so render as description<br/>Read more...
-		$ecp1_info = sprintf( '<p>%s</p><p><a href="%s" target="_blank">%s</a></p>', $ecp1_desc, $ecp1_url, __( 'Read more ...' ) );
+		$ecp1_info = sprintf( '<div>%s</div><div><a href="%s" target="_blank">%s</a></div>', $ecp1_desc, $ecp1_url, __( 'Read more ...' ) );
 	} elseif ( ! is_null( $ecp1_desc ) ) {
 		// Only a description
-		$ecp1_info = sprintf( '<p>%s</p>', $ecp1_desc );
+		$ecp1_info = sprintf( '<div>%s</div>', $ecp1_desc );
 	} elseif ( ! is_null( $ecp1_url ) ) {
 		// Only a URL
-		$ecp1_info = sprintf( '<p><a href="%s" target="_blank">%s</a></p>', $ecp1_url, __( 'Read more...' ) );
+		$ecp1_info = sprintf( '<div><a href="%s" target="_blank">%s</a></div>', $ecp1_url, __( 'Read more...' ) );
 	} // else: leave as empty string summary must be enough
 	
 	$outstr = <<<ENDOFHTML
@@ -172,7 +172,7 @@ ENDOFSCRIPT;
 		<li><span class="ecp1_event-title"><strong>$pwhen:</strong></span><span class="ecp1_event-text">$ecp1_time</span></li>
 		<li><span class="ecp1_event-title"><strong>$pwhere:</strong></span>
 			<span class="ecp1_event-text">
-				<div>$ecp1_location</div>
+				<div id="ecp1_event_location">$ecp1_location</div>
 				$ecp1_map_placeholder
 			</span></li>
 		<li><span class="ecp1_event-title"><strong>$psummary:</strong></span><span class="ecp1_event-text_wide">$ecp1_summary</span></li>
