@@ -1,9 +1,10 @@
 /* Every Calendar +1 Admin Styling */
 div.ecp1_meta input.ecp1_url {width:70%;}
+div.ecp1_meta input.ecp1_w100 {width:95%;}
 div.ecp1_meta textarea.ecp1_sml {width:70%;height:25px;}
 div.ecp1_meta textarea.ecp1_med {width:70%;height:50px;}
 div.ecp1_meta textarea.ecp1_big {width:70%;height:100px;}
-div.ecp1_meta select#ecp1_timezone {width:30%;}
+div.ecp1_meta select.ecp1_select {width:30%;}
 div.ecp1_meta select#ecp1_timezone option, div.ecp1_meta select#ecp1_timezone optgroup {padding:0.1em}
 div.ecp1_meta select#ecp1_timezone optgroup option {padding:0.1em 1.8em;}
 span.ecp1_checkbox_block {display:inline-block;width:30%;}

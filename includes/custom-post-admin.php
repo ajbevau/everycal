@@ -14,7 +14,17 @@ function ecp1_enqueue_admin_css() {
 // Now for the JS
 function ecp1_enqueue_admin_js() {
 	wp_enqueue_script( 'jquery' );
-	//wp_enqueue_script( 'jquery-ui' );
+}
+// Specialised function for jQuery Date Picker
+function ecp1_enqueue_datepicker() {
+	wp_register_style( 'ecp1_jquery-ui-datepicker_style', plugins_url( '/jquery-ui/datepicker.css', dirname( __FILE__ ) ) );
+	wp_enqueue_style( 'ecp1_jquery_ui_datepicker_style' );
+
+	wp_register_script( 'ecp1_jquery-ui-datepicker_script', plugins_url( '/jquery-ui/datepicker.min.js', dirname( __FILE__ ) ), array( 'jquery-ui-core' ) );
+	wp_register_script( 'ecp1_event_datepicker_script', plugins_url( '/js/datepicker.js', dirname( __FILE__ ) ), array( 'ecp1_jquery-ui-datepicker_script' ) );
+	wp_enqueue_script( 'jquery-ui-core' );
+	wp_enqueue_script( 'ecp1_jquery_ui_datepicker_script' );
+	wp_enqueue_script( 'ecp1_event_datepicker_script' );
 }
 
 // Add the CSS
@@ -32,6 +42,9 @@ function ecp1_add_admin_scripts() {
 	global $post_type;
 	if ( 'ecp1_calendar' == $post_type || 'ecp1_event' == $post_type ) {
 		ecp1_enqueue_admin_js();
+	}
+	if ( 'ecp1_event' == $post_type ) {
+		ecp1_enqueue_datepicker();
 	}
 }
 

@@ -20,7 +20,7 @@ function ecp1_add_client_scripts() {
 	if ( is_single() || is_page() ) {
 		// jQuery and jQuery UI first as they're required by FullCalendar
 		wp_enqueue_script( 'jquery' );
-		//wp_enqueue_script( 'jquery-ui' );
+		//wp_enqueue_script( 'jquery-ui-core' );
 		
 		// Register the FullCalendar scripts and styles
 		wp_register_style( 'ecp1_fullcalendar_style_all', plugins_url( '/fullcalendar/fullcalendar.css', dirname( __FILE__ ) ), false, false, 'all' );
