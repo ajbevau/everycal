@@ -87,17 +87,19 @@ function ecp1_event_custom_columns( $column ) {
 			$start = $ecp1_event_fields['ecp1_start_ts'][0];
 			$end = $ecp1_event_fields['ecp1_end_ts'][0];
 			if ( '' != $start && is_numeric( $start ) ) {
-				$outstr = sprintf( '<strong>%s:</strong> %s', __( 'Start' ), date( $datef, $start ) );
-				if ( 'N' == $allday ) {
-					$outstr .= sprintf( ' %s<br/>', date( $timef, $start ) );
-					if ( '' != $end && is_numeric( $end ) ) {
-						$outstr .= sprintf( '<strong>%s:</strong> %s', __( 'End' ), date( $datef . ' ' . $timef, $end ) );
-					} else {
-						$outstr .= __( 'No end date given.' );
-					}
+				// Output the start date
+				$outstr = sprintf( '<strong>%s:</strong> %s<br/>', __( 'Start' ), date( $datef . ' ' . $timef, $start ) );
+				
+				// If an end date was supplied use it
+				if ( '' != $end && is_numeric( $end ) ) {
+					$outstr .= sprintf( '<strong>%s:</strong> %s', __( 'End' ), date( $datef . ' ' . $timef, $end ) );
 				} else {
-					$outstr .= sprintf( '<br/>%s', __( 'Running all day' ) );
+					$outstr .= __( 'No end date given.' );
 				}
+				
+				// Note that this event runs all day if it does
+				if ( 'Y' == $allday )
+					$outstr .= sprintf( '<br/>%s', __( 'Running all day' ) );
 			} else {
 				$outstr = __( 'No start date given.' );
 			}
@@ -134,9 +136,10 @@ function ecp1_event_meta_form() {
 	
 	// Sanitize and do security checks
 	$ecp1_summary = _ecp1_event_meta_is_default( 'ecp1_summary' ) ? '' : htmlspecialchars( $ecp1_event_fields['ecp1_summary'][0] );
+	$ecp1_url = _ecp1_event_meta_is_default( 'ecp1_url' ) ? '' : urldecode( $ecp1_event_fields['ecp1_url'][0] );
 	$ecp1_description = _ecp1_event_meta_is_default( 'ecp1_description' ) ? '' : htmlspecialchars( $ecp1_event_fields['ecp1_description'][0] );
 	$ecp1_calendar = _ecp1_event_meta_is_default( 'ecp1_calendar' ) ? '-1' : $ecp1_event_fields['ecp1_calendar'][0];
-	$ecp1_full_day = _ecp1_event_meta_is_default( 'ecp1_full_day' ) ? 'N' : $ecp1_event_fields['ecp1_summary'][0];
+	$ecp1_full_day = _ecp1_event_meta_is_default( 'ecp1_full_day' ) ? 'N' : $ecp1_event_fields['ecp1_full_day'][0];
 	$ecp1_start_date = _ecp1_event_meta_is_default( 'ecp1_start_ts' ) ? '' : date( 'Y-m-d', $ecp1_event_fields['ecp1_start_ts'][0] );
 	$ecp1_start_time = _ecp1_event_meta_is_default( 'ecp1_start_ts' ) ? '' : $ecp1_event_fields['ecp1_start_ts'][0];
 	$ecp1_end_date = _ecp1_event_meta_is_default( 'ecp1_end_ts' ) ? '' : date( 'Y-m-d', $ecp1_event_fields['ecp1_end_ts'][0] );
@@ -258,7 +261,7 @@ function ecp1_event_save() {
 	// Escape any nasty in the summary (it's meant to be HTML free)
 	$ecp1_summary = $ecp1_event_fields['ecp1_summary'][1];
 	if ( isset( $_POST['ecp1_summary'] ) )
-		$ecp1_summary = strip_tags( $_POST['summary'] );
+		$ecp1_summary = strip_tags( $_POST['ecp1_summary'] );
 	
 	// URL Encode the external URL
 	$ecp1_url = $ecp1_event_fields['ecp1_url'][1];
@@ -283,7 +286,7 @@ function ecp1_event_save() {
 		$ds = date_create( $_POST['ecp1_start_date'] );
 		if ( FALSE === $ds ) 
 			return $post->ID;
-		date_set_time( $ds, 0, 0 ); // set to midnight if time not given
+		date_time_set( $ds, 0, 1 ); // set to just after midnight if time not given
 		
 		// Do we have times?
 		if ( isset( $_POST['ecp1_start_time-hour'] ) && isset( $_POST['ecp1_start_time-min'] ) && 
@@ -310,7 +313,7 @@ function ecp1_event_save() {
 		$ds = date_create( $_POST['ecp1_end_date'] );
 		if ( FALSE === $ds ) 
 			return $post->ID;
-		date_set_time( $ds, 23, 59 ); // set to just before midnight if time not given
+		date_time_set( $ds, 23, 59 ); // set to just before midnight if time not given
 		
 		// Do we have times?
 		if ( isset( $_POST['ecp1_end_time-hour'] ) && isset( $_POST['ecp1_end_time-min'] ) && 

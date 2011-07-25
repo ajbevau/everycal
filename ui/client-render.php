@@ -113,19 +113,21 @@ function ecp1_print_fullcalendar_load() {
 
 // Function that will return the necessary HTML blocks and queue some static
 // JS for the document load event to render an event post page
-function ecp1_render_calendar( $event ) {
+function ecp1_render_event( $event ) {
 	global $_ecp1_dynamic_event_script;
 	
 	// Make sure the event provided is valid
 	if ( ! is_array( $event ) )
 		return sprintf( '<div id="ecp1_event" class="ecp1_error">%s</div>', __( 'Invalid event cannot display.' ) );
 	
+	// Register a hook to print the static JS to load FullCalendar on #ecp1_calendar
+	add_action( 'wp_print_footer_scripts', 'ecp1_print_event_load' );
+	
 	// Extract the event fields or go to defaults
-	$p = array(	// placeholder array for i18n titles
-		'when' => __( 'When' ),
-		'where' => __( 'Where' ),
-		'summary' => __( 'Quick Info' ),
-	);
+	// $p variables are placeholders for the i18n titles
+	$pwhen = __( 'When' );
+	$pwhere = __( 'Where' );
+	$psummary = __( 'Quick Info' );
 	
 	// String placeholder for the time this event runs for
 	$ecp1_time = 'start - end';
@@ -144,6 +146,7 @@ jQuery(document).ready(function($) {
 	$('#ecp1_event #ecp1_event_map').append('<p>DYNAMIC</p>');
 });
 ENDOFSCRIPT;
+	}
 
 	// String placeholder for the event information (i.e. URL or Internal Description)
 	// Because we can do it here we'll support BOTH values but the onclick event for 
@@ -163,16 +166,16 @@ ENDOFSCRIPT;
 		$ecp1_info = sprintf( '<p><a href="%s" target="_blank">%s</a></p>', $ecp1_url, __( 'Read more...' ) );
 	} // else: leave as empty string summary must be enough
 	
-	$outstr <<<ENDOFHTML
+	$outstr = <<<ENDOFHTML
 <div id="ecp1_event">
 	<ul class="ecp1_event-details">
-		<li><strong>$p['when']:</strong> $ecp1_time</li>
-		<li><strong>$p['where']:</strong>
-			<span style="display:inline-block;">
-				$ecp1_location<br/>
+		<li><span class="ecp1_event-title"><strong>$p['when']:</strong></span><span class="ecp1_event-text">$ecp1_time</span></li>
+		<li><span class="ecp1_event-title"><strong>$p['where']:</strong></span>
+			<span class="ecp1_event-text">
+				<div>$ecp1_location</div>
 				$ecp1_map_placeholder
 			</span></li>
-		<li><strong>$p['summary']:</strong><br/>$ecp1_summary</li>
+		<li><span class="ecp1_event-title"><strong>$p['summary']:</strong></span><span class="ecp1_event-text_wide">$ecp1_summary</span></li>
 	</ul>
 	<div class="ecp1_event-description">$ecp1_info</div>
 </div>
