@@ -14,7 +14,11 @@ function ecp1_post_as_event( $content ) {
 	global $post;
 	if ( is_single() && 'ecp1_event' == $post->post_type ) {
 		// Only make the changes if this is a single post display of an ECP1 Event
-		$content = "<p>DISPLAY AN EVENT WITH DEFAULTS</p><p><pre>".print_r($post,true);"</pre></p>";
+		// Load the event object meta
+		$e = get_post_meta( $post->ID, 'ecp1_event', true );
+		
+		// Call the content generate function
+		$content = ecp1_render_event( $e );
 	}
 	return $content;
 }

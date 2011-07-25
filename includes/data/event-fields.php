@@ -22,6 +22,7 @@ $ecp1_event_fields = array(
 	'ecp1_coord_lat' => array( '', '' ),
 	'ecp1_coord_lng' => array( '', '' ),
 );
+// TODO: Add social media pages to 'like' etc...
 
 // Function to parse the custom post fields into the fields above
 function _ecp1_parse_event_custom() {
@@ -282,13 +283,15 @@ function ecp1_event_save() {
 		$ds = date_create( $_POST['ecp1_start_date'] );
 		if ( FALSE === $ds ) 
 			return $post->ID;
+		date_set_time( $ds, 0, 0 ); // set to midnight if time not given
 		
 		// Do we have times?
 		if ( isset( $_POST['ecp1_start_time-hour'] ) && isset( $_POST['ecp1_start_time-min'] ) && 
-				isset( $_POST['ecp1_start_time-ante'] ) && '' != $_POST['ecp1_start_time-hour'] && '' != $_POST['ecp1_start_time-min'] ) {
+				isset( $_POST['ecp1_start_time-ante'] ) && ( '' != $_POST['ecp1_start_time-hour'] || '' != $_POST['ecp1_start_time-min'] ) ) {
 			$meridiem = $_POST['ecp1_start_time-ante'];
-			$hours = 'AM' == $meridiem ? $_POST['ecp1_start_time-hour'] : 12 + $_POST['ecp1_start_time-hour'];
-			$mins = $_POST['ecp1_start_time-min'];
+			$hours = isset( $_POST['ecp1_start_time-hour'] ) ? $_POST['ecp1_start_time-hour'] : 0;
+			$hours = 'AM' == $meridiem ? $hours : 12 + $hours;
+			$mins = isset( $_POST['ecp1_start_time-min'] ) ? $_POST['ecp1_start_time-min'] : 0;
 			date_time_set( $ds, $hours, $mins );
 		}
 		
@@ -307,13 +310,15 @@ function ecp1_event_save() {
 		$ds = date_create( $_POST['ecp1_end_date'] );
 		if ( FALSE === $ds ) 
 			return $post->ID;
+		date_set_time( $ds, 23, 59 ); // set to just before midnight if time not given
 		
 		// Do we have times?
 		if ( isset( $_POST['ecp1_end_time-hour'] ) && isset( $_POST['ecp1_end_time-min'] ) && 
-				isset( $_POST['ecp1_end_time-ante'] ) && '' != $_POST['ecp1_end_time-hour'] && '' != $_POST['ecp1_end_time-min'] ) {
+				isset( $_POST['ecp1_end_time-ante'] ) && ( '' != $_POST['ecp1_end_time-hour'] || '' != $_POST['ecp1_end_time-min'] ) ) {
 			$meridiem = $_POST['ecp1_end_time-ante'];
-			$hours = 'AM' == $meridiem ? $_POST['ecp1_end_time-hour'] : 12 + $_POST['ecp1_end_time-hour'];
-			$mins = $_POST['ecp1_end_time-min'];
+			$hours = isset( $_POST['ecp1_end_time-hour'] ) ? $_POST['ecp1_end_time-hour'] : 0;
+			$hours = 'AM' == $meridiem ? $hours : 12 + $hours;
+			$mins = isset( $_POST['ecp1_end_time-min'] ) ? $_POST['ecp1_end_time-min'] : 0;
 			date_time_set( $ds, $hours, $mins );
 		}
 		
@@ -324,6 +329,10 @@ function ecp1_event_save() {
 		unset( $input['ecp1_end_time-min'] );
 		unset( $input['ecp1_end_time-ante'] );
 	}
+	
+	// If no times we're given then assume all day event
+	if ( _ecp1_event_no_time_given() )
+		$ecp1_full_day = 'Y';
 	
 	// Which calendar should this event go on?
 	// TODO: Make sure this is a LOCAL calendar
@@ -350,6 +359,21 @@ function ecp1_event_save() {
 	
 	// Save the post meta information
 	update_post_meta( $post->ID, 'ecp1_event', $save_fields );
+}
+
+// Returns true if NO time given on start and finish date
+function _ecp1_event_no_time_given() {
+	// this is ugly but it does the job
+	return (
+			(
+			( ! isset( $_POST['ecp1_start_time-hour'] ) && ! isset( $_POST['ecp1_start_time-min'] ) ) ||	// neither start given
+			( '' == $_POST['ecp1_start_time-hour'] && '' == $_POST['ecp1_start_time-min'] ) 				// or both blank
+			) && 																							// AND
+			(
+			( ! isset( $_POST['ecp1_end_time-hour'] ) && ! isset( $_POST['ecp1_end_time-min'] ) ) ||		// neither end given
+			( '' == $_POST['ecp1_end_time-hour'] && '' == $_POST['ecp1_end_time-min'] )						// or both blank
+			)
+		);
 }
 
 ?>
