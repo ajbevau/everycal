@@ -128,10 +128,17 @@ function ecp1_render_event( $event ) {
 	$pwhen = __( 'When' );
 	$pwhere = __( 'Where' );
 	$psummary = __( 'Quick Info' );
-	$pdetail = __( 'Details' );
+	$pdetails = __( 'Details' );
 	
 	// String placeholder for the time this event runs for
-	$ecp1_time = 'start - end';
+	// Use the default WordPress dateformat timeformat strings
+	$datef = get_option( 'date_format' ) . ' ' . get_option( 'time_format' );
+	// If this is an all day event and the time component is start=00:01 end=23:59 
+	// Then there is no useful information in the time fields so don't display them
+	if ( 'Y' == $event['ecp1_full_day'] && '0001' == date( 'Hi', $event['ecp1_start_ts'] ) && '2359' == date( 'Hi', $event['ecp1_end_ts'] ) )
+		$datef = get_option( 'date_format' );
+	$ecp1_time = sprintf( '%s - %s %s', date( $datef, $event['ecp1_start_ts'] ), 
+					date( $datef, $event['ecp1_end_ts'] ), 'Y' == $event['ecp1_full_day'] ? __( '(all day)' ) : '' );
 	
 	// String placeholder for the summary text
 	$ecp1_summary = isset( $event['ecp1_summary'] ) ? $event['ecp1_summary'] : '';
@@ -172,10 +179,7 @@ ENDOFSCRIPT;
 	<ul class="ecp1_event-details">
 		<li><span class="ecp1_event-title"><strong>$pwhen:</strong></span><span class="ecp1_event-text">$ecp1_time</span></li>
 		<li><span class="ecp1_event-title"><strong>$pwhere:</strong></span>
-			<span class="ecp1_event-text">
-				<div id="ecp1_event_location">$ecp1_location</div>
-				$ecp1_map_placeholder
-			</span></li>
+			<span class="ecp1_event-text"><div id="ecp1_event_location">$ecp1_location</div>$ecp1_map_placeholder</span></li>
 		<li><span class="ecp1_event-title"><strong>$psummary:</strong></span><span class="ecp1_event-text_wide">$ecp1_summary</span></li>
 		<li><span class="ecp1_event-title"><strong>$pdetails:</strong></span><span class="ecp1_event-text_wide">$ecp1_info</span></li>
 	</ul>
