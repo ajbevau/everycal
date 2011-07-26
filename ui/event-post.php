@@ -18,7 +18,7 @@ function ecp1_post_as_event( $content ) {
 	
 	// Only make the changes if this is a single post display of an ECP1 Event
 	if ( is_single() && 'ecp1_event' == $post->post_type ) {
-		_ecp1_event_parse_custom(); // load the event meta fields into $ecp1_event_fields
+		_ecp1_parse_event_custom(); // load the event meta fields into $ecp1_event_fields
 		$content = ecp1_render_event( $ecp1_event_fields ); // Call the render function
 	}
 	

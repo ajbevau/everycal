@@ -18,7 +18,7 @@ function ecp1_post_as_calendar( $content ) {
 	
 	// Only make the changes if this is a single post display of an ECP1 Calendar
 	if ( is_single() && 'ecp1_calendar' == $post->post_type ) {
-		_ecp1_calendar_parse_custom(); // Load the calendar object meta in $ecp1_calendar_fields
+		_ecp1_parse_calendar_custom(); // Load the calendar object meta in $ecp1_calendar_fields
 		$content = ecp1_render_calendar( $ecp1_calendar_fields ); // Call the render function
 	}
 	
