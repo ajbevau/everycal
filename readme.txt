@@ -24,6 +24,15 @@ To put a calendar onto one of your pages use the provided shortcode in the 'Cale
 
 == Frequently Asked Questions ==
 
+= How do I allow contributors/authors to add events to a (someone elses) calendar? ==
+
+Use a capability manager to assign user as a contributor role to the post and set the calendar contributor role to allow editing of published posts.
+
+In Role Scoper:
+1. Go to the calendar and assign the group or user to Contributors for this post
+2. Go to Role Scoper -> Options -> RS Role Definitions
+3. Assign Calendar Contributor the "Edit Published..." capability.
+
 = Why this plugin? =
 
 I wanted a WordPress calendar that did everything and I couldn't find one that did so I wrote my own.

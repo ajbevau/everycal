@@ -48,7 +48,6 @@ function ecp1_register_types() {
 		'public' => true,
 		'exclude_from_search' => true, # don't show events unless the plugin says to
 		'show_ui' => true,
-		#TODO: 'menu_icon' => get_bloginfo( 'plugin_url' ).'/img/cal_16.png',
 		'menu_position' => 30,
 		'capability_type' => 'post', # capabilities match posts
 		'supports' => array( 'title' ),
