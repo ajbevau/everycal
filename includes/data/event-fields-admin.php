@@ -14,7 +14,7 @@ require_once( ECP1_DIR . '/includes/data/event-fields.php' );
 add_filter( 'manage_edit-ecp1_event_columns', 'ecp1_event_edit_columns' );
 add_action( 'manage_posts_custom_column', 'ecp1_event_custom_columns' );
 add_action( 'admin_init', 'ecp1_event_meta_fields' );
-add_action( 'admin_print_footer_scripts', 'ecp1_event_wysiwyg_editor_script' );
+add_action( 'admin_enqueue_scripts', 'ecp1_event_wysiwyg_editor_script', 100, 1 );
 
 // Function that adds extra columns to the post type
 function ecp1_event_edit_columns( $columns ) {
@@ -83,7 +83,7 @@ function ecp1_event_custom_columns( $column ) {
 
 // Function that registers a meta form box on the ecp1_event create / edit page
 function ecp1_event_meta_fields() {
-	add_meta_box( 'ecp1_event_meta', 'Event Details', 'ecp1_event_meta_form', 'ecp1_event', 'advanced', 'high' );
+	add_meta_box( 'ecp1_event_meta', 'Event Details', 'ecp1_event_meta_form', 'ecp1_event', 'normal', 'high' );
 }
 
 // Function that generates a html section for adding inside a meta fields box
@@ -106,8 +106,6 @@ function ecp1_event_meta_form() {
 	
 	// Output the meta box with a custom nonce
 	// TODO: Make WYSIWYG editor for description
-	// DEBUG OUTPUT:
-	printf( '<pre>%s</pre>', print_r( $ecp1_event_fields, true ) );
 ?>
 	<input type="hidden" name="ecp1_event_nonce" id="ecp1_event_nonce" value="<?php echo wp_create_nonce( 'ecp1_event_nonce' ); ?>" />
 	<div class="ecp1_meta">
@@ -172,6 +170,8 @@ function ecp1_event_meta_form() {
 		</table>
 	</div>
 <?php
+	// DEBUG OUTPUT:
+	printf( '<pre>%s</pre>', print_r( $ecp1_event_fields, true ) );
 }
 
 // Returns a string of HH:MM:AM/PM select boxes for time entry
@@ -348,18 +348,12 @@ function _ecp1_event_no_time_given() {
 
 // Prints jQuery statements into the footer scripts to initialize
 // a WYSIWYG editor on the custom event description field
-function ecp1_event_wysiwyg_editor_script() {
-?>
-	<!-- Every Calendar +1 WYSIWYG Editor Init -->
-	<script type="text/javascript">/* <![CDATA[ */
-		jQuery(function($) {
-			if ( $('#ecp1_description').length ) {
-				var elemId = $('#ecp1_description').attr('id');
-				tinyMCE.execCommand('mceAddControl', false, elemId);
-			}
-		});
-	/* ]]> */</script>
-<?php
+function ecp1_event_wysiwyg_editor_script( $hook=null ) {
+	global $post_type;
+	if ( 'ecp1_event' == $post_type && in_array( $hook, array( 'edit.php', 'post-new.php' ) ) ) {
+		wp_register_script( 'ecp1_event_wysiwyg_script', plugin_url( '/js/tinymce.js', dirname( __FILE__ ) ), array( 'wp_tiny_mce' ), false, true );	
+		wp_enqueue_script( 'ecp1_event_wysiwyg_script' );
+	}
 }
 
 ?>

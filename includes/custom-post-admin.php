@@ -23,7 +23,7 @@ function ecp1_event_edit_libs() {
 	wp_register_script( 'ecp1_jquery-ui-datepicker_script', plugins_url( '/jquery-ui/datepicker.min.js', dirname( __FILE__ ) ), array( 'jquery-ui-core' ) );
 	wp_register_script( 'ecp1_event_datepicker_script', plugins_url( '/js/datepicker.js', dirname( __FILE__ ) ), array( 'ecp1_jquery-ui-datepicker_script' ) );
 	wp_enqueue_script( 'jquery-ui-core' );
-	wp_enqueue_script( 'tiny_mce' );
+	wp_enqueue_script( 'wp_tiny_mce' );
 	wp_enqueue_script( 'ecp1_jquery_ui_datepicker_script' );
 	wp_enqueue_script( 'ecp1_event_datepicker_script' );
 }

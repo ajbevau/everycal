@@ -70,7 +70,7 @@ function ecp1_calendar_custom_columns( $column ) {
 
 // Function that registers a meta form box on the ecp1_calendar create / edit page
 function ecp1_calendar_meta_fields() {
-	add_meta_box( 'ecp1_calendar_meta', 'Calendar Settings', 'ecp1_calendar_meta_form', 'ecp1_calendar', 'advanced', 'high' );
+	add_meta_box( 'ecp1_calendar_meta', 'Calendar Settings', 'ecp1_calendar_meta_form', 'ecp1_calendar', 'normal', 'high' );
 }
 
 // Function that generates a html section for adding inside a meta fields box
