@@ -88,6 +88,15 @@ function ecp1_event_meta_fields() {
 // Function that generates a html section for adding inside a meta fields box
 function ecp1_event_meta_form() {
 	global $ecp1_event_fields;
+	
+	// Load a list of calendars this user has access to
+	$calendars = get_posts( array( 'post_type'=>'ecp1_calendar', 'post_status'=>'publish', 'orderby'=>'title', 'order'=>'ASC' ) );
+	if ( 0 == count( $calendars ) ) {
+		printf( '<div class="ecp1_error">%s</div>', __( 'No calendars found! Please create a calendar first.' ) );
+		return;
+	}
+	
+	// Load the event meta data from the database
 	_ecp1_parse_event_custom();
 	
 	// Sanitize and do security checks
@@ -114,10 +123,9 @@ function ecp1_event_meta_form() {
 				<td>
 					<select id="ecp1_calendar" name="ecp1_calendar" class="ecp1_select">
 <?php
-	// Get a list of calendars that this user has permission to edit
-	$cals = array( 1 => 't', 2 => 'a', 3 => 'n' );
-	foreach( $cals as $post_id=>$title ) {
-		printf( '<option value="%s"%s>%s</option>', $post_id, $post_id == $ecp1_calendar ? ' selected="selected"' : '', $title );
+	// Iterate over the calendar list and print options
+	foreach( $calendars as $cal ) {
+		printf( '<option value="%s"%s>%s</option>', $cal->ID, $cal->ID == $ecp1_calendar ? ' selected="selected"' : '', $cal->post_title );
 	}
 ?>
 					</select>
@@ -313,11 +321,13 @@ function ecp1_event_save() {
 		$ecp1_full_day = 'Y';
 	
 	// Which calendar should this event go on?
-	// TODO: Make sure this is a LOCAL calendar
-	$cals = array( 1 => 't', 2 => 'a', 3 => 'n' );
-	$ecp1_calendar = $ecp1_event_fields['ecp1_calendar'][1];
-	if ( isset( $_POST['ecp1_calendar'] ) && array_key_exists( $_POST['ecp1_calendar'], $cals ) ) {
-		$ecp1_calendar = $_POST['ecp1_calendar'];
+	$ecp1_calendar = isset( $_POST['ecp1_calendar'] ) ? $ecp1_event_fields['ecp1_calendar'][0] : $ecp1_event_fields['ecp1_calendar'][1];
+	if ( $ecp1_event_fields['ecp1_calendar'][1] != $ecp1_calendar ) {
+		// If the calendar was set then check the user can edit it
+		$cal = get_post( $ecp1_calendar, 'ARRAY_A' );
+		if ( ! isset( $cal['ID'] ) || $cal['ID'] != $ecp1_calendar ) {
+			$ecp1_calendar = $ecp1_event_fields['ecp1_calendar'][1];
+		}
 	}
 	
 	// The location as human address and lat/long coords
