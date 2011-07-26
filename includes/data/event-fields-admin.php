@@ -23,6 +23,7 @@ function ecp1_event_edit_columns( $columns ) {
 		'ecp1_dates' => 'When', # Will show From:... <br/>To: ...
 		'ecp1_location' => 'Where', # Where the event is happening
 		'ecp1_summary' => 'In Brief', # Brief details
+		'author' => 'Author',
 	);
 	
 	return $columns;
@@ -91,6 +92,14 @@ function ecp1_event_meta_form() {
 	
 	// Load a list of calendars this user has access to
 	$calendars = get_posts( array( 'post_type'=>'ecp1_calendar', 'post_status'=>'publish', 'orderby'=>'title', 'order'=>'ASC' ) );
+	foreach( $calendars as $index=>$cal ) {
+		if( ! current_user_can( 'edit_post', $cal->ID ) )
+			unset( $calendars[$index] );
+	}
+
+	// The user must be able to edit the calendar to put events on it
+	// Note the calendar edit level can be a contributor who's calendar
+	// post edits would need to be on their own cals + review approved
 	if ( 0 == count( $calendars ) ) {
 		printf( '<div class="ecp1_error">%s</div>', __( 'No calendars found! Please create a calendar first.' ) );
 		return;
@@ -175,7 +184,7 @@ function ecp1_event_meta_form() {
 				</td>
 			</tr>
 			<tr valign="top">
-				<th scope="row"><label for="ecp1_start_date"><?php _e( 'Start' ); ?></label></th>
+				<th scope="row"><label for="ecp1_start_date"><?php _e( 'Finish' ); ?></label></th>
 				<td>
 					<input id="ecp1_end_date" name="ecp1_end_date" type="text" class="ecp1_datepick" value="<?php echo $ecp1_end_date; ?>" />
 					<?php echo _ecp1_time_select_trio( 'ecp1_end_time', $ecp1_end_time ); ?><br/>
@@ -199,7 +208,7 @@ function ecp1_event_meta_form() {
 	</div>
 <?php
 	// DEBUG OUTPUT:
-	printf( '<pre>%s</pre>', print_r( $ecp1_event_fields, true ) );
+	//printf( '<pre>%s</pre>', print_r( $ecp1_event_fields, true ) );
 }
 
 // Returns a string of HH:MM:AM/PM select boxes for time entry
@@ -324,10 +333,8 @@ function ecp1_event_save() {
 	$ecp1_calendar = isset( $_POST['ecp1_calendar'] ) ? $ecp1_event_fields['ecp1_calendar'][0] : $ecp1_event_fields['ecp1_calendar'][1];
 	if ( $ecp1_event_fields['ecp1_calendar'][1] != $ecp1_calendar ) {
 		// If the calendar was set then check the user can edit it
-		$cal = get_post( $ecp1_calendar, 'ARRAY_A' );
-		if ( ! isset( $cal['ID'] ) || $cal['ID'] != $ecp1_calendar ) {
+		if ( ! current_user_can( 'edit_post', $ecp1_calendar ) )
 			$ecp1_calendar = $ecp1_event_fields['ecp1_calendar'][1];
-		}
 	}
 	
 	// The location as human address and lat/long coords

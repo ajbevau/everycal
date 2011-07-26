@@ -48,8 +48,8 @@ function ecp1_register_types() {
 		'public' => true,
 		'exclude_from_search' => true, # don't show events unless the plugin says to
 		'show_ui' => true,
-		#TODO: 'menu_icon' => get_bloginfo( 'plugin_url' ).'/img/cal_16.png',
-		'menu_position' => 30,
+		#'menu_position' => 30,
+		'show_in_menu' => 'edit.php?post_type=ecp1_event',
 		'capability_type' => 'post', # capabilities match posts
 		'supports' => array( 'title' ),
 		'rewrite' => array( 'slug' => 'calendar' ),
@@ -63,7 +63,8 @@ function ecp1_register_types() {
 		'public' => true,
 		'exclude_from_search' => true, # don't show events unless the plugin says to
 		'show_ui' => true,
-		'show_in_menu' => 'edit.php?post_type=ecp1_calendar',
+		'menu_position' => 30,
+		#'show_in_menu' => 'edit.php?post_type=ecp1_calendar',
 		'capability_type' => 'post', # capabilities match posts
 		'supports' => array( 'title', 'thumbnail' ),
 		'rewrite' => array( 'slug' => 'event' ),
@@ -71,8 +72,8 @@ function ecp1_register_types() {
 	);
 	
 	// Register the custom post type
-	register_post_type( 'ecp1_calendar', $ecp1_cal_args );
 	register_post_type( 'ecp1_event', $ecp1_evt_args );
+	register_post_type( 'ecp1_calendar', $ecp1_cal_args );
 }
 
 ?>
