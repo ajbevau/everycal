@@ -1,4 +1,5 @@
 /* Every Calendar +1 Client Styling */
+#ecp1_calendar, #ecp1_event {margin-bottom:1em;}
 #ecp1_calendar .fc table {border-bottom:none;margin-bottom:0;}
 #ecp1_calendar .fc-header td, #ecp1_calendar .fc-header th {border-top:none;}
 #ecp1_event ul.ecp1_event-details {margin:0;}

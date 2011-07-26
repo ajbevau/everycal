@@ -14,6 +14,7 @@ require_once( ECP1_DIR . '/includes/data/event-fields.php' );
 add_filter( 'manage_edit-ecp1_event_columns', 'ecp1_event_edit_columns' );
 add_action( 'manage_posts_custom_column', 'ecp1_event_custom_columns' );
 add_action( 'admin_init', 'ecp1_event_meta_fields' );
+add_action( 'admin_print_footer_scripts', 'ecp1_event_wysiwyg_editor_script' );
 
 // Function that adds extra columns to the post type
 function ecp1_event_edit_columns( $columns ) {
@@ -325,7 +326,7 @@ function ecp1_event_save() {
 	}
 	
 	// Save the post meta information
-	update_post_meta( $post->ID, 'ecp1_event', $save_fields );
+	update_post_meta( $post->ID, 'ecp1_event', $save_fields_group );
 	foreach( $save_fields_alone as $key=>$value )
 		update_post_meta( $post->ID, $key, $value );
 }
@@ -343,6 +344,22 @@ function _ecp1_event_no_time_given() {
 			( '' == $_POST['ecp1_end_time-hour'] && '' == $_POST['ecp1_end_time-min'] )						// or both blank
 			)
 		);
+}
+
+// Prints jQuery statements into the footer scripts to initialize
+// a WYSIWYG editor on the custom event description field
+function ecp1_event_wysiwyg_editor_script() {
+?>
+	<!-- Every Calendar +1 WYSIWYG Editor Init -->
+	<script type="text/javascript">/* <![CDATA[ */
+		jQuery(function($) {
+			if ( $('#ecp1_description').length ) {
+				var elemId = $('#ecp1_description').attr('id');
+				tinyMCE.execCommand('mceAddControl', false, elemId);
+			}
+		});
+	/* ]]> */</script>
+<?php
 }
 
 ?>

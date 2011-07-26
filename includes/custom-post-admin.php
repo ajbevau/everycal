@@ -16,18 +16,19 @@ function ecp1_enqueue_admin_js() {
 	wp_enqueue_script( 'jquery' );
 }
 // Specialised function for jQuery Date Picker
-function ecp1_enqueue_datepicker() {
+function ecp1_event_edit_libs() {
 	wp_register_style( 'ecp1_jquery-ui-datepicker_style', plugins_url( '/jquery-ui/datepicker.css', dirname( __FILE__ ) ) );
 	wp_enqueue_style( 'ecp1_jquery-ui-datepicker_style' );
 
 	wp_register_script( 'ecp1_jquery-ui-datepicker_script', plugins_url( '/jquery-ui/datepicker.min.js', dirname( __FILE__ ) ), array( 'jquery-ui-core' ) );
 	wp_register_script( 'ecp1_event_datepicker_script', plugins_url( '/js/datepicker.js', dirname( __FILE__ ) ), array( 'ecp1_jquery-ui-datepicker_script' ) );
 	wp_enqueue_script( 'jquery-ui-core' );
+	wp_enqueue_script( 'tiny_mce' );
 	wp_enqueue_script( 'ecp1_jquery_ui_datepicker_script' );
 	wp_enqueue_script( 'ecp1_event_datepicker_script' );
 }
 
-// Add the CSS
+// Add the CSS for either post type
 add_action( 'admin_enqueue_scripts', 'ecp1_add_admin_styles', 100 );
 function ecp1_add_admin_styles() {
 	global $post_type;
@@ -36,17 +37,18 @@ function ecp1_add_admin_styles() {
 	}
 }
 
-// Make sure jQuery and jQuery UI are enqueued
+// Add the global JS for either post type
 add_action( 'admin_enqueue_scripts', 'ecp1_add_admin_scripts', 100 );
 function ecp1_add_admin_scripts() {
 	global $post_type;
 	if ( 'ecp1_calendar' == $post_type || 'ecp1_event' == $post_type ) {
 		ecp1_enqueue_admin_js();
 	}
-	if ( 'ecp1_event' == $post_type ) {
-		ecp1_enqueue_datepicker();
-	}
 }
+
+// The event editor requires some extra JS/CSS only on the edit post page
+add_action( 'admin_print_scripts-edit.php?post_type=ecp1_event', 'ecp1_event_edit_libs' );
+add_action( 'admin_print_scripts-post-new.php?post_type=ecp1_event', 'ecp1_event_edit_libs' );
 
 // Add filters to make sure calendar and events display instead of post
 add_filter( 'post_updated_messages', 'ecp1_calendar_updated_messages' );

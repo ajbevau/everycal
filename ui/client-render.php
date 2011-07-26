@@ -84,6 +84,7 @@ jQuery(document).ready(function($) {
 	$('#ecp1_calendar div.fullcal').empty().fullCalendar({
 		header: { left: 'prev,next today', center: 'title', right: 'month,agendaWeek,agendaDay' },
 		timeFormat: { agenda: 'h:mmtt( - h:mmtt	)', '': 'h(:mm)tt' },
+		firstDay: $first_day,
 		weekends: true,
 		defaultView: '$default_view',
 		allDaySlot: false,
@@ -104,7 +105,7 @@ ENDOFSCRIPT;
 function ecp1_print_fullcalendar_load() {
 	global $_ecp1_dynamic_calendar_script;
 	if ( null != $_ecp1_dynamic_calendar_script ) {
-		printf( '%s<!-- Every Calendar +1 Init -->%s<script type="text/javascript">%s%s%s</script>%s', "\n", "\n", "\n", $_ecp1_dynamic_calendar_script, "\n", "\n" );
+		printf( '%s<!-- Every Calendar +1 Init -->%s<script type="text/javascript">/* <![CDATA[ */%s%s%s/* ]]> */</script>%s', "\n", "\n", "\n", $_ecp1_dynamic_calendar_script, "\n", "\n" );
 	}
 }
 
@@ -187,11 +188,14 @@ ENDOFSCRIPT;
 	$outstr = <<<ENDOFHTML
 <div id="ecp1_event">
 	<ul class="ecp1_event-details">
-		<li><span class="ecp1_event-title"><strong>$pwhen:</strong></span><span class="ecp1_event-text">$ecp1_time</span></li>
+		<li><span class="ecp1_event-title"><strong>$pwhen:</strong></span>
+				<span class="ecp1_event-text">$ecp1_time</span></li>
 		<li><span class="ecp1_event-title"><strong>$pwhere:</strong></span>
-			<span class="ecp1_event-text"><div id="ecp1_event_location">$ecp1_location</div>$ecp1_map_placeholder</span></li>
-		<li><span class="ecp1_event-title"><strong>$psummary:</strong></span><span class="ecp1_event-text_wide">$ecp1_summary</span></li>
-		<li><span class="ecp1_event-title"><strong>$pdetails:</strong></span><span class="ecp1_event-text_wide">$ecp1_info</span></li>
+				<span class="ecp1_event-text"><div id="ecp1_event_location">$ecp1_location</div>$ecp1_map_placeholder</span></li>
+		<li><span class="ecp1_event-title"><strong>$psummary:</strong></span>
+				<span class="ecp1_event-text_wide">$ecp1_summary</span></li>
+		<li><span class="ecp1_event-title"><strong>$pdetails:</strong></span>
+				<span class="ecp1_event-text_wide">$ecp1_info</span></li>
 	</ul>
 </div>
 ENDOFHTML;
@@ -203,7 +207,7 @@ ENDOFHTML;
 function ecp1_print_event_load() {
 	global $_ecp1_dynamic_event_script;
 	if ( null != $_ecp1_dynamic_event_script ) {
-		printf( '%s<!-- Every Calendar +1 Init -->%s<script type="text/javascript">%s%s%s</script>%s', "\n", "\n", "\n", $_ecp1_dynamic_event_script, "\n", "\n" );
+		printf( '%s<!-- Every Calendar +1 Init -->%s<script type="text/javascript">/* <![CDATA[ */%s%s%s/* ]]> */</script>%s', "\n", "\n", "\n", $_ecp1_dynamic_event_script, "\n", "\n" );
 	}
 }
 
