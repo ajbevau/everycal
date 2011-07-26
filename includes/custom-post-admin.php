@@ -22,13 +22,10 @@ function ecp1_event_edit_libs() {
 
 	wp_register_script( 'ecp1_jquery-ui-datepicker_script', plugins_url( '/jquery-ui/datepicker.min.js', dirname( __FILE__ ) ), array( 'jquery-ui-core' ) );
 	wp_register_script( 'ecp1_event_datepicker_script', plugins_url( '/js/datepicker.js', dirname( __FILE__ ) ), array( 'ecp1_jquery-ui-datepicker_script' ) );
-	//wp_register_script( 'ecp1_event_wysiwyg_script', plugins_url( '/js/tinymce.js', dirname( __FILE__ ) ), array( 'wp_tiny_mce' ), false, true );	
 
 	wp_enqueue_script( 'jquery-ui-core' );
-	//wp_enqueue_script( 'wp_tiny_mce' );
 	wp_enqueue_script( 'ecp1_jquery_ui_datepicker_script' );
 	wp_enqueue_script( 'ecp1_event_datepicker_script' );
-	//wp_enqueue_script( 'ecp1_event_wysiwyg_script' );
 	
 	// Include the TinyMCE editor - this requires use of the_editor($content, 'element_id')
 	// inplace of the <textarea></textarea> tags on the event meta box - and naturally will
