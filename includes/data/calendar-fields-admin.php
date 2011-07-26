@@ -112,7 +112,7 @@ function ecp1_calendar_meta_form() {
 	// Check if local calendars can change event timezones
 	$disabled_str = _ecp1_get_option( 'tz_change' ) ? 'class="ecp1_select"' : 'class="ecp1_select" disabled="disabled"';
 	echo _ecp1_timezone_select( 'ecp1_timezone', $ecp1_tz, $disabled_str );
-	if ( ! is_null( $disabled_str ) )
+	if ( ! _ecp1_get_option( 'tz_change' ) )
 		printf( '<em>%s</em>', __( 'Every Calendar +1 settings prevent change: WordPress TZ will be used.' ) );
 ?>
 				</td>
@@ -157,7 +157,7 @@ function ecp1_calendar_save() {
 		return $post->ID;
 	
 	// Verify the user can actually edit posts
-	if ( ! current_user_can( 'edit_post', $post->ID ) )
+	if ( ! current_user_can( 'edit_ecp1_calendar', $post->ID ) )
 		return $post->ID;
 	
 	// URL Encode the external URL
