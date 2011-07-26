@@ -6,20 +6,23 @@
 // Make sure we're included from within the plugin
 require( ECP1_DIR . '/includes/check-ecp1-defined.php' );
 
+// Load the calendar post type fields so we can get the meta
+require_once( ECP1_DIR . '/includes/data/calendar-fields.php' );
+
 // Add a filter that checks if this is a calendar and then re-configures the content if so
 add_filter( 'the_content', 'ecp1_post_as_calendar' );
 
 // Renders a calendar into the post
 function ecp1_post_as_calendar( $content ) {
-	global $post;
+	global $post, $ecp1_calendar_fields;
+	
+	// Only make the changes if this is a single post display of an ECP1 Calendar
 	if ( is_single() && 'ecp1_calendar' == $post->post_type ) {
-		// Only make the changes if this is a single post display of an ECP1 Calendar
-		// Load the calendar object meta
-		$c = get_post_meta( $post->ID, 'ecp1_calendar', true );
-		
-		// Call the content generate function
-		$content = ecp1_render_calendar( $c );
+		_ecp1_calendar_parse_custom(); // Load the calendar object meta in $ecp1_calendar_fields
+		$content = ecp1_render_calendar( $ecp1_calendar_fields ); // Call the render function
 	}
+	
+	// Return the content updated or not
 	return $content;
 }
 
