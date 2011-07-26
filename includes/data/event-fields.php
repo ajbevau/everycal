@@ -8,9 +8,9 @@ require( ECP1_DIR . '/includes/check-ecp1-defined.php' );
 
 // An array of meta field names and default values
 $ecp1_event_fields = array( 
-	'ecp1_summary' => array( '', ''), // value, default
-	'ecp1_description' => array( '', ''),
-	'ecp1_url' => array( '', ''),
+	'ecp1_summary' => array( '', '' ), // value, default
+	'ecp1_description' => array( '', '' ),
+	'ecp1_url' => array( '', '' ),
 	'ecp1_start_ts' => array( '', '' ),
 	'ecp1_end_ts' => array( '', '' ),
 	'ecp1_full_day' => array( '', 'N' ),

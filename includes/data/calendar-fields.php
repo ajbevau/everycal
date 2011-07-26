@@ -8,9 +8,9 @@ require( ECP1_DIR . '/includes/check-ecp1-defined.php' );
 
 // An array of meta field names and default values
 $ecp1_calendar_fields = array( 
-	'ecp1_description' => array( '', ''), // value, default
-	'ecp1_external_url' => array( '', ''),
-	'ecp1_timezone' => array( '', '_'),
+	'ecp1_description' => array( '', '' ), // value, default
+	'ecp1_external_url' => array( '', '' ),
+	'ecp1_timezone' => array( '', '_' ),
 	'ecp1_first_day' => array( '', -1 ),
 	'ecp1_default_view' => array( '', 'none' ),
 );
