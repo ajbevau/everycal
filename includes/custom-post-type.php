@@ -50,7 +50,8 @@ function ecp1_register_types() {
 		'show_ui' => true,
 		#'menu_position' => 30,
 		'show_in_menu' => 'edit.php?post_type=ecp1_event',
-		'capability_type' => 'post', # capabilities match posts
+		# capabilities meta which will need a role manager to allow access
+		'capability_type' => 'ecp1_calendar',
 		'supports' => array( 'title' ),
 		'rewrite' => array( 'slug' => 'calendar' ),
 		'show_in_nav_menus' => false,

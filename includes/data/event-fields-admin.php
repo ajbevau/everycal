@@ -93,7 +93,7 @@ function ecp1_event_meta_form() {
 	// Load a list of calendars this user has access to
 	$calendars = get_posts( array( 'post_type'=>'ecp1_calendar', 'post_status'=>'publish', 'orderby'=>'title', 'order'=>'ASC' ) );
 	foreach( $calendars as $index=>$cal ) {
-		if( ! current_user_can( 'edit_post', $cal->ID ) )
+		if( ! current_user_can( 'edit_ecp1_calendar', $cal->ID ) )
 			unset( $calendars[$index] );
 	}
 
@@ -333,7 +333,7 @@ function ecp1_event_save() {
 	$ecp1_calendar = isset( $_POST['ecp1_calendar'] ) ? $ecp1_event_fields['ecp1_calendar'][0] : $ecp1_event_fields['ecp1_calendar'][1];
 	if ( $ecp1_event_fields['ecp1_calendar'][1] != $ecp1_calendar ) {
 		// If the calendar was set then check the user can edit it
-		if ( ! current_user_can( 'edit_post', $ecp1_calendar ) )
+		if ( ! current_user_can( 'edit_ecp1_calendar', $ecp1_calendar ) )
 			$ecp1_calendar = $ecp1_event_fields['ecp1_calendar'][1];
 	}
 	
