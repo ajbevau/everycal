@@ -30,9 +30,9 @@ function ecp1_event_edit_libs() {
 	wp_enqueue_script( 'ecp1_event_datepicker_script' );
 	//wp_enqueue_script( 'ecp1_event_wysiwyg_script' );
 	
-	// Include the TinyMCE editor - this requires use of the_editor($content, 'content')
-	// for the <textarea></textarea> tag on the event meta box (which is why the code
-	// does a switch editor in /js/tinymce.js)
+	// Include the TinyMCE editor - this requires use of the_editor($content, 'element_id')
+	// inplace of the <textarea></textarea> tags on the event meta box - and naturally will
+	// obey user preferences on richtext editors etc...
 	if ( user_can_richedit() ) {
 		wp_register_script( 'ecp1_event_wysiwyg_script', plugins_url( '/js/tinymce.js', dirname( __FILE__ ) ), false, false, true );	
 		wp_enqueue_script( 'common' );

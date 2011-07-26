@@ -91,9 +91,9 @@ function ecp1_event_meta_form() {
 	_ecp1_parse_event_custom();
 	
 	// Sanitize and do security checks
-	$ecp1_summary = _ecp1_event_meta_is_default( 'ecp1_summary' ) ? '' : htmlspecialchars( $ecp1_event_fields['ecp1_summary'][0] );
+	$ecp1_summary = _ecp1_event_meta_is_default( 'ecp1_summary' ) ? '' : wp_filter_post_kses( $ecp1_event_fields['ecp1_summary'][0] );
 	$ecp1_url = _ecp1_event_meta_is_default( 'ecp1_url' ) ? '' : urldecode( $ecp1_event_fields['ecp1_url'][0] );
-	$ecp1_description = _ecp1_event_meta_is_default( 'ecp1_description' ) ? '' : htmlspecialchars( $ecp1_event_fields['ecp1_description'][0] );
+	$ecp1_description = _ecp1_event_meta_is_default( 'ecp1_description' ) ? '' : wp_filter_post_kses( $ecp1_event_fields['ecp1_description'][0] );
 	$ecp1_calendar = _ecp1_event_meta_is_default( 'ecp1_calendar' ) ? '-1' : $ecp1_event_fields['ecp1_calendar'][0];
 	$ecp1_full_day = _ecp1_event_meta_is_default( 'ecp1_full_day' ) ? 'N' : $ecp1_event_fields['ecp1_full_day'][0];
 	$ecp1_start_date = _ecp1_event_meta_is_default( 'ecp1_start_ts' ) ? '' : date( 'Y-m-d', $ecp1_event_fields['ecp1_start_ts'][0] );
@@ -132,7 +132,28 @@ function ecp1_event_meta_form() {
 				<td>
 					<input id="ecp1_url" name="ecp1_url" type="text" class="ecp1_w100" value="<?php echo $ecp1_url; ?>" />
 					<br/><strong><?php _e( 'or full description' ); ?></strong><br/>
-					<?php the_editor( $ecp1_description, 'content' ); ?>
+					<!-- Copied from WordPress wp-admin/edit-form-advanced.php -->
+					<div id="<?php echo user_can_richedit() ? 'postdivrich' : 'postdiv'; ?>" class="postarea">
+					<?php the_editor( $ecp1_description, 'ecp1_description' ); ?>
+					<table id="post-status-info" cellspacing="0"><tbody><tr>
+							<td id="wp-word-count"><?php printf( __( 'Word count: %s' ), '<span class="word-count">0</span>' ); ?></td>
+							<td class="autosave-info">
+							<span class="autosave-message">&nbsp;</span>
+<?php
+	if ( 'auto-draft' != $post->post_status ) {
+			echo '<span id="last-edit">';
+			if ( $last_id = get_post_meta( $post_ID, '_edit_last', true ) ) {
+					$last_user = get_userdata( $last_id );
+					printf( __( 'Last edited by %1$s on %2$s at %3$s' ), esc_html( $last_user->display_name ), mysql2date( get_option( 'date_format' ), $post->post_modified ), mysql2date( get_option( 'time_format' ), $post->post_modified ) );
+			} else {
+					printf( __( 'Last edited on %1$s at %2$s' ), mysql2date( get_option( 'date_format' ), $post->post_modified ), mysql2date( get_option( 'time_format' ), $post->post_modified ) );
+			}
+			echo '</span>';
+	}
+?>
+							</td>
+					</tr></tbody></table>
+					</div>
 				</td>
 			</tr>
 			<tr valign="top">
