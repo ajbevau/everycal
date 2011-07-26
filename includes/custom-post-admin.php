@@ -38,17 +38,16 @@ function ecp1_add_admin_styles() {
 }
 
 // Add the global JS for either post type
-add_action( 'admin_enqueue_scripts', 'ecp1_add_admin_scripts', 100 );
-function ecp1_add_admin_scripts() {
+add_action( 'admin_enqueue_scripts', 'ecp1_add_admin_scripts', 100, 1 );
+function ecp1_add_admin_scripts( $hook=null ) {
 	global $post_type;
 	if ( 'ecp1_calendar' == $post_type || 'ecp1_event' == $post_type ) {
 		ecp1_enqueue_admin_js();
 	}
+	if ( 'ecp1_event' == $post_type && in_array( $hook, array( 'edit.php', 'post-new.php' ) ) ) {
+		ecp1_event_edit_libs();
+	}
 }
-
-// The event editor requires some extra JS/CSS only on the edit post page
-add_action( 'admin_print_scripts-edit.php?post_type=ecp1_event', 'ecp1_event_edit_libs' );
-add_action( 'admin_print_scripts-post-new.php?post_type=ecp1_event', 'ecp1_event_edit_libs' );
 
 // Add filters to make sure calendar and events display instead of post
 add_filter( 'post_updated_messages', 'ecp1_calendar_updated_messages' );
