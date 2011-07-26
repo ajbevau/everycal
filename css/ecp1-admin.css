@@ -4,6 +4,10 @@ div.ecp1_meta input.ecp1_w100 {width:95%;}
 div.ecp1_meta textarea.ecp1_sml {width:70%;height:25px;}
 div.ecp1_meta textarea.ecp1_med {width:70%;height:50px;}
 div.ecp1_meta textarea.ecp1_big {width:70%;height:100px;}
+div.ecp1_meta div.postarea td {padding:0;margin-bottom:0;}
+div.ecp1_meta div.postarea td.autosave-info {padding:2px 15px 2px 2px;}
+div.ecp1_meta #editorcontainer td.mceIframeContainer {background-color:#ffffff;}
+div.ecp1_meta #editorcontainer #ecp1_description {width:100%;}
 div.ecp1_meta select.ecp1_select {width:30%;}
 div.ecp1_meta select#ecp1_timezone option, div.ecp1_meta select#ecp1_timezone optgroup {padding:0.1em}
 div.ecp1_meta select#ecp1_timezone optgroup option {padding:0.1em 1.8em;}

@@ -16,6 +16,23 @@ $_ecp1_dynamic_calendar_script = null;
 // Define a global variable for the dynamic load script for events (e.g. Maps)
 $_ecp1_dynamic_event_script = null;
 
+// Function that applies WordPress content filters to the given string
+function ecp1_the_content( $content ) {
+	// $c = apply_filters( 'the_content', $content );
+	// We can't call the apply_filters directly because this function
+	// is called from within a filter hooked to 'the_content' which
+	// will create an infinite recursive loop and segfaults
+	// TODO: Is there a better way to get these functions?
+	$c = wptexturize( $content );
+	$c = convert_smilies( $c );
+	$c = convert_chars( $c );
+	$c = wpautop( $c );
+	$c = shortcode_unautop( $c );
+	$c = prepend_attachment( $c );
+	$c = str_replace(']]>', ']]&gt;', $c);
+	return $c;
+}
+
 // Function that will return the necessary HTML blocks and queue some static
 // JS for the document load event to render a FullCalendar instance
 function ecp1_render_calendar( $calendar ) {
@@ -172,7 +189,7 @@ ENDOFSCRIPT;
 	// the calendar uses ONSITE description in preference (which means people will come
 	// to this post page and then be able to offsite click).
 	$ecp1_info = '';
-	$ecp1_desc = _ecp1_event_meta_is_default( 'ecp1_description' ) ? null : wp_filter_post_kses( $event['ecp1_description'][0] );
+	$ecp1_desc = _ecp1_event_meta_is_default( 'ecp1_description' ) ? null : ecp1_the_content( $event['ecp1_description'][0] );
 	$ecp1_url = _ecp1_event_meta_is_default( 'ecp1_url' ) ? null : urldecode( $event['ecp1_url'][0] );
 	if ( ! is_null( $ecp1_desc ) && ! is_null( $ecp1_url ) ) {
 		// Both given so render as description<br/>Read more...
