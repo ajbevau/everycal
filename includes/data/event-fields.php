@@ -21,7 +21,7 @@ $ecp1_event_fields = array(
 	
 	// meta fields that describe the database structure
 	'_meta' => array(
-		'standalone' = array(	// $ecp1_event_fields key => postmeta table key
+		'standalone' => array(	// $ecp1_event_fields key => postmeta table key
 			'ecp1_start_ts' => 'ecp1_event_start',
 			'ecp1_end_ts' => 'ecp1_event_end',
 			'ecp1_calendar' => 'ecp1_event_calendar'
@@ -38,7 +38,7 @@ function _ecp1_parse_event_custom( $post_id=-1 ) {
 	// Determine if we're using the global post or a parameter post
 	// Parameter will take precedence over the global post
 	if ( $post_id < 0 )
-		$post_id = $post->ID
+		$post_id = $post->ID;
 	
 	// Load the basic meta for this event post
 	$custom = get_post_meta( $post->ID, 'ecp1_event', true ); // will be everything NOT in _meta['standalone']

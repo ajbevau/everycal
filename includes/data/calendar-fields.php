@@ -22,7 +22,7 @@ function _ecp1_parse_calendar_custom( $post_id=-1 ) {
 	// Determine if we're using the global post or a parameter post
 	// Parameter will take precedence over the global post
 	if ( $post_id < 0 )
-		$post_id = $post->ID
+		$post_id = $post->ID;
 	
 	// Load the basic meta for this calendar post
 	$custom = get_post_meta( $post_id, 'ecp1_calendar', true );
