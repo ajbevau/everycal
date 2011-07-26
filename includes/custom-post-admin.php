@@ -22,10 +22,31 @@ function ecp1_event_edit_libs() {
 
 	wp_register_script( 'ecp1_jquery-ui-datepicker_script', plugins_url( '/jquery-ui/datepicker.min.js', dirname( __FILE__ ) ), array( 'jquery-ui-core' ) );
 	wp_register_script( 'ecp1_event_datepicker_script', plugins_url( '/js/datepicker.js', dirname( __FILE__ ) ), array( 'ecp1_jquery-ui-datepicker_script' ) );
+	//wp_register_script( 'ecp1_event_wysiwyg_script', plugins_url( '/js/tinymce.js', dirname( __FILE__ ) ), array( 'wp_tiny_mce' ), false, true );	
+
 	wp_enqueue_script( 'jquery-ui-core' );
-	wp_enqueue_script( 'wp_tiny_mce' );
+	//wp_enqueue_script( 'wp_tiny_mce' );
 	wp_enqueue_script( 'ecp1_jquery_ui_datepicker_script' );
 	wp_enqueue_script( 'ecp1_event_datepicker_script' );
+	//wp_enqueue_script( 'ecp1_event_wysiwyg_script' );
+	
+	// Include the TinyMCE editor - this requires use of the_editor($content, 'content')
+	// for the <textarea></textarea> tag on the event meta box (which is why the code
+	// does a switch editor in /js/tinymce.js)
+	if ( user_can_richedit() ) {
+		wp_register_script( 'ecp1_event_wysiwyg_script', plugins_url( '/js/tinymce.js', dirname( __FILE__ ) ), false, false, true );	
+		wp_enqueue_script( 'common' );
+		wp_enqueue_script( 'jquery-color' );
+		wp_enqueue_scripts( 'editor' );
+		if ( function_exists( 'add_thickbox' ) ) add_thickbox();
+		wp_enqueue_scripts( 'media-upload' );
+		if ( function_exists( 'wp_tiny_mce' ) ) wp_tiny_mce();
+		wp_admin_css();
+		wp_enqueue_script( 'utils' );
+		do_action( 'admin_print_styles-post-php' );
+		do_action( 'admin_print_styles' );
+		wp_enqueue_script( 'ecp1_event_wysiwyg_script' );
+	}
 }
 
 // Add the CSS for either post type
@@ -44,7 +65,7 @@ function ecp1_add_admin_scripts( $hook=null ) {
 	if ( 'ecp1_calendar' == $post_type || 'ecp1_event' == $post_type ) {
 		ecp1_enqueue_admin_js();
 	}
-	if ( 'ecp1_event' == $post_type && in_array( $hook, array( 'edit.php', 'post-new.php' ) ) ) {
+	if ( 'ecp1_event' == $post_type && in_array( $hook, array( 'post.php', 'post-new.php' ) ) ) {
 		ecp1_event_edit_libs();
 	}
 }

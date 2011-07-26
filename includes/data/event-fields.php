@@ -25,7 +25,7 @@ $ecp1_event_fields = array(
 			'ecp1_start_ts' => 'ecp1_event_start',
 			'ecp1_end_ts' => 'ecp1_event_end',
 			'ecp1_calendar' => 'ecp1_event_calendar'
-		),
+		)
 	)
 );
 // TODO: Add social media pages to 'like' etc...

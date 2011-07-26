@@ -14,7 +14,6 @@ require_once( ECP1_DIR . '/includes/data/event-fields.php' );
 add_filter( 'manage_edit-ecp1_event_columns', 'ecp1_event_edit_columns' );
 add_action( 'manage_posts_custom_column', 'ecp1_event_custom_columns' );
 add_action( 'admin_init', 'ecp1_event_meta_fields' );
-add_action( 'admin_enqueue_scripts', 'ecp1_event_wysiwyg_editor_script', 100, 1 );
 
 // Function that adds extra columns to the post type
 function ecp1_event_edit_columns( $columns ) {
@@ -133,7 +132,7 @@ function ecp1_event_meta_form() {
 				<td>
 					<input id="ecp1_url" name="ecp1_url" type="text" class="ecp1_w100" value="<?php echo $ecp1_url; ?>" />
 					<br/><strong><?php _e( 'or full description' ); ?></strong><br/>
-					<textarea id="ecp1_description" name="ecp1_description" class="ecp1_big"><?php echo $ecp1_description; ?></textarea>
+					<?php the_editor( $ecp1_description, 'content' ); ?>
 				</td>
 			</tr>
 			<tr valign="top">
@@ -344,16 +343,6 @@ function _ecp1_event_no_time_given() {
 			( '' == $_POST['ecp1_end_time-hour'] && '' == $_POST['ecp1_end_time-min'] )						// or both blank
 			)
 		);
-}
-
-// Prints jQuery statements into the footer scripts to initialize
-// a WYSIWYG editor on the custom event description field
-function ecp1_event_wysiwyg_editor_script( $hook=null ) {
-	global $post_type;
-	if ( 'ecp1_event' == $post_type && in_array( $hook, array( 'edit.php', 'post-new.php' ) ) ) {
-		wp_register_script( 'ecp1_event_wysiwyg_script', plugin_url( '/js/tinymce.js', dirname( __FILE__ ) ), array( 'wp_tiny_mce' ), false, true );	
-		wp_enqueue_script( 'ecp1_event_wysiwyg_script' );
-	}
 }
 
 ?>

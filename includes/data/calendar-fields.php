@@ -12,7 +12,7 @@ $ecp1_calendar_fields = array(
 	'ecp1_external_url' => array( '', '' ),
 	'ecp1_timezone' => array( '', '_' ),
 	'ecp1_first_day' => array( '', -1 ),
-	'ecp1_default_view' => array( '', 'none' ),
+	'ecp1_default_view' => array( '', 'none' )
 );
 
 // Function to parse the custom post fields into the fields above
