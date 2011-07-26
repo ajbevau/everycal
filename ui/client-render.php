@@ -61,14 +61,14 @@ function ecp1_render_calendar( $calendar ) {
 	$default_view = 'month';	// How the calendar displays by default
 	if ( ! _ecp1_calendar_meta_is_default( 'ecp1_default_view' ) &&
 			in_array( $calendar['ecp1_default_view'][0], array( 'month', 'week', 'day' ) ) ) {
-		$default_view = $calendar['ecp1_default_view'];
+		$default_view = $calendar['ecp1_default_view'][0];
 	}
 	
 	// If the calendar has an external URL and they're enabled use it
 	// otherwise by default will request events on this particular calendar
 	$events_url = '/todo/noevents-here.php'; // TODO: Make this specific to calendar
 	if ( ! _ecp1_calendar_meta_is_default( 'ecp1_external_url' ) && _ecp1_get_option( 'use_external_cals' ) )
-		$events_url = urldecode( $calendar['ecp1_external_url'] );
+		$events_url = urldecode( $calendar['ecp1_external_url'][0] );
 	
 	// Register a hook to print the static JS to load FullCalendar on #ecp1_calendar
 	add_action( 'wp_print_footer_scripts', 'ecp1_print_fullcalendar_load' );
@@ -172,7 +172,7 @@ ENDOFSCRIPT;
 	// to this post page and then be able to offsite click).
 	$ecp1_info = '';
 	$ecp1_desc = _ecp1_event_meta_is_default( 'ecp1_description' ) ? null : wp_filter_post_kses( $event['ecp1_description'][0] );
-	$ecp1_url = _ecp1_event_meta_is_default( 'ecp1_url' ) ? null : urldecode( $event['ecp1_url'] );
+	$ecp1_url = _ecp1_event_meta_is_default( 'ecp1_url' ) ? null : urldecode( $event['ecp1_url'][0] );
 	if ( ! is_null( $ecp1_desc ) && ! is_null( $ecp1_url ) ) {
 		// Both given so render as description<br/>Read more...
 		$ecp1_info = sprintf( '<div>%s</div><div><a href="%s" target="_blank">%s</a></div>', $ecp1_desc, $ecp1_url, __( 'Read more ...' ) );
