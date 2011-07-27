@@ -6,6 +6,9 @@ __MACOSX/
 # Ignore the Windows Thumbs.db
 Thumbs.db
 
+# Ignore vim .swp files
+.swp
+
 # Don't check in ba(c)k(up) files
 .bak
 .old

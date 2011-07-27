@@ -11,11 +11,10 @@ require( ECP1_DIR . '/includes/check-ecp1-defined.php' );
 // TODO: Uninstall function to clean up the database
  
 // Create the rewrite rules needed for plugin
-// Register this on the init hook too so WordPress knows about it
-add_action( 'init', '_ecp1_add_rewrite_rules' );
 function _ecp1_add_rewrite_rules() {
 	// Event data as a JSON feed
-    add_rewrite_rule( 'ecp1/events.json$', plugins_url( '/ui/get-events.php', dirname( __FILE__ ) ), 'top' );
+	$rewrite_to = str_replace( site_url() . '/', '', plugins_url( '/ui/get-events.php', __FILE__ ) );
+	add_rewrite_rule( 'ecp1/events.json$', $rewrite_to, 'top' );
 }
 
 // Function that activates plugin rewrite rules and flushes them to cache

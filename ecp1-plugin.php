@@ -28,7 +28,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 define( 'ECP1_PLUGIN', true );
 
 // The plugin directory of Every Calendar +1
-define( 'ECP1_DIR', WP_PLUGIN_DIR . '/everycal' );
+define( 'ECP1_DIR', WP_PLUGIN_DIR . '/' . basename( dirname( __FILE__ ) ) );
 
 // Includes functions for making changes on activation/install/uninstall/deactivation
 require_once( ECP1_DIR . '/install-activate.php' );
