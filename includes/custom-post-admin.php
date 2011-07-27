@@ -126,6 +126,62 @@ function ecp1_add_help_text($contextual_help, $screen_id, $screen) {
 	return $contextual_help;
 }
 
+// Filter event posts requests to not show events in calendars
+// the current user is not allowed to edit (only show events in
+// calendars the user is allowed to edit - or is author of).
+add_filter( 'posts_request', 'ecp1_filter_event_posts_requests', 1000, 2 );
+function ecp1_filter_event_posts_requests( $query, $object ) {
+	global $post_type, $wpdb;
+	if ( 'ecp1_event' == $post_type && isset( $object->query['post_type'] ) && 'ecp1_event' == $object->query['post_type'] ) {
+		//printf( "<pre>INPUT: %s</pre>", print_r($w, true), print_r($o,  true) );
+		// Strip out ILLOGICAL OR statements (thanks to Role Scoper)
+		// This is so we don't push conditions to the wrong area
+		$query_replace = preg_replace( '/OR 1=2/', '', $query );
+		$query_replace = preg_replace( '/\( 1=2 \) OR/', '', $query_replace );
+		$query_replace = preg_replace( '/\( 1=1 \) AND/', '', $query_replace );
+		$query_replace = preg_replace( '/ 1=1  AND/', '', $query_replace );
+		$query_replace = preg_replace( '/AND\s+\(\s*\(\s*\(\s*\(\s*1=1\s*\)\s*\)\s*\)\s*\)/', '', $query_replace );
+		//printf( "<pre>ROUND 1: %s</pre>", $query_replace );
+
+		// Get a CSV list of calendar ids this user can edit
+		$q = '';
+		$cals = _ecp1_current_user_calendars();
+		foreach( $cals as $cal ) // TODO: Find a better way than looping over all
+			$q = '' == $q ? $cal->ID : $q.','.$cal->ID;
+		
+		// If the use cannot edit calendars then no events either
+		if ( '' == $q )
+			return preg_replace( '/WHERE/', 'WHERE 1=2 AND ', $query_replace, 1 ); // only once
+
+		// We will need to JOIN the post meta table
+		$ecp1_join_meta = " JOIN $wpdb->postmeta AS ecp1_meta ON ($wpdb->posts.ID = ecp1_meta.post_id AND ecp1_meta.meta_key='ecp1_event_calendar') WHERE ";
+		$query_replace = preg_replace( '/WHERE/', $ecp1_join_meta, $query_replace, 1 ); // only first WHERE
+
+		// If the user needs elevation grant it in the query
+		if ( ! current_user_can( 'edit_others_' . ECP1_EVENT_CAP . 's' ) ) {
+			// At this point in time the query should have something like:
+			//   $wpdb->posts.post_author = 'ID'
+			// Which needs to be replaced with a string that allows if the
+			// user has edit on the events calendar
+			$match = '/([^ ]+post_author\s*=\s*[\'0-9]+)/';
+			$rep = '( ecp1_meta.meta_value IN (' . $q . ') OR \1 )';
+			$query_replace = preg_replace( $match, $rep, $query_replace );
+			//printf( "<pre>REPLACEMENT: %s</pre>", $query_replace );
+			$query = $query_replace;
+		} else {
+			// The user may need to be restricted so do that by
+			// asserting that only list ones in calendars user
+			// has edit capability for
+			$match = '/WHERE/';
+			$rep = 'WHERE ecp1_meta.meta_value IN (' . $q . ') AND ';
+			$query_replace = preg_replace( $match, $rep, $query_replace, 1 ); // only first WHERE
+			//printf( '<pre>REPLACEMENT: %s</pre>', $query_replace );
+			$query = $query_replace;
+		}
+	}
+	return $query;
+}
+
 // Now that everything is defined add extra fields to the calendar and event types
 include_once( ECP1_DIR . '/includes/data/calendar-fields-admin.php' );
 include_once( ECP1_DIR . '/includes/data/event-fields-admin.php' );

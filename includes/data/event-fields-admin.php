@@ -91,11 +91,7 @@ function ecp1_event_meta_form() {
 	global $ecp1_event_fields;
 	
 	// Load a list of calendars this user has access to
-	$calendars = get_posts( array( 'post_type'=>'ecp1_calendar', 'post_status'=>'publish', 'orderby'=>'title', 'order'=>'ASC' ) );
-	foreach( $calendars as $index=>$cal ) {
-		if( ! current_user_can( 'edit_' . ECP1_CALENDAR_CAP, $cal->ID ) )
-			unset( $calendars[$index] );
-	}
+	$calendars = _ecp1_current_user_calendars();
 
 	// The user must be able to edit the calendar to put events on it
 	// Note the calendar edit level can be a contributor who's calendar
@@ -120,9 +116,12 @@ function ecp1_event_meta_form() {
 	$ecp1_end_time = _ecp1_event_meta_is_default( 'ecp1_end_ts' ) ? '' : $ecp1_event_fields['ecp1_end_ts'][0];
 	$ecp1_location = _ecp1_event_meta_is_default( 'ecp1_location' ) ? '' : $ecp1_event_fields['ecp1_location'][0];
 	// TODO: Coords
+
+	// If the calendar selected is not editable by the user then they're cheating
+	if ( ! _ecp1_event_meta_is_default( 'ecp1_calendar' ) && ! current_user_can( 'edit_' . ECP1_CALENDAR_CAP, $ecp1_calendar ) )
+		wp_die( __( 'You can not change event details on a calendar you are not allowed to edit.' ) );
 	
 	// Output the meta box with a custom nonce
-	// TODO: Make WYSIWYG editor for description
 ?>
 	<input type="hidden" name="ecp1_event_nonce" id="ecp1_event_nonce" value="<?php echo wp_create_nonce( 'ecp1_event_nonce' ); ?>" />
 	<div class="ecp1_meta">
@@ -131,6 +130,7 @@ function ecp1_event_meta_form() {
 				<th scope="row"><label for="ecp1_summary"><?php _e( 'Calendar' ); ?></label></th>
 				<td>
 					<select id="ecp1_calendar" name="ecp1_calendar" class="ecp1_select">
+						<option value=""></option>
 <?php
 	// Iterate over the calendar list and print options
 	foreach( $calendars as $cal ) {
@@ -138,6 +138,7 @@ function ecp1_event_meta_form() {
 	}
 ?>
 					</select>
+					<em><?php _e( 'Note: Do NOT select a calendar with an external URL.' ); ?></em>
 				</td>
 			</tr>
 			<tr valign="top">
@@ -330,7 +331,7 @@ function ecp1_event_save() {
 		$ecp1_full_day = 'Y';
 	
 	// Which calendar should this event go on?
-	$ecp1_calendar = isset( $_POST['ecp1_calendar'] ) ? $ecp1_event_fields['ecp1_calendar'][0] : $ecp1_event_fields['ecp1_calendar'][1];
+	$ecp1_calendar = isset( $_POST['ecp1_calendar'] ) ? $_POST['ecp1_calendar'] : $ecp1_event_fields['ecp1_calendar'][1];
 	if ( $ecp1_event_fields['ecp1_calendar'][1] != $ecp1_calendar ) {
 		// If the calendar was set then check the user can edit it
 		if ( ! current_user_can( 'edit_' . ECP1_CALENDAR_CAP, $ecp1_calendar ) )

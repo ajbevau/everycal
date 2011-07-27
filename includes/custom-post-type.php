@@ -8,12 +8,12 @@ require( ECP1_DIR . '/includes/check-ecp1-defined.php' );
 
 // Define the capability types for the two custom post types
 // if you DO NOT want to use a role manager then set these
-// to a existing WordPress type: I recommend page for calendar
+// to a existing WordPress type: I recommend post for calendar
 // and post for events.
 // 
 // If you want more fine grained access control then change 
 // these to something else and setup the capability/roles.
-define( 'ECP1_CALENDAR_CAP', 'page' );
+define( 'ECP1_CALENDAR_CAP', 'post' );
 define( 'ECP1_EVENT_CAP', 'post' );
 
 // Add action hooks
