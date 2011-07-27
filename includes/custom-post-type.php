@@ -17,9 +17,7 @@ define( 'ECP1_CALENDAR_CAP', 'post' );
 define( 'ECP1_EVENT_CAP', 'post' );
 
 // Add action hooks
-add_action( 'init', 'ecp1_register_events' );
-add_action( 'init', 'ecp1_register_calendars' );
-add_action( 'ecp1_calendar_edit_form_fields', 'ecp1_calendar_custom_fields', 10, 2 );
+add_action( 'init', 'ecp1_register_types' );
 
 // Function that creates the ECP1 Custom Post Types
 function ecp1_register_types() {
@@ -76,9 +74,6 @@ function ecp1_register_types() {
 		'public' => true,
 		'exclude_from_search' => true, # don't show events unless the plugin says to
 		'show_ui' => true,
-		'capability_type' => 'post', # capabilities match posts
-		'supports' => array( 'title', 'thumbnail', 'excerpt', 'editor' ),
-		'show_in_nav_menus' => false
 		'menu_position' => 30,
 		# capabilities meta which will need a role manage if not default
 		'capability_type' => ECP1_EVENT_CAP,
@@ -104,7 +99,6 @@ function ecp1_map_calendar_cap_to_event( $caps, $cap, $user_id, $args ) {
 	$event = get_post( $event_id );
 	if ( 'ecp1_event' == get_post_type( $post ) ) {
 		// TODO: look at $cap and $user_id and ecp1_calendar in post meta
-		// This is a road map feature to support capabilities better
 	}
 	
 	// Finally return the caps that are left over
