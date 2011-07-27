@@ -30,6 +30,9 @@ define( 'ECP1_PLUGIN', true );
 // The plugin directory of Every Calendar +1
 define( 'ECP1_DIR', WP_PLUGIN_DIR . '/everycal' );
 
+// Handle plugin install/activation/deactivation/uninstall
+require_once( ECP1_DIR . '/install-activate.php' );
+
 // Define the Custom Post Type and helper functions
 require_once( ECP1_DIR . '/includes/custom-post-type.php' );
 require_once( ECP1_DIR . '/functions.php' );
