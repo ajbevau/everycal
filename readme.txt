@@ -14,15 +14,24 @@ TODO: Create a better brief and full description in the readme.txt file.
 
 == Installation ==
 
-The best way to install this plugin is through your WordPress Admin.
+This plugin requires PHP5.
 
-Alternatively upload all of the plugins files to the '/wp-content/plugins/everycalplus1' directory.
+The best way to install this plugin is through your WordPress Admin. Alternatively upload all of the plugins files to the '/wp-content/plugins/everycalplus1' directory.
 
 Once the plugin has been installed/uploaded you need to Activate this plugin in the 'Plugins' Admin panel.
 
 To put a calendar onto one of your pages use the provided shortcode in the 'Calendar' admin panel (created by plugin).
 
 == Frequently Asked Questions ==
+
+= How do I allow contributors/authors to add events to a (someone elses) calendar? ==
+
+Use a capability manager to assign user as a contributor role to the post and set the calendar contributor role to allow editing of published posts.
+
+In Role Scoper:
+1. Go to the calendar and assign the group or user to Contributors for this post
+2. Go to Role Scoper -> Options -> RS Role Definitions
+3. Assign Calendar Contributor the "Edit Published..." capability.
 
 = Why this plugin? =
 
