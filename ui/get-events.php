@@ -6,9 +6,9 @@
 
 // Load the WordPress environment so we can make queries etc...
 //require( )
-include "wp-load.php";
-global $wpdb;
-header('Content-Type:application/json');
+//include "wp-load.php";
+//global $wpdb;
+//header('Content-Type:application/json');
 /*$events = array();
 $result = new WP_Query('post_type=event&posts_per_page=-1');
 foreach($result->posts as $post) {
@@ -21,7 +21,7 @@ foreach($result->posts as $post) {
 }
 echo json_encode($events);
 exit;*/
-
+header( 'Content-Type:text/plain' );
 
 ?>
 [{a:'b'},{a:'c'},{a:'afa'}]

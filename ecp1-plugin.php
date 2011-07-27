@@ -30,8 +30,22 @@ define( 'ECP1_PLUGIN', true );
 // The plugin directory of Every Calendar +1
 define( 'ECP1_DIR', WP_PLUGIN_DIR . '/everycal' );
 
-// Handle plugin install/activation/deactivation/uninstall
+// Includes functions for making changes on activation/install/uninstall/deactivation
 require_once( ECP1_DIR . '/install-activate.php' );
+
+// Register a function on the activation hook to setup the plugin
+register_activation_hook( __FILE__, 'ecp1_plugin_activation' );
+function ecp1_plugin_activation() {
+	_ecp1_activate_rewrite();
+}
+ 
+// Register a function on the deactivation hook for locking down data
+register_deactivation_hook( __FILE__, 'ecp1_plugin_deactivation' );
+function ecp1_plugin_deactivation() {
+    _ecp1_deactivate_rewrite();
+}
+
+// TODO: Register an uninstall hook
 
 // Define the Custom Post Type and helper functions
 require_once( ECP1_DIR . '/includes/custom-post-type.php' );
