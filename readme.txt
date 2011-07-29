@@ -14,7 +14,7 @@ TODO: Create a better brief and full description in the readme.txt file.
 
 == Installation ==
 
-This plugin requires PHP5.
+This plugin requires PHP5 >= 5.3.0 that's over 2 years old now so upgrade if you haven't yet.
 
 The best way to install this plugin is through your WordPress Admin. Alternatively upload all of the plugins files to the '/wp-content/plugins/everycalplus1' directory.
 
