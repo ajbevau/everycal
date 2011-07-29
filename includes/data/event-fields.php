@@ -21,7 +21,7 @@ $ecp1_event_fields = array(
 	'ecp1_location' => array( '', '' ),
 	'ecp1_coord_lat' => array( '', '' ),
 	'ecp1_coord_lng' => array( '', '' ),
-	'ecp1_featured' => array( '', 'N' ),
+	'ecp1_featured' => array( '', '' ),
 	
 	// meta fields that describe the database structure
 	'_meta' => array(

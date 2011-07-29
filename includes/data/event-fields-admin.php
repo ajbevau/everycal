@@ -330,7 +330,7 @@ function ecp1_event_save() {
 	}
 
 	// Is this a featured event?
-	$ecp1_featured = $ecp1_event_fields['ecp1_featured'][1];
+	$ecp1_featured = 'N';
 	if ( isset( $_POST['ecp1_featured'] ) && '1' == $_POST['ecp1_featured'] ) {
 		$ecp1_featured = 'Y';
 	}
