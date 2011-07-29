@@ -41,25 +41,24 @@ function ecp1_render_options_page() {
 		<h2><?php _e( 'Every Calendar +1 Options' ); ?></h2>
 		<form method="post" action="options.php">
 			<?php settings_fields( ECP1_OPTIONS_GROUP ); ?>
-			<?php $options = _ecp1_get_options(); ?>
 			<table class="form-table">
 				<tr valign="top">
 				<tr valign="top">
 					<th scope="row"><?php _e( 'Allow Timezone Changes' ); ?></th>
 					<td>
-						<input id="<?php echo ECP1_GLOBAL_OPTIONS; ?>[tz_change]" name="<?php echo ECP1_GLOBAL_OPTIONS; ?>[tz_change]" type="checkbox" value="1" <?php checked( '1', $options['tz_change'] ); ?> />
+						<input id="<?php echo ECP1_GLOBAL_OPTIONS; ?>[tz_change]" name="<?php echo ECP1_GLOBAL_OPTIONS; ?>[tz_change]" type="checkbox" value="1" <?php checked( '1', _ecp1_get_option( 'tz_change' ) ); ?> />
 						<em><?php _e( 'Note: by default calendars will use the WordPress Timezone setting.' ); ?></em>
 					</td>
 				</tr>
 					<th scope="row"><?php _e( 'Enable Maps / Provider' ); ?></th>
 					<td>
-						<input id="<?php echo ECP1_GLOBAL_OPTIONS; ?>[use_maps]" name="<?php echo ECP1_GLOBAL_OPTIONS; ?>[use_maps]" type="checkbox" value="1" <?php checked( '1', $options['use_maps'] ); ?> />
+						<input id="<?php echo ECP1_GLOBAL_OPTIONS; ?>[use_maps]" name="<?php echo ECP1_GLOBAL_OPTIONS; ?>[use_maps]" type="checkbox" value="1" <?php checked( '1', _ecp1_get_option( 'use_maps' ) ); ?> />
 						<select id="<?php echo ECP1_GLOBAL_OPTIONS; ?>[map_provider]" name="<?php echo ECP1_GLOBAL_OPTIONS; ?>[map_provider]">
 <?php
 	// For each map provider create an entry
 	$map_providers = ecp1_map_providers();
 	foreach( $map_providers as $slug=>$details ) 
-		printf( '<option value="%s"%s>%s</option>', $slug, $slug == $options['map_provider'] ? ' selected="selected"' : '', $details['name'] );
+		printf( '<option value="%s"%s>%s</option>', $slug, $slug == _ecp1_get_option( 'map_provider' ) ? ' selected="selected"' : '', $details['name'] );
 ?>
 						</select>
 					</td>
@@ -71,16 +70,41 @@ function ecp1_render_options_page() {
 	$cal_providers = ecp1_calendar_providers();
 	$display_counter = 0;
 	foreach( $cal_providers as $name=>$details ) {
-		if ( 0 == $display_counter)
+		if ( 0 == $display_counter )
 			printf( '<div class="ecp1_checkbox_row">' );
 ?>
 		<span class="ecp1_checkbox_block">
-			<input id="<?php printf( '%s[cal_providers][%s]', ECP1_GLOBAL_OPTIONS, $name ); ?>" name="<?php printf( '%s[cal_providers][%s]', ECP1_GLOBAL_OPTIONS, $name ); ?>" type="checkbox" value="1"<?php echo _ecp1_calendar_provider_enabled( $name ) ? ' checked="checked"' : '' ?> />
+			<input id="<?php printf( '%s[cal_providers][%s]', ECP1_GLOBAL_OPTIONS, $name ); ?>" name="<?php printf( '%s[cal_providers][%s]', ECP1_GLOBAL_OPTIONS, $name ); ?>" type="checkbox" value="1"<?php echo _ecp1_calendar_provider_enabled( $name ) ? ' checked="checked"' : ''; ?> />
 			<label for="<?php printf( '%s[cal_providers][%s]', ECP1_GLOBAL_OPTIONS, $name ); ?>"><?php echo $details['name']; ?></label>
 		</span>
 <?php
 		$display_counter += 1;
-		if ( 3 == $display_counter) { // i.e. 3 displayed
+		if ( 3 == $display_counter ) { // i.e. 3 displayed
+			printf( '</div>' );
+			$display_counter = 0;
+		}
+	}
+?>
+					</td>
+				</tr>
+				<tr>
+					<th scope="row"><?php _e( 'Featured Calendars' ); ?></th>
+					<td>
+<?php
+	// List all of the available calendars with checkboxes
+	$calendars = _ecp1_current_user_calendars();
+	$display_counter = 0;
+	foreach( $calendars as $cal ) {
+		if ( 0 == $display_counter )
+			printf( '<div class="ecp1_checkbox_row">' );
+?>
+		<span class="ecp1_checkbox_block">
+			<input id="<?php printf( '%s[feature_cals][%s]', ECP1_GLOBAL_OPTIONS, $cal->ID ); ?>" name="<?php printf( '%s[feature_cals][%s]', ECP1_GLOBAL_OPTIONS, $cal->ID ); ?>" type="checkbox" value="1"<?php echo _ecp1_calendar_show_featured( $cal->ID ) ? ' checked="checked"' : ''; ?> />
+			<label for="<?php printf( '%s[feature_cals][%s]', ECP1_GLOBAL_OPTIONS, $cal->ID ); ?>"><?php echo $cal->post_title; ?></label>
+		</span>
+<?php
+		$display_counter += 1;
+		if ( 3 == $display_counter ) { // i.e. 3 displayed
 			printf( '</div>' );
 			$display_counter = 0;
 		}
@@ -130,6 +154,26 @@ function ecp1_validate_options_page( $input ) {
 	}
 	$input['_external_cal_providers'] = trim( $external_providers, ',' );
 	unset( $input['cal_providers'] );
+
+	// Rebuild the _show_featured_on CSV list from the checkboxes
+	$feature_calendars = _ecp1_get_option( '_show_on_featured' );
+	if ( '' == $feature_calendars )
+		$feature_calendars = array();
+	else
+		$feature_calendars = explode( ',', $feature_calendars );
+	$calendars = _ecp1_current_user_calendars();
+	foreach( $calendars as $cal ) {
+		if ( isset( $input['feature_cals'][$cal->ID] ) && '1' == $input['feature_cals'][$cal->ID] 
+				&& ! in_array( $cal->ID, $feature_calendars ) )
+			$feature_calendars[] = $cal->ID; // if set and not in array then add
+
+		if ( ! isset( $input['feature_cals'][$cal->ID] ) // look it up and gets index
+				&& ( $_c_index = array_search( $cal->ID, $feature_calendars ) ) )
+			array_splice( $feature_calendars, $_c_index, 1 ); // remove if now not set
+	}
+	$feature_calendars = implode( ',', $feature_calendars );
+	$input['_show_featured_on'] = $feature_calendars;
+	unset( $input['feature_cals'] );
 
 	// If a external calendar provider is enabled then allow otherwise deny
 	$input['use_external_cals'] = strlen( $external_providers ) > 0 ? 1 : 0;
