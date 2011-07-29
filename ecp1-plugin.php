@@ -30,6 +30,14 @@ define( 'ECP1_PLUGIN', true );
 // The plugin directory of Every Calendar +1
 define( 'ECP1_DIR', WP_PLUGIN_DIR . '/' . basename( dirname( __FILE__ ) ) );
 
+// The tag that the plugins custom template renders hook on
+define( 'ECP1_TEMPLATE_TAG', 'ecp1tpl' );
+define( 'ECP1_TEMPLATE_TEST_ARG', '_ecp1test' ); // for template renderer debug
+
+// Initialise the plugin
+// Do this first so the rewrite rule flush includes custom types
+require_once( ECP1_DIR . '/init-plugin.php' );
+
 // Includes functions for making changes on activation/install/uninstall/deactivation
 require_once( ECP1_DIR . '/install-activate.php' );
 
@@ -47,25 +55,12 @@ function ecp1_plugin_deactivation() {
 
 // TODO: Register an uninstall hook
 
-// Define the Custom Post Type and helper functions
-require_once( ECP1_DIR . '/includes/custom-post-type.php' );
-require_once( ECP1_DIR . '/functions.php' );
 
 // If displaying the administration dashboard load admin UI
-if ( is_admin() ) {
-	include_once( ECP1_DIR . '/includes/custom-post-admin.php' );
-	include_once( ECP1_DIR . '/includes/plugin-settings-page.php' );
-} else {
-	// Make sure all the client side libraries get enqueued
-	include_once( ECP1_DIR . '/ui/client-enqueueing.php' );
-
-	// If the event/calendar is requested directly render it
-	include_once( ECP1_DIR . '/ui/client-render.php' );
-	include_once( ECP1_DIR . '/ui/calendar-post.php' );
-	include_once( ECP1_DIR . '/ui/event-post.php' );
-
-	// Register the shortcodes for a full-sized calendar
-	include_once( ECP1_DIR . '/ui/full-size-calendar-shortcode.php' );
-}
+// otherwise load the client UI or a custom template
+if ( is_admin() )
+	include_once( ECP1_DIR . '/includes/init-admin.php' );
+else
+	include_once( ECP1_DIR . '/ui/init-client-ui.php' );
 
 ?>
