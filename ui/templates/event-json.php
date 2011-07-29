@@ -90,8 +90,17 @@ if ( empty( $wp_query->query_vars['ecp1_start'] ) || empty( $wp_query->query_var
 			// Note: The SQL has start comparission BEFORE end comparisson $end before $start
 			// TODO: Repeating events - probably will need to abstract this
 			$event_ids = $wpdb->get_col( $wpdb->prepare( $_events_query, $cal->ID, $end, $start ) );
+			
+			// Now look to see if this calendar supports featured events and if so load ids
+			if ( _ecp1_calendar_show_featured( $cal->ID ) )
+				$event_ids = array_merge( $event_ids, $wpdb->get_col( 
+					"SELECT DISTINCT post_id FROM $wpdb->postmeta WHERE meta_key='ecp1_event_is_featured' AND meta_value='Y';" ) );
+
+			// If any events were found load them into the loop
 			if ( count( $event_ids ) > 0 )
 				query_posts( array( 'post__in' => $event_ids, 'post_type'=>'ecp1_event' ) );
+
+			// An array of JSON parameters for the event
 			$events_json = array();
 
 			// Equiv of The Loop
