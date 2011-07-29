@@ -7,3 +7,4 @@
 #ecp1_event span.ecp1_event-title {vertical-align:top;width:120px;display:inline-block;}
 #ecp1_event span.ecp1_event-text {vertical-align:top;display:inline-block;}
 #ecp1_event span.ecp1_event-text_wide {vertical-align:top;display:block;padding-left:0.5em;}
+#ecp1_event span#ecp1_feature {float:right;margin:0 0 10px 10px;}

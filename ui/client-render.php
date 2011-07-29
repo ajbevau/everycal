@@ -155,7 +155,7 @@ function ecp1_print_fullcalendar_load() {
 // Function that will return the necessary HTML blocks and queue some static
 // JS for the document load event to render an event post page
 function ecp1_render_event( $event ) {
-	global $_ecp1_dynamic_event_script;
+	global $_ecp1_dynamic_event_script, $post;
 	
 	// Make sure the event provided is valid
 	if ( ! is_array( $event ) )
@@ -260,8 +260,16 @@ ENDOFSCRIPT;
 		$ecp1_info = sprintf( '<div><a href="%s" target="_blank">%s</a></div>', $ecp1_url, __( 'Read more...' ) );
 	} // else: leave as empty string summary must be enough
 	
+	// If feature images are enabled by the them (aka Post Thumbnails) then show if there is on
+	$feature_image = '';
+	if ( function_exists( 'add_theme_support' ) && function_exists( 'get_the_post_thumbnail' ) ) {
+		if ( has_post_thumbnail( $post->ID ) )
+			$feature_image = get_the_post_thumbnail( $post->ID, 'thumbnail' );
+	}
+	
 	$outstr = <<<ENDOFHTML
 <div id="ecp1_event">
+	<span id="ecp1_feature">$feature_image</span>
 	<ul class="ecp1_event-details">
 		<li><span class="ecp1_event-title"><strong>$pwhen:</strong></span>
 				<span class="ecp1_event-text">$ecp1_time</span></li>
