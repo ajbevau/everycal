@@ -33,6 +33,9 @@ $_ecp1_settings = array(
 	// List should come from the External Calendar Providers array
 	'_external_cal_providers' => array( 'default' => 'google' ),
 
+	// Which calendar post IDs should show featured events (comma separated)
+	'_show_featured_on' => array( 'default' => '' ),
+
 );
 
 // Helper function that returns the whole options array or just the 
@@ -51,6 +54,9 @@ function _ecp1_get_options( $option_key=null, $reload_from_db=false ) {
 			if ( isset( $dbopts[$key] ) )
 				$_ecp1_settings[$key]['value'] = $dbopts[$key];
 		}
+
+		// Mark as having been read from DB
+		$_ecp1_settings['_db'] = true;
 	}
 	
 	// Do they just want the value of the key option?
@@ -103,7 +109,8 @@ function _ecp1_calendar_provider_enabled( $provider ) {
 
 // Returns true or false if the given calendar post id should display featured events
 function _ecp1_calendar_show_featured( $post_id ) {
-	return false; // TODO
+	$cals = explode( ',', _ecp1_get_option( '_show_featured_on' ) );
+	return is_array( $cals ) && in_array( $post_id, $cals );
 }
 
 ?>
