@@ -27,11 +27,12 @@ function ecp1_full_size_calendar( $atts ) {
 	
 	// Lookup the Post ID for the calendar with that name
 	// Note: Pages are just Posts with post_type=page so the built in function works
-	$cal_post = get_page_by_title( $name, 'OBJECT', 'ecp1_calendar' );
+	$cal_post = get_page_by_title( $name, OBJECT, 'ecp1_calendar' );
 	
 	// We don't want calendar meta for the global page/post but for the one given by title
 	_ecp1_parse_calendar_custom( $cal_post->ID ); // Load the calendar meta into global $ecp1_calendar_fields
-	return ecp1_render_calendar( $ecp1_calendar_fields ); // Pass the calendar to the render function
+	$fields = array_merge( $ecp1_calendar_fields, array( 'slug'=>$cal_post->post_name ) );
+	return ecp1_render_calendar( $fields ); // Pass the calendar to the render function
 }
 
 ?>
