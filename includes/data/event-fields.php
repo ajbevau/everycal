@@ -21,13 +21,15 @@ $ecp1_event_fields = array(
 	'ecp1_location' => array( '', '' ),
 	'ecp1_coord_lat' => array( '', '' ),
 	'ecp1_coord_lng' => array( '', '' ),
+	'ecp1_featured' => array( '', 'N' ),
 	
 	// meta fields that describe the database structure
 	'_meta' => array(
 		'standalone' => array(	// $ecp1_event_fields key => postmeta table key
 			'ecp1_start_ts' => 'ecp1_event_start',
 			'ecp1_end_ts' => 'ecp1_event_end',
-			'ecp1_calendar' => 'ecp1_event_calendar'
+			'ecp1_calendar' => 'ecp1_event_calendar',
+			'ecp1_featured' => 'ecp1_event_is_featured'
 		),
 		'calendar_tz' => 'UTC', // the TZ of the parent calendar
 		'_loaded' => false, // custom fields not yet loaded
@@ -36,7 +38,6 @@ $ecp1_event_fields = array(
 );
 // TODO: Add social media pages to 'like' etc...
 // TODO: Repeating events
-$_tmp = 'nothing here';
 
 // Function to parse the custom post fields into the fields above
 function _ecp1_parse_event_custom( $post_id=-1 ) {

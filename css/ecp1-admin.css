@@ -12,3 +12,7 @@ div.ecp1_meta select.ecp1_select {width:30%;}
 div.ecp1_meta select#ecp1_timezone option, div.ecp1_meta select#ecp1_timezone optgroup {padding:0.1em}
 div.ecp1_meta select#ecp1_timezone optgroup option {padding:0.1em 1.8em;}
 span.ecp1_checkbox_block {display:inline-block;width:30%;}
+span.ecp1_floater_r {display:inline-block;width:40%;float:right;}
+div.ecp1_meta table.form-table td, div.ecp1_meta table.form-table th {vertical-align:top;clear:both;}
+div.ecp1_meta table.form-table th label {padding-top:5px;display:inline-block;}
+div.ecp1_meta #ecp1_featured {margin-right:10px;}

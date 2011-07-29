@@ -45,7 +45,7 @@ function ecp1_event_custom_columns( $column ) {
 	
 	// act based on the column that is being rendered
 	switch ( $column ) {
-		
+
 		case 'ecp1_dates':
 			try {
 				$allday = $ecp1_event_fields['ecp1_full_day'][0];
@@ -91,6 +91,8 @@ function ecp1_event_custom_columns( $column ) {
 			break;
 		
 		case 'ecp1_summary':
+			if ( ! _ecp1_event_meta_is_default( 'ecp1_featured' ) && 'Y' == _ecp1_event_meta( 'ecp1_featured' ) )
+				printf( '<strong>%s</strong><br/>', __( 'Feature Event' ) );
 			printf( '%s', htmlspecialchars( $ecp1_event_fields['ecp1_summary'][0] ) );
 			break;
 		
@@ -121,11 +123,12 @@ function ecp1_event_meta_form() {
 	_ecp1_parse_event_custom();
 	
 	// Sanitize and do security checks
-	$ecp1_summary = _ecp1_event_meta_is_default( 'ecp1_summary' ) ? '' : wp_filter_post_kses( $ecp1_event_fields['ecp1_summary'][0] );
+	$ecp1_summary = _ecp1_event_meta_is_default( 'ecp1_summary' ) ? '' : $ecp1_event_fields['ecp1_summary'][0];
 	$ecp1_url = _ecp1_event_meta_is_default( 'ecp1_url' ) ? '' : urldecode( $ecp1_event_fields['ecp1_url'][0] );
-	$ecp1_description = _ecp1_event_meta_is_default( 'ecp1_description' ) ? '' : wp_filter_post_kses( $ecp1_event_fields['ecp1_description'][0] );
+	$ecp1_description = _ecp1_event_meta_is_default( 'ecp1_description' ) ? '' : $ecp1_event_fields['ecp1_description'][0];
 	$ecp1_calendar = _ecp1_event_meta_is_default( 'ecp1_calendar' ) ? '-1' : $ecp1_event_fields['ecp1_calendar'][0];
 	$ecp1_full_day = _ecp1_event_meta_is_default( 'ecp1_full_day' ) ? 'N' : $ecp1_event_fields['ecp1_full_day'][0];
+	$ecp1_featured = _ecp1_event_meta_is_default( 'ecp1_featured' ) ? 'N' : $ecp1_event_fields['ecp1_featured'][0];
 	$ecp1_location = _ecp1_event_meta_is_default( 'ecp1_location' ) ? '' : $ecp1_event_fields['ecp1_location'][0];
 	// TODO: Coords
 
@@ -175,7 +178,7 @@ function ecp1_event_meta_form() {
 	<div class="ecp1_meta">
 		<table class="form-table">
 			<tr valign="top">
-				<th scope="row"><label for="ecp1_summary"><?php _e( 'Calendar' ); ?></label></th>
+				<th scope="row"><label for="ecp1_calendar"><?php _e( 'Calendar' ); ?></label></th>
 				<td>
 					<select id="ecp1_calendar" name="ecp1_calendar" class="ecp1_select">
 						<option value=""></option>
@@ -186,7 +189,11 @@ function ecp1_event_meta_form() {
 	}
 ?>
 					</select>
-					<em><?php _e( 'Note: Do NOT select a calendar with an external URL.' ); ?></em>
+					<span class="ecp1_floater_r">
+						<input type="checkbox" id="ecp1_featured" name="ecp1_featured" value="1" <?php checked( 'Y', $ecp1_featured ); ?> />
+						<label for="ecp1_featured"><strong><?php _e( 'Feature Event?' ); ?></strong></label>
+						<br/><?php _e( 'Feature events can appear on other calendars (e.g. a global calendar).' ); ?>
+					</span>
 				</td>
 			</tr>
 			<tr valign="top">
@@ -194,10 +201,10 @@ function ecp1_event_meta_form() {
 				<td><textarea id="ecp1_summary" name="ecp1_summary" class="ecp1_med"><?php echo $ecp1_summary; ?></textarea></td>
 			</tr>
 			<tr valign="top">
-				<th scope="row"><label for="ecp1_description"><?php _e( 'Event Website' ); ?></label></th>
+				<th scope="row"><label for="ecp1_url"><?php _e( 'Event Website' ); ?></label></th>
 				<td>
 					<input id="ecp1_url" name="ecp1_url" type="text" class="ecp1_w100" value="<?php echo $ecp1_url; ?>" />
-					<br/><strong><?php _e( 'or full description' ); ?></strong><br/>
+					<br/><strong><?php _e( 'and / or full description' ); ?></strong><br/>
 					<!-- Copied from WordPress wp-admin/edit-form-advanced.php -->
 					<div id="<?php echo user_can_richedit() ? 'postdivrich' : 'postdiv'; ?>" class="postarea">
 					<?php the_editor( $ecp1_description, 'ecp1_description' ); ?>
@@ -233,7 +240,7 @@ function ecp1_event_meta_form() {
 				</td>
 			</tr>
 			<tr valign="top">
-				<th scope="row"><label for="ecp1_start_date"><?php _e( 'Finish' ); ?></label></th>
+				<th scope="row"><label for="ecp1_end_date"><?php _e( 'Finish' ); ?></label></th>
 				<td>
 					<input id="ecp1_end_date" name="ecp1_end_date" type="text" class="ecp1_datepick" value="<?php echo $ecp1_end_date; ?>" />
 					<?php echo _ecp1_time_select_trio( 'ecp1_end_time', $ecp1_end_time ); ?><br/>
@@ -320,6 +327,12 @@ function ecp1_event_save() {
 	$ecp1_full_day = $ecp1_event_fields['ecp1_full_day'][1];
 	if ( isset( $_POST['ecp1_full_day'] ) && '1' == $_POST['ecp1_full_day'] ) {
 		$ecp1_full_day = 'Y';
+	}
+
+	// Is this a featured event?
+	$ecp1_featured = $ecp1_event_fields['ecp1_featured'][1];
+	if ( isset( $_POST['ecp1_featured'] ) && '1' == $_POST['ecp1_featured'] ) {
+		$ecp1_featured = 'Y';
 	}
 
 	// Which calendar should this event go on?
