@@ -98,6 +98,7 @@ function ecp1_render_calendar( $calendar ) {
 		// TODO: Make such source options controlable from the admin: how?
 		$event_source_params['external0']['currentTimezone'] = "'$raw_timezone'"; # Quoted see _defaults
 		$event_source_params['external0']['color'] = "'#cc3333'"; # Quoted see _defaults
+		$event_source_params['external0']['dataType'] = "'gcal'"; # TODO: This should come from the provider array
 	}
 
 	// Get rid of the defaults and write out an event sources array
