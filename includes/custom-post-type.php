@@ -62,7 +62,7 @@ function ecp1_register_types() {
 		# capabilities meta which will need a role manager if not default
 		'capability_type' => ECP1_CALENDAR_CAP,
 		'map_meta_cap' => true, # make sure all meta capabilities are mapped
-		'supports' => array( 'title', 'author' ),
+		'supports' => array( 'title' ),
 		'rewrite' => array( 'slug' => 'calendar' ),
 		'show_in_nav_menus' => false,
 	);
@@ -78,7 +78,7 @@ function ecp1_register_types() {
 		# capabilities meta which will need a role manage if not default
 		'capability_type' => ECP1_EVENT_CAP,
 		'map_meta_cap' => true, # make sure all meta capabilities are mapped
-		'supports' => array( 'title', 'author', 'thumbnail' ),
+		'supports' => array( 'title', 'thumbnail' ),
 		'rewrite' => array( 'slug' => 'event' ),
 		'show_in_nav_menus' => false,
 	);
@@ -99,6 +99,7 @@ function ecp1_map_calendar_cap_to_event( $caps, $cap, $user_id, $args ) {
 	$event = get_post( $event_id );
 	if ( 'ecp1_event' == get_post_type( $post ) ) {
 		// TODO: look at $cap and $user_id and ecp1_calendar in post meta
+		// NOTE: This is a RoadMap feature at the moment it's faked
 	}
 	
 	// Finally return the caps that are left over

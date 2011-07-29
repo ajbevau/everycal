@@ -106,32 +106,4 @@ function _ecp1_calendar_show_featured( $post_id ) {
 	return false; // TODO
 }
 
-// Creates an HTML select of all timezones 
-// Based on http://neo22s.com/timezone-select-for-php/
-function _ecp1_timezone_select( $id, $pick='_', $extra_attrs=null ) {
-	$outstr = sprintf( '<select id="%s" name="%s" %s>', $id, $id, $extra_attrs );
-	$outstr .= sprintf( '<option value="_"%s>%s</option>', '_' == $pick ? ' selected="selected"' : '', __( 'WordPress Default' ) );
-	$timezone_identifiers = DateTimeZone::listIdentifiers();
-	foreach( $timezone_identifiers as $value ) {
-		if ( preg_match( '/^(Africa|America|Antartica|Arctic|Asia|Atlantic|Australia|Europe|Indian|Pacific)\//', $value ) ){
-			$ex = explode( '/', $value ); //obtain continent and city	
-			if ( $continent != $ex[0] ) {
-				if ( '' != $continent ) $outstr .= sprintf( '</optgroup>' );
-				$outstr .= sprintf( '<optgroup label="%s">', $ex[0] );
-			}
-			
-			// create an offset value so people can pick the right place
-			$dtz = new DateTimeZone( $value );
-			$offset = $dtz->getOffset( new DateTime( 'now' ) );
-			$offset = 'UTC' . ( $offset < 0 ? ' - ' : ' + ' ) . ( abs( $offset/3600 ) );
-			
-			$city = str_replace( '_', ' ', ( isset( $ex[2] ) ? $ex[2] : $ex[1] ) ); // Continent/Country/City
-			$continent = $ex[0]; // for next loop
-			$outstr .= sprintf( '<option value="%s"%s>%s (%s)</option>', $value, $value == $pick ? ' selected="selected"' : '', $city, $offset );
-		}
-	}
-	$outstr .= sprintf( '</optgroup></select>' );
-	return $outstr;
-}
-
 ?>

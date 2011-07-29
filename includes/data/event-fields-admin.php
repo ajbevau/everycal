@@ -31,37 +31,53 @@ function ecp1_event_edit_columns( $columns ) {
 
 // Function that adds values to the custom columns
 function ecp1_event_custom_columns( $column ) {
-	global $ecp1_event_fields;
+	global $ecp1_event_fields, $post_type;
+
+	// Only do this if we're loading events
+	if ( 'ecp1_event' != $post_type )
+		return;
+
+	// Make sure the meta event is loaded and get time fomatting ready
 	_ecp1_parse_event_custom();
 	$datef = get_option( 'date_format' );
 	$timef = get_option( 'time_format' );
+	$tz = new DateTimeZone( $ecp1_event_fields['_meta']['calendar_tz'] );
 	
 	// act based on the column that is being rendered
 	switch ( $column ) {
 		
 		case 'ecp1_dates':
-			$allday = $ecp1_event_fields['ecp1_full_day'][0];
-			$start = $ecp1_event_fields['ecp1_start_ts'][0];
-			$end = $ecp1_event_fields['ecp1_end_ts'][0];
-			if ( '' != $start && is_numeric( $start ) ) {
-				// Output the start date
-				$outstr = sprintf( '<strong>%s:</strong> %s<br/>', __( 'Start' ), date( $datef . ' ' . $timef, $start ) );
+			try {
+				$allday = $ecp1_event_fields['ecp1_full_day'][0];
+				$start = $ecp1_event_fields['ecp1_start_ts'][0];
+				$end = $ecp1_event_fields['ecp1_end_ts'][0];
+
+				if ( '' != $start && is_numeric( $start ) ) {
+					// Output the start date
+					$start = new DateTime( "@$start" );
+					$outstr = sprintf( '<strong>%s:</strong> %s<br/>', __( 'Start' ), 
+							$start->setTimezone( $tz )->format( $datef . ' ' . $timef ) );
 				
-				// If an end date was supplied use it
-				if ( '' != $end && is_numeric( $end ) ) {
-					$outstr .= sprintf( '<strong>%s:</strong> %s', __( 'End' ), date( $datef . ' ' . $timef, $end ) );
+					// If an end date was supplied use it
+					if ( '' != $end && is_numeric( $end ) ) {
+						$end = new DateTime( "@$end" );
+						$outstr .= sprintf( '<strong>%s:</strong> %s', __( 'End' ), 
+								$end->setTimezone( $tz )->format( $datef . ' ' . $timef ) );
+					} else {
+						$outstr .= __( 'No end date given.' );
+					}
+				
+					// Note that this event runs all day if it does
+					if ( 'Y' == $allday )
+						$outstr .= sprintf( '<br/>%s', __( 'Running all day' ) );
 				} else {
-					$outstr .= __( 'No end date given.' );
+					$outstr = __( 'No start date given.' );
 				}
-				
-				// Note that this event runs all day if it does
-				if ( 'Y' == $allday )
-					$outstr .= sprintf( '<br/>%s', __( 'Running all day' ) );
-			} else {
-				$outstr = __( 'No start date given.' );
+			} catch( Exception $tserror ) {
+				$outstr = __( 'Invalid date stored in database, please correct it.' );
 			}
 			
-			printf( $outstr );
+			printf( '%s<br/>%s', $outstr, ecp1_timezone_display( $tz->getName() ) );
 			break;
 		
 		case 'ecp1_location':
@@ -89,7 +105,7 @@ function ecp1_event_meta_fields() {
 // Function that generates a html section for adding inside a meta fields box
 function ecp1_event_meta_form() {
 	global $ecp1_event_fields;
-	
+
 	// Load a list of calendars this user has access to
 	$calendars = _ecp1_current_user_calendars();
 
@@ -110,12 +126,44 @@ function ecp1_event_meta_form() {
 	$ecp1_description = _ecp1_event_meta_is_default( 'ecp1_description' ) ? '' : wp_filter_post_kses( $ecp1_event_fields['ecp1_description'][0] );
 	$ecp1_calendar = _ecp1_event_meta_is_default( 'ecp1_calendar' ) ? '-1' : $ecp1_event_fields['ecp1_calendar'][0];
 	$ecp1_full_day = _ecp1_event_meta_is_default( 'ecp1_full_day' ) ? 'N' : $ecp1_event_fields['ecp1_full_day'][0];
+	$ecp1_location = _ecp1_event_meta_is_default( 'ecp1_location' ) ? '' : $ecp1_event_fields['ecp1_location'][0];
+	// TODO: Coords
+
 	$ecp1_start_date = _ecp1_event_meta_is_default( 'ecp1_start_ts' ) ? '' : date( 'Y-m-d', $ecp1_event_fields['ecp1_start_ts'][0] );
 	$ecp1_start_time = _ecp1_event_meta_is_default( 'ecp1_start_ts' ) ? '' : $ecp1_event_fields['ecp1_start_ts'][0];
 	$ecp1_end_date = _ecp1_event_meta_is_default( 'ecp1_end_ts' ) ? '' : date( 'Y-m-d', $ecp1_event_fields['ecp1_end_ts'][0] );
 	$ecp1_end_time = _ecp1_event_meta_is_default( 'ecp1_end_ts' ) ? '' : $ecp1_event_fields['ecp1_end_ts'][0];
-	$ecp1_location = _ecp1_event_meta_is_default( 'ecp1_location' ) ? '' : $ecp1_event_fields['ecp1_location'][0];
-	// TODO: Coords
+
+	// The current calendars timezone
+	$tz = new DateTimeZone( $ecp1_event_fields['_meta']['calendar_tz'] );
+
+	// Load the start date/time if possible
+	$ecp1_start_date = $ecp1_start_time = '';
+	if ( ! _ecp1_event_meta_is_default( 'ecp1_start_ts' ) ) {
+		try {
+			$d = new DateTime( '@' . $ecp1_event_fields['ecp1_start_ts'][0] );
+			$d->setTimezone( $tz );
+			$ecp1_start_date = $d->format( 'Y-m-d' );
+			$ecp1_start_time = $d->getTimestamp() + $d->getOffset(); // format( 'U' ) and timestamp are NOT offset by TZ
+		} catch( Exception $serror ) {
+			$ecp1_start_date = $ecp1_start_time = '';
+			printf( '<div class="ecp1_error">%s</div>', __( 'ERROR: Could not parse start date/time please re-enter.' ) );
+		}
+	}
+
+	// Load the end date/time if possible
+	$ecp1_end_date = $ecp1_end_time = '';
+	if ( ! _ecp1_event_meta_is_default( 'ecp1_end_ts' ) ) {
+		try {
+			$d = new DateTime( '@' . $ecp1_event_fields['ecp1_end_ts'][0] );
+			$d->setTimezone( $tz );
+			$ecp1_end_date = $d->format( 'Y-m-d' );
+			$ecp1_end_time = $d->getTimestamp() + $d->getOffset(); // format( 'U' ) and timestamp are NOT offset by TZ
+		} catch( Exception $eerror ) {
+			$ecp1_end_date = $ecp1_end_time = '';
+			printf( '<div class="ecp1_error">%s</div>', __( 'ERROR: Could not parse end date/time please re-enter.' ) );
+		}
+	}
 
 	// If the calendar selected is not editable by the user then they're cheating
 	if ( ! _ecp1_event_meta_is_default( 'ecp1_calendar' ) && ! current_user_can( 'edit_' . ECP1_CALENDAR_CAP, $ecp1_calendar ) )
@@ -242,6 +290,8 @@ function ecp1_event_save() {
 	global $post, $ecp1_event_fields;
 	if ( 'revision' == $post->post_type )
 		return; // don't update on revisions
+	if ( 'ecp1_event' != $post->post_type )
+		return; // don't update non-events
 	
 	// Verify the nonce just incase
 	if ( ! wp_verify_nonce( $_POST['ecp1_event_nonce'], 'ecp1_event_nonce' ) )
@@ -271,28 +321,40 @@ function ecp1_event_save() {
 	if ( isset( $_POST['ecp1_full_day'] ) && '1' == $_POST['ecp1_full_day'] ) {
 		$ecp1_full_day = 'Y';
 	}
+
+	// Which calendar should this event go on?
+	$ecp1_calendar = isset( $_POST['ecp1_calendar'] ) ? $_POST['ecp1_calendar'] : $ecp1_event_fields['ecp1_calendar'][1];
+	if ( $ecp1_event_fields['ecp1_calendar'][1] != $ecp1_calendar ) {
+		// If the calendar was set then check the user can edit it
+		if ( ! current_user_can( 'edit_' . ECP1_CALENDAR_CAP, $ecp1_calendar ) )
+			$ecp1_calendar = $ecp1_event_fields['ecp1_calendar'][1];
+	}
+	
+	// Load the calendar so we can convert times to UTC
+	_ecp1_parse_calendar_custom( $ecp1_calendar );
+	$calendar_tz = new DateTimeZone( ecp1_get_calendar_timezone() ); // UTC if error
 	
 	// Convert the Start Date + Time into a single UNIX time
 	$ecp1_start_ts = $ecp1_event_fields['ecp1_start_ts'][1];
 	if ( isset( $_POST['ecp1_start_date'] ) ) {
 		// Dates should be in YYYY-MM-DD format by UI request
-		$ds = date_create( $_POST['ecp1_start_date'] );
-		if ( FALSE === $ds ) 
+		$ds = date_create( $_POST['ecp1_start_date'], $calendar_tz );
+		if ( FALSE === $ds ) // used procedural so don't have to catch exception
 			return $post->ID;
-		date_time_set( $ds, 0, 1 ); // set to just after midnight if time not given
+		$ds->setTime( 0, 0, 1 ); // set to just after midnight if time not given
 		
 		// Do we have times?
 		if ( isset( $_POST['ecp1_start_time-hour'] ) && isset( $_POST['ecp1_start_time-min'] ) && 
 				isset( $_POST['ecp1_start_time-ante'] ) && ( '' != $_POST['ecp1_start_time-hour'] || '' != $_POST['ecp1_start_time-min'] ) ) {
-			$meridiem = $_POST['ecp1_start_time-ante'];
+			$meridiem = isset( $_POST['ecp1_start_time-ante'] ) ? $_POST['ecp1_start_time-ante'] : 'AM';
 			$hours = isset( $_POST['ecp1_start_time-hour'] ) ? $_POST['ecp1_start_time-hour'] : 0;
-			$hours = 'AM' == $meridiem ? $hours : 12 + $hours;
+			$hours = 'AM' == $meridiem ? (12 == $hours ? 0 : $hours) : 12 + $hours; // convert to 24hr for setting time
 			$mins = isset( $_POST['ecp1_start_time-min'] ) ? $_POST['ecp1_start_time-min'] : 0;
-			date_time_set( $ds, $hours, $mins );
+			$ds->setTime( $hours, $mins, 0 ); // 0 to undo the 1s above
 		}
 		
 		// Save as a timestamp and reset the post values
-		$ecp1_start_ts = date_timestamp_get( $ds );
+		$ecp1_start_ts = $ds->getTimestamp(); // UTC (i.e. without offset)
 		unset( $input['ecp1_start_date'] );
 		unset( $input['ecp1_start_time-hour'] );
 		unset( $input['ecp1_start_time-min'] );
@@ -303,23 +365,23 @@ function ecp1_event_save() {
 	$ecp1_end_ts = $ecp1_event_fields['ecp1_end_ts'][1];
 	if ( isset( $_POST['ecp1_end_date'] ) ) {
 		// Dates should be in YYYY-MM-DD format by UI request
-		$ds = date_create( $_POST['ecp1_end_date'] );
-		if ( FALSE === $ds ) 
+		$ds = date_create( $_POST['ecp1_end_date'], $calendar_tz );
+		if ( FALSE === $ds ) // used procedural so don't have to catch exception
 			return $post->ID;
-		date_time_set( $ds, 23, 59 ); // set to just before midnight if time not given
+		$ds->setTime( 23, 59, 59 ); // set to just before midnight if time not given
 		
 		// Do we have times?
 		if ( isset( $_POST['ecp1_end_time-hour'] ) && isset( $_POST['ecp1_end_time-min'] ) && 
 				isset( $_POST['ecp1_end_time-ante'] ) && ( '' != $_POST['ecp1_end_time-hour'] || '' != $_POST['ecp1_end_time-min'] ) ) {
-			$meridiem = $_POST['ecp1_end_time-ante'];
+			$meridiem = isset( $_POST['ecp1_end_time-ante'] ) ? $_POST['ecp1_end_time-ante'] : 'AM';
 			$hours = isset( $_POST['ecp1_end_time-hour'] ) ? $_POST['ecp1_end_time-hour'] : 0;
-			$hours = 'AM' == $meridiem ? $hours : 12 + $hours;
+			$hours = 'AM' == $meridiem ? (12 == $hours ? 0 : $hours) : 12 + $hours; // convert to 24hr time
 			$mins = isset( $_POST['ecp1_end_time-min'] ) ? $_POST['ecp1_end_time-min'] : 0;
-			date_time_set( $ds, $hours, $mins );
+			$ds->setTime( $hours, $mins, 0 ); // 0 to undo the 59s above
 		}
 		
 		// Save as a timestamp and reset the post values
-		$ecp1_end_ts = date_timestamp_get( $ds );
+		$ecp1_end_ts = $ds->getTimestamp(); // UTC (i.e. without offset)
 		unset( $input['ecp1_end_date'] );
 		unset( $input['ecp1_end_time-hour'] );
 		unset( $input['ecp1_end_time-min'] );
@@ -329,14 +391,6 @@ function ecp1_event_save() {
 	// If no times we're given then assume all day event
 	if ( _ecp1_event_no_time_given() )
 		$ecp1_full_day = 'Y';
-	
-	// Which calendar should this event go on?
-	$ecp1_calendar = isset( $_POST['ecp1_calendar'] ) ? $_POST['ecp1_calendar'] : $ecp1_event_fields['ecp1_calendar'][1];
-	if ( $ecp1_event_fields['ecp1_calendar'][1] != $ecp1_calendar ) {
-		// If the calendar was set then check the user can edit it
-		if ( ! current_user_can( 'edit_' . ECP1_CALENDAR_CAP, $ecp1_calendar ) )
-			$ecp1_calendar = $ecp1_event_fields['ecp1_calendar'][1];
-	}
 	
 	// The location as human address and lat/long coords
 	// TODO: Add support for coord lat / lng
@@ -375,11 +429,11 @@ function _ecp1_event_no_time_given() {
 	return (
 			(
 			( ! isset( $_POST['ecp1_start_time-hour'] ) && ! isset( $_POST['ecp1_start_time-min'] ) ) ||	// neither start given
-			( '' == $_POST['ecp1_start_time-hour'] && '' == $_POST['ecp1_start_time-min'] ) 				// or both blank
+			( '' == $_POST['ecp1_start_time-hour'] && '' == $_POST['ecp1_start_time-min'] ) 		// or both blank
 			) && 																							// AND
 			(
 			( ! isset( $_POST['ecp1_end_time-hour'] ) && ! isset( $_POST['ecp1_end_time-min'] ) ) ||		// neither end given
-			( '' == $_POST['ecp1_end_time-hour'] && '' == $_POST['ecp1_end_time-min'] )						// or both blank
+			( '' == $_POST['ecp1_end_time-hour'] && '' == $_POST['ecp1_end_time-min'] )				// or both blank
 			)
 		);
 }

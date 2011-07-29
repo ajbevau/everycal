@@ -29,9 +29,14 @@ function ecp1_calendar_edit_columns( $columns ) {
 
 // Function that adds values to the custom columns
 function ecp1_calendar_custom_columns( $column ) {
-	global $ecp1_calendar_fields;
-	_ecp1_parse_calendar_custom();
+	global $ecp1_calendar_fields, $post_type;
+	
+	// Only do this if post type is calendar
+	if ( 'ecp1_calendar' != $post_type )
+		return;
 
+	// Make sure the calendar meta is loaded
+	_ecp1_parse_calendar_custom();
 	
 	// act based on the column that is being rendered
 	switch ( $column ) {
@@ -51,16 +56,7 @@ function ecp1_calendar_custom_columns( $column ) {
 			if ( _ecp1_calendar_meta_is_default( 'ecp1_timezone' ) ) {
 				printf( '%s', __( 'WordPress Default' ) );
 			} else {
-				try {
-					$dtz = new DateTimeZone( $ecp1_calendar_fields['ecp1_timezone'][0] );
-					$offset = $dtz->getOffset( new DateTime( 'now' ) );
-					$offset = 'UTC' . ( $offset < 0 ? ' - ' : ' + ' ) . ( abs( $offset/3600 ) );
-					$name = str_replace( '_', ' ', str_replace( '/', '-&gt;', $dtz->getName() ) );
-					printf ( '%s (%s)', $name, $offset );
-				} catch( Exception $tzmiss ) {
-					// not a valid timezone
-					printf ( '<span class="ecp1_error">%s</span>', __( 'Timezone is invalid' ) );
-				}				
+				printf( '%s', ecp1_timezone_display( $ecp1_calendar_fields['ecp1_timezone'][0] ) );
 			}
 			
 			break;
@@ -70,12 +66,15 @@ function ecp1_calendar_custom_columns( $column ) {
 
 // Function that registers a meta form box on the ecp1_calendar create / edit page
 function ecp1_calendar_meta_fields() {
+	global $post_type;
 	add_meta_box( 'ecp1_calendar_meta', 'Calendar Settings', 'ecp1_calendar_meta_form', 'ecp1_calendar', 'normal', 'high' );
 }
 
 // Function that generates a html section for adding inside a meta fields box
 function ecp1_calendar_meta_form() {
 	global $ecp1_calendar_fields;
+	
+	// Make sure the meta is loaded
 	_ecp1_parse_calendar_custom();
 	
 	// Sanitize and do security checks
@@ -114,6 +113,8 @@ function ecp1_calendar_meta_form() {
 	echo _ecp1_timezone_select( 'ecp1_timezone', $ecp1_tz, $disabled_str );
 	if ( ! _ecp1_get_option( 'tz_change' ) )
 		printf( '<em>%s</em>', __( 'Every Calendar +1 settings prevent change: WordPress TZ will be used.' ) );
+	if ( '' == get_option( 'timezone_string' ) )
+		printf( '<br/><strong>%s</strong>', __( 'If you are using your WordPress Timezone: Please consider setting a city in the WordPress timezone settings, otherwise Every Calendar will not be able to adjust your event times for day light savings.' ) );
 ?>
 				</td>
 			</tr>
@@ -151,6 +152,8 @@ function ecp1_calendar_save() {
 	global $post, $ecp1_calendar_fields;
 	if ( 'revision' == $post->post_type )
 		return; // don't update on revisions
+	if ( 'ecp1_calendar' != $post->post_type )
+		return; // don't update non calendars
 	
 	// Verify the nonce just incase
 	if ( ! wp_verify_nonce( $_POST['ecp1_calendar_nonce'], 'ecp1_calendar_nonce' ) )
