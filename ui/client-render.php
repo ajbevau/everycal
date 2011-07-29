@@ -133,7 +133,9 @@ jQuery(document).ready(function($) {
 		firstDay: $first_day,
 		weekends: true,
 		defaultView: '$default_view',
-		eventSources: $event_sources
+		eventSources: $event_sources,
+		eventClick: ecp1_onclick,
+		eventRender: ecp1_onrender
 	});
 });
 ENDOFSCRIPT;

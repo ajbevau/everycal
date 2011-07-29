@@ -24,12 +24,14 @@ function ecp1_add_client_scripts() {
 		wp_register_style( 'ecp1_fullcalendar_style_print', plugins_url( '/fullcalendar/fullcalendar.print.css', dirname( __FILE__ ) ), false, array( 'ecp1_fullcalendar_style_all' ), 'print' );
 		wp_register_style( 'ecp1_client_style', plugins_url( '/css/ecp1-client.css', dirname( __FILE__ ) ), false, array( 'ecp1_fullcalendar_style_all' ), 'all' );
 		wp_register_script( 'ecp1_fullcalendar_script', plugins_url( '/fullcalendar/fullcalendar.min.js', dirname( __FILE__ ) ), array( 'jquery' ) );
+		wp_register_script( 'ecp1_popup_script', plugins_url( '/js/popup.js', dirname( __FILE__ ) ), array( 'jquery' ) );
 		
 		// Enqueue the registered scripts and styles
 		wp_enqueue_style( 'ecp1_fullcalendar_style_all' );
 		wp_enqueue_style( 'ecp1_fullcalendar_style_print' );
 		wp_enqueue_style( 'ecp1_client_style' );
 		wp_enqueue_script( 'ecp1_fullcalendar_script' );
+		wp_enqueue_script( 'ecp1_popup_script' );
 		
 		// Are there any enabled external calendar providers we should enqueue?
 		if ( _ecp1_get_option( 'use_external_cals' ) ) {
