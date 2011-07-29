@@ -128,7 +128,7 @@ function ecp1_render_calendar( $calendar ) {
 jQuery(document).ready(function($) {
 	// $() will work as an alias for jQuery() inside of this function
 	$('#ecp1_calendar div.fullcal').empty().fullCalendar({
-		header: { left: 'prev,next today', center: 'title', right: 'month,agendaWeek,agendaDay' },
+		header: { left: 'prev,next today', center: 'title', right: 'month,agendaWeek' },
 		timeFormat: { agenda: 'h:mmtt( - h:mmtt	)', '': 'h(:mm)tt' },
 		firstDay: $first_day,
 		weekends: true,

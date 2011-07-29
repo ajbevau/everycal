@@ -12,52 +12,28 @@
 .fc-event {cursor:pointer;}
 
 /* Popups for Full Calendar */
-.bubbleInfo {
-	position: relative;
-	top: 150px;
-	left: 100px;
-	width: 500px;
-}
-.trigger {
-	position: absolute;
-}
-
-/* Bubble pop-up */
-.popup {
-	position: absolute;
-	display: none;
-	z-index: 50;
-	border-collapse: collapse;
-}
-
-.popup td.corner {
-	height: 15px;
-	width: 19px;
-}
-
-.popup td#topleft { background-image: url(http://static.jqueryfordesigners.com/demo/images/coda/bubble-1.png); }
-.popup td.top { background-image: url(http://static.jqueryfordesigners.com/demo/images/coda/bubble-2.png); }
-.popup td#topright { background-image: url(http://static.jqueryfordesigners.com/demo/images/coda/bubble-3.png); }
-.popup td.left { background-image: url(http://static.jqueryfordesigners.com/demo/images/coda/bubble-4.png); }
-.popup td.right { background-image: url(http://static.jqueryfordesigners.com/demo/images/coda/bubble-5.png); }
-.popup td#bottomleft { background-image: url(http://static.jqueryfordesigners.com/demo/images/coda/bubble-6.png); }
-.popup td.bottom { background-image: url(http://static.jqueryfordesigners.com/demo/images/coda/bubble-7.png); text-align: center;}
-.popup td.bottom img { display: block; margin: 0 auto; }
-.popup td#bottomright { background-image: url(http://static.jqueryfordesigners.com/demo/images/coda/bubble-8.png); }
-
-.popup table.popup-contents {
+div.ecp1-popup {
 	font-size: 12px;
 	line-height: 1.2em;
 	background-color: #fff;
 	color: #666;
 	font-family: "Lucida Grande", "Lucida Sans Unicode", "Lucida Sans", sans-serif;
+	width:300px;
+	padding:0.5em;
+	border:2px solid #999;
+	padding:1em;
+	-moz-border-radius:5px;
+	-webkit-border-radius:5px;
+	-opera-border-radius:5px;
+	-khtml-border-radius:5px;
+	border-radius:8px;
+	box-shadow:rgba(0,0,0,0.5) 10px 10px 24px; border-radius:12px;
+	position:absolute;
+	display:none;
+	z-index:999999;
+	cursor:auto;
+}
+div.ecp1-popup-show {
+	display:block;
 }
 
-table.popup-contents th {
-	text-align: right;
-	text-transform: lowercase;
-}
-
-table.popup-contents td {
-	text-align: left;
-}
