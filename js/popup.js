@@ -1,43 +1,88 @@
 /**
  * Every Calendar +1 WordPress Plugin Calendar Popup
  */
+
+// Global variable for i18n of the read more link
+var _readMore = 'Read more...';
+
+// Called when FullCalendar renders an event
+// Adds a dynamic div with the event details
 function ecp1_onrender( calEvent, element, view ) {
-	var popop = '<div class="ecp1-popup"><div class="pfloater">';
+	var popup = '';
+	try{
+	
+	popup = '<div class="ecp1-popup"><div class="pfloater">';
 	if ( calEvent.imageurl ) {
+		if ( calEvent.url )
+			popup += '<a class="ecp1-goto" href="' + calEvent.url +'" title="' + calEvent.title +'">';
 		popup += calEvent.imageurl;
+		if ( calEvent.url )
+			popup += '</a>';
 		popup += '</div><div class="pfloater">';
 	}
+
+	// Title of the event
+	popup += '<strong>' + calEvent.title + '</strong><br/>';
+
+	// Put the dates on display
+	var ds = jQuery.fullCalendar.formatDates(
+			jQuery.fullCalendar.parseDate( calEvent.start ),
+			jQuery.fullCalendar.parseDate( calEvent.end ),
+			'h:mmtt( - h:mmtt )' );
+	popup += ds + '<br/>';
 	
-	if ( calEvent.timestring )
-		popup += calEvent.timestring + '<br/>';
-	if ( calEvent.whereat )
-		popup += calEvent.timestring + '<br/>';
-	if ( calEvent.eventsummary )
-		popup += calEvent.eventSummary
+	if ( calEvent.location )
+		popup += '<strong>@</strong> ' + calEvent.location + '<br/>';
+	if ( calEvent.description )
+		popup += calEvent.description + '<br/>'; // internals rewrite summary to this
 	
 	// This URL will be dependent on the event external url || description fields
 	if ( calEvent.url )
-		popup += '<br/><a href="' + calEvent.url + '" title="' + calEvent.title + '">Read more...</a>';
+		popup += '<br/><a class="ecp1-goto" href="' + calEvent.url + '" title="' + calEvent.title + '">' + _readMore + '</a>';
 	
 	// Add this to clear the floats
-	popup += '</div><span class="clear"></span>';
-	
-	fc = jQuery.fullcalendar;
-	var dateRange = fc.formatDates( fc.parseDate( event.start ), fc.parseDate( event.)
-	element.append('<div class="ecp1-popup">#TODO#</div>');
+	popup += '</div><span class="clear"></span></div>';
+	} catch (ex_pop) {
+		alert('popup error: ' + ex_pop);
+		popup = '';
+	}
+
+	element.append(popup);
 }
 
+// Called when an event in FullCalendar is clicked on
+// If a dynamic div (made by onrender) exists it will be animated in
+// If the div is already display it will be animated out of display
+// If the target of the click was the _readMore link sends browser there
 function ecp1_onclick( calEvent, jEvent, view ) {
+	// If the event target was a link inside popup then go there
+	if ( ( jQuery( jEvent.target ).is( 'a' ) || ( jQuery( jEvent.target ).is( 'img' ) && jQuert( jEvent.target ).parent().is( 'a' ) ) ) && jQuery( jEvent.target ).hasClass( 'ecp1-goto' ) )
+		return true;
+
+	// If there are no popup children but there is a url return true to go to it
+	if ( jQuery( this ).children( '.ecp1-popup' ).length == 0) {
+		alert('no popups found');
+		if ( calEvent.url )
+			return false; // TODO: Change to TRUE
+		return false; // no popup or url so do nothing
+	}
+
+	// Get the first popup
 	pElement = jQuery( this ).children( '.ecp1-popup' ).first();
-	if ( ! pElement ) return false;
 	if ( pElement.is( ':animated' ) ) // let it finish
 		return false;
 
 	// Need to set max z-index on parent to ensure element is on top
-	var maxZ = Math.max.apply( null, jQuery.map( jQuery( this ).siblings(), function( e, n ) {
+	var maxZ = 15;
+	try {
+	sibs = jQuery( this ).parent().children();
+	maxZ = Math.max.apply( null, jQuery.map( sibs, function( e, n ) {
 		if ( jQuery( e ).css( 'position' ) == 'absolute' )
 			return parseInt( jQuery( e ).css( 'z-index' ) ) || 15; // Full Calendar has 8 so being safe
 	} ) );
+	} catch (ex_pnt) {
+		alert('parent error: ' + ex_pnt);
+	}
 
 
 	if ( pElement.is( ':visible' ) ) { // hide it
@@ -61,7 +106,7 @@ function ecp1_onclick( calEvent, jEvent, view ) {
 				if ( left_balance < 0 ) jQuery(this).animate( { left: (-1*left_balance) + 'px' }, 100 );
 				else if ( right_balance < 0 ) jQuery(this).animate( { left: right_balance + 'px' }, 100 );
 				if ( top_balance < 0 ) jQuery(this).animate( { top: (-1*top_balance) + 'px' }, 100 );
-				else if ( bottom_balance < 0 ) jQuery(this).animate( { top: bottom_balance + 'px' }, 100 );
+				else if ( bottom_balance < 1 ) jQuery(this).animate( { top: bottom_balance + 'px' }, 100 );
 		} );
 		
 		// register a click event to close the info popup
@@ -69,4 +114,6 @@ function ecp1_onclick( calEvent, jEvent, view ) {
 			jQuery(this).animate( { opacity:0, top:'-25px' }, 250, 'swing', function() { pElement.removeClass( 'ecp1-popup-show' ); } );
 		} );
 	}
+
+	return false; // don't automatically go to the url parameter
 }

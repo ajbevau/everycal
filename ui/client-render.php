@@ -101,6 +101,9 @@ function ecp1_render_calendar( $calendar ) {
 
 	// Register a hook to print the static JS to load FullCalendar on #ecp1_calendar
 	add_action( 'wp_print_footer_scripts', 'ecp1_print_fullcalendar_load' );
+
+	// A string for i18n-ing the read more links
+	$_read_more = htmlspecialchars( __( 'Read more...' ) );
 	
 	// Now build the actual JS that will be loaded
 	// TODO: Add eventClick function
@@ -112,7 +115,7 @@ jQuery(document).ready(function($) {
 	// $() will work as an alias for jQuery() inside of this function
 	$('#ecp1_calendar div.fullcal').empty().fullCalendar({
 		header: { left: 'prev,next today', center: 'title', right: 'month,agendaWeek' },
-		timeFormat: { agenda: 'h:mmtt( - h:mmtt	)', '': 'h(:mm)tt' },
+		timeFormat: { agenda: 'h:mmtt( - h:mmtt )', '': 'h(:mm)tt' },
 		firstDay: $first_day,
 		weekends: true,
 		defaultView: '$default_view',
@@ -120,6 +123,9 @@ jQuery(document).ready(function($) {
 		eventClick: ecp1_onclick,
 		eventRender: ecp1_onrender
 	});
+
+	// Assign the global Read More link variable for i18n
+	_readMore = '$_read_more';
 });
 ENDOFSCRIPT;
 	

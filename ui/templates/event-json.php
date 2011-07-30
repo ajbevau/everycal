@@ -131,21 +131,17 @@ if ( empty( $wp_query->query_vars['ecp1_start'] ) || empty( $wp_query->query_var
 					
 					// If the event has a summary then put it in
 					if ( ! _ecp1_event_meta_is_default( 'ecp1_summary' ) )
-						$events_json[$_e_index]['eventsummary'] = _ecp1_event_meta( 'ecp1_summary' );
-					
-					// Create a When string like event post page
-					$events_json[$_e_index]['timestring'] = sprintf( '<strong>%s:</strong> %s', __( 'When' ), 
-							ecp1_formatted_date_range( $es->getTimestamp(), $ee->getTimestamp(), $dtz->getName(), _ecp1_event_meta( 'ecp1_full_day' ) ) );
-					
+						$events_json[$_e_index]['description'] = _ecp1_event_meta( 'ecp1_summary' );
+
 					// Create a Where string like event post page
 					if ( ! _ecp1_event_meta_is_default( 'ecp1_location' ) )
-						$events_json[$_e_index]['whereat'] = sprintf( '<strong>%s:</strong> %s', __( 'Where' ), _ecp1_event_meta( 'ecp1_location' ) );
+						$events_json[$_e_index]['location'] = sprintf( '%s',  _ecp1_event_meta( 'ecp1_location' ) );
 					
 					// Now for the tricky part: if an event only has a URL then set URL to that
 					// if event only has a description set URL to the event post page; and if
 					// neither then don't set the URL option
-					$ecp1_desc = _ecp1_event_meta_is_default( 'ecp1_description' ) ? null : get_permalink(); // in loop so use current id
-					$ecp1_url = _ecp1_event_meta_is_default( 'ecp1_url' ) ? null : urldecode( $event['ecp1_url'][0] );
+					$ecp1_desc = _ecp1_event_meta_is_default( 'ecp1_description' ) ? null : get_permalink( $post->ID );
+					$ecp1_url = _ecp1_event_meta_is_default( 'ecp1_url' ) ? null : urldecode( _ecp1_event_meta( 'ecp1_url' ) );
 					if ( ! is_null( $ecp1_desc ) && ! is_null( $ecp1_url ) ) {
 						// Both given so render as link to post page
 						$events_json[$_e_index]['url'] = $ecp1_desc;
@@ -155,6 +151,12 @@ if ( empty( $wp_query->query_vars['ecp1_start'] ) || empty( $wp_query->query_var
 					} elseif ( ! is_null( $ecp1_url ) ) {
 						// Only a URL: link straight to it
 						$events_json[$_e_index]['url'] = $ecp1_url;
+					}
+
+					// If feature images are enabled by the them (aka Post Thumbnails) then show if there is one
+					if ( function_exists( 'add_theme_support' ) && function_exists( 'get_the_post_thumbnail' ) ) {
+						if ( has_post_thumbnail( $post->ID ) )
+							$events_json[$_e_index]['imageurl'] = get_the_post_thumbnail( $post->ID, 'thumbnail' );
 					}
 					
 					// Successfully added an event increment the counter
