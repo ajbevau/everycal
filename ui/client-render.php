@@ -16,23 +16,6 @@ $_ecp1_dynamic_calendar_script = null;
 // Define a global variable for the dynamic load script for events (e.g. Maps)
 $_ecp1_dynamic_event_script = null;
 
-// Function that applies WordPress content filters to the given string
-function ecp1_the_content( $content ) {
-	// $c = apply_filters( 'the_content', $content );
-	// We can't call the apply_filters directly because this function
-	// is called from within a filter hooked to 'the_content' which
-	// will create an infinite recursive loop and segfaults
-	// TODO: Is there a better way to get these functions?
-	$c = wptexturize( $content );
-	$c = convert_smilies( $c );
-	$c = convert_chars( $c );
-	$c = wpautop( $c );
-	$c = shortcode_unautop( $c );
-	$c = prepend_attachment( $c );
-	$c = str_replace(']]>', ']]&gt;', $c);
-	return $c;
-}
-
 // Function that will return the necessary HTML blocks and queue some static
 // JS for the document load event to render a FullCalendar instance
 function ecp1_render_calendar( $calendar ) {
@@ -176,51 +159,8 @@ function ecp1_render_event( $event ) {
 	// String placeholder for the time period this event runs over
 	$ecp1_time = __( 'Unknown' );
 	if ( ! _ecp1_event_meta_is_default( 'ecp1_start_ts' ) || ! _ecp1_event_meta_is_default( 'ecp1_end_ts' ) ) {
-		// Use the default WordPress dateformat timeformat strings
-		$datef = get_option( 'date_format' ) . ' ' . get_option( 'time_format' );
-		$dates = $event['ecp1_start_ts'][0];
-		$datee = $event['ecp1_end_ts'][0];
-		$tz = new DateTimeZone( $event['_meta']['calendar_tz'] );
-		$sameday = null;
-
-		// Handle bad dates by creating a DateTime object for both
-		try {
-			$dates = new DateTime( "@$dates" );
-			$dates->setTimezone( $tz );
-		} catch( Exception $serror ) {
-			$dates = __( 'Unknown' );
-			$sameday = false;
-		}
-		
-		try {
-			$datee = new DateTime( "@$datee" );
-			$datee->setTimezone( $tz );
-		} catch( Exception $eerror ) {
-			$datee = __( 'Unknown' );
-			$sameday = false;
-		}
-
-		// Check if events run on the same day
-		if ( null === $sameday ) { // no error occured
-			$sameday = $dates->format( 'Ymj' ) == $datee->format( 'Ymj' );
-			
-			// If this is an all day event and the time is start=00:00 and end=23:59
-			// then there is no useful information in the time fields so don't display them
-			if ( 'Y' == $event['ecp1_full_day'][0] && '0000' == $dates->format( 'Hi' ) && '2359' == $datee->format( 'Hi' ) )
-				$datef = get_option( 'date_format' );
-		}
-
-		// Format the dates as strings if they're valid
-		if ( $dates instanceof DateTime )
-			$dates = $dates->format( $datef );
-		if ( $datee instanceof DateTime )
-			$datee = $datee->format( $datef );
-
-		// If the dates are the same and full day just say that
-		if ( 'Y' == $event['ecp1_full_day'][0] && $sameday )
-			$ecp1_time = sprintf( '%s %s', $dates, __( '(all day)' ) );
-		else // else give a range 
-			$ecp1_time = sprintf( '%s - %s %s', $dates, $datee, 'Y' == $event['ecp1_full_day'][0] ? __( '(all day)' ) : '' );
+		$ecp1_time = ecp1_formatted_date_range( $event['ecp1_start_ts'][0], $event['ecp1_end_ts'][0],
+		 											$event['ecp1_full_day'][0], $event['_meta']['calendar_tz'] );
 	}
 	
 	// String placeholder for the summary text

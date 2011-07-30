@@ -6,6 +6,23 @@
 // Make sure we're included from within the plugin
 require( ECP1_DIR . '/includes/check-ecp1-defined.php' );
 
+// Function that applies WordPress content filters to the given string
+function ecp1_the_content( $content ) {
+	// $c = apply_filters( 'the_content', $content );
+	// We can't call the apply_filters directly because this function
+	// is called from within a filter hooked to 'the_content' which
+	// will create an infinite recursive loop and segfaults
+	// TODO: Is there a better way to get these functions?
+	$c = wptexturize( $content );
+	$c = convert_smilies( $c );
+	$c = convert_chars( $c );
+	$c = wpautop( $c );
+	$c = shortcode_unautop( $c );
+	$c = prepend_attachment( $c );
+	$c = str_replace(']]>', ']]&gt;', $c);
+	return $c;
+}
+
 // Returns all calendars the user can edit
 function _ecp1_current_user_calendars() {
 	return get_posts( array( 'post_type'=>'ecp1_calendar', 'suppress_filters'=>false, 'numberposts'=>-1, 'nopaging'=>true ) );
@@ -116,6 +133,57 @@ function ecp1_get_calendar_timezone() {
 	if ( is_null( $raw_timezone) )
 		$raw_timezone = 'UTC';
 	return $raw_timezone;
+}
+
+// Return a formatted date range string based on some event details
+function ecp1_formatted_date_range( $stimestamp, $etimestamp, $allday, $tzstring ) {
+	// Use the default WordPress dateformat timeformat strings
+	$datef = get_option( 'date_format' ) . ' ' . get_option( 'time_format' );
+	$dates = $stimestamp;
+	$datee = $etimestamp;
+	$tz = new DateTimeZone( $tzstring );
+	$sameday = null;
+
+	// Handle bad dates by creating a DateTime object for both
+	try {
+		$dates = new DateTime( "@$dates" );
+		$dates->setTimezone( $tz );
+	} catch( Exception $serror ) {
+		$dates = __( 'Unknown' );
+		$sameday = false;
+	}
+	
+	try {
+		$datee = new DateTime( "@$datee" );
+		$datee->setTimezone( $tz );
+	} catch( Exception $eerror ) {
+		$datee = __( 'Unknown' );
+		$sameday = false;
+	}
+
+	// Check if events run on the same day
+	if ( null === $sameday ) { // no error occured
+		$sameday = $dates->format( 'Ymj' ) == $datee->format( 'Ymj' );
+		
+		// If this is an all day event and the time is start=00:00 and end=23:59
+		// then there is no useful information in the time fields so don't display them
+		if ( 'Y' == $allday && '0000' == $dates->format( 'Hi' ) && '2359' == $datee->format( 'Hi' ) )
+			$datef = get_option( 'date_format' );
+	}
+
+	// Format the dates as strings if they're valid
+	if ( $dates instanceof DateTime )
+		$dates = $dates->format( $datef );
+	if ( $datee instanceof DateTime )
+		$datee = $datee->format( $datef );
+
+	// If the dates are the same and full day just say that
+	if ( 'Y' == $allday && $sameday )
+		$ecp1_time = sprintf( '%s %s', $dates, __( '(all day)' ) );
+	else // else give a range 
+		$ecp1_time = sprintf( '%s - %s %s', $dates, $datee, 'Y' == $allday ? __( '(all day)' ) : '' );
+
+	return $ecp1_time;
 }
 
 ?>

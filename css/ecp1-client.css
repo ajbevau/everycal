@@ -36,4 +36,7 @@ div.ecp1-popup {
 div.ecp1-popup-show {
 	display:block;
 }
+div.ecp1-popup div.pfloater {float:left;}
+div.ecp1-popup span.clear {clear:both;}
+div.ecp1-popup a:hover {text-decoration:underline;}
 

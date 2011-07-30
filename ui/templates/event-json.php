@@ -102,6 +102,7 @@ if ( empty( $wp_query->query_vars['ecp1_start'] ) || empty( $wp_query->query_var
 
 			// An array of JSON parameters for the event
 			$events_json = array();
+			$_e_index = 0;
 
 			// Equiv of The Loop
 			while ( have_posts() ) : the_post();
@@ -121,12 +122,43 @@ if ( empty( $wp_query->query_vars['ecp1_start'] ) || empty( $wp_query->query_var
 					$e  = _ecp1_event_meta( 'ecp1_end_ts', false );
 					$ee = new DateTime( "@$e" ); // 5.2.0 again
 
-					$events_json[] = array(
+					$events_json[$_e_index] = array(
 						'title'  => the_title( '', '', false ),
 						'start'  => $es->setTimezone( $dtz )->format( 'c' ), # ISO8601 automatically handling DST and
 						'end'    => $ee->setTimezone( $dtz )->format( 'c' ), # the other seasonal variations in offset
 						'allDay' => 'Y' == _ecp1_event_meta( 'ecp1_full_day', false ) ? true : false,
-					); // TODO: Add summary, url (based on url||description)
+					); 
+					
+					// If the event has a summary then put it in
+					if ( ! _ecp1_event_meta_is_default( 'ecp1_summary' ) )
+						$events_json[$_e_index]['eventsummary'] = _ecp1_event_meta( 'ecp1_summary' );
+					
+					// Create a When string like event post page
+					$events_json[$_e_index]['timestring'] = sprintf( '<strong>%s:</strong> %s', __( 'When' ), 
+							ecp1_formatted_date_range( $es->getTimestamp(), $ee->getTimestamp(), $dtz->getName(), _ecp1_event_meta( 'ecp1_full_day' ) ) );
+					
+					// Create a Where string like event post page
+					if ( ! _ecp1_event_meta_is_default( 'ecp1_location' ) )
+						$events_json[$_e_index]['whereat'] = sprintf( '<strong>%s:</strong> %s', __( 'Where' ), _ecp1_event_meta( 'ecp1_location' ) );
+					
+					// Now for the tricky part: if an event only has a URL then set URL to that
+					// if event only has a description set URL to the event post page; and if
+					// neither then don't set the URL option
+					$ecp1_desc = _ecp1_event_meta_is_default( 'ecp1_description' ) ? null : get_permalink(); // in loop so use current id
+					$ecp1_url = _ecp1_event_meta_is_default( 'ecp1_url' ) ? null : urldecode( $event['ecp1_url'][0] );
+					if ( ! is_null( $ecp1_desc ) && ! is_null( $ecp1_url ) ) {
+						// Both given so render as link to post page
+						$events_json[$_e_index]['url'] = $ecp1_desc;
+					} elseif ( ! is_null( $ecp1_desc ) ) {
+						// Only a description: link to post page
+						$events_json[$_e_index]['url'] = $ecp1_desc;
+					} elseif ( ! is_null( $ecp1_url ) ) {
+						// Only a URL: link straight to it
+						$events_json[$_e_index]['url'] = $ecp1_url;
+					}
+					
+					// Successfully added an event increment the counter
+					$_e_index += 1;
 				} catch( Exception $datex ) {
 					continue; // ignore bad timestamps they shouldn't happen
 				}
@@ -143,19 +175,5 @@ if ( empty( $wp_query->query_vars['ecp1_start'] ) || empty( $wp_query->query_var
 	} // start and end both valid
 
 } // start and end both given
-
-//header('Content-Type:application/json');
-/*$events = array();
-$result = new WP_Query('post_type=event&posts_per_page=-1');
-foreach($result->posts as $post) {
-  $events[] = array(
-    'title'   => $post->post_title,
-    'start'   => get_post_meta($post->ID,'_start_datetime',true),
-    'end'     => get_post_meta($post->ID,'_end_datetime',true),
-    'allDay'  => (get_post_meta($post->ID,'_all_day',true) ? 'true' : 'false'),
-    );
-}
-echo json_encode($events);
-exit;*/
 
 ?>
