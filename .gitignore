@@ -9,6 +9,9 @@ Thumbs.db
 # Ignore vim .swp files
 .swp
 
+# TextMate files can be ignored too
+._
+
 # Don't check in ba(c)k(up) files
 .bak
 .old
