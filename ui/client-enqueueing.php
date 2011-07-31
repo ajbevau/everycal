@@ -7,6 +7,7 @@
 require( ECP1_DIR . '/includes/check-ecp1-defined.php' );
 
 // We need the calendar providers for script enqueueing
+require_once( ECP1_DIR . '/includes/map-providers.php' );
 require_once( ECP1_DIR . '/includes/external-calendar-providers.php' );
 require_once( ECP1_DIR . '/includes/data/ecp1-settings.php' );
 
@@ -43,6 +44,23 @@ function ecp1_add_client_scripts() {
 					wp_register_script( 'ecp1_calendar_provider-' . $provider, plugins_url( '/fullcalendar/' . $details['fullcal_plugin'], dirname( __FILE__ ) ), array( 'ecp1_fullcalendar_script' ) );
 					wp_enqueue_script( 'ecp1_calendar_provider-' . $provider );
 				}
+			}
+		}
+		
+		// If Maps are enabled then enqueue any scripts and styles for the provider
+		if ( _ecp1_get_option( 'use_maps' ) ) {
+			$provider = ecp1_get_map_provider_instance();
+			
+			$script = $provider->get_resources( ECP1Map::ECP1MAP_SCRIPT, ECP1Map::ECP1MAP_CLIENT );
+			if ( ! is_null( $script ) ) {
+				wp_register_script( 'ecp1_map_provider_script', plugins_url( '/includes/maps/' . $script, dirname( __FILE__ ) ) );
+				wp_enqueue_script( 'ecp1_map_provider_script' ); 
+			}
+			
+			$style = $provider->get_resources( ECP1Map::ECP1MAP_STYLE, ECP1Map::ECP1MAP_CLIENT );
+			if ( ! is_null( $style ) ) {
+				wp_register_style( 'ecp1_map_provider_style', plugins_url( '/includes/maps/' . $style, dirname( __FILE__ ) ) );
+				wp_enqueue_style( 'ecp1_map_provider_style' ); 
 			}
 		}
 	}

@@ -189,35 +189,34 @@ function ecp1_render_event( $event ) {
 		$ecp1_location = htmlspecialchars( $event['ecp1_location'][0] );
 		$ecp1_map_placeholder = '';
 		if ( _ecp1_get_option( 'use_maps' ) ) {
-			$ecp1_map_placeholder = '<div id="ecp1_event_map">Loading map...</div>';
-			$_ecp1_dynamic_event_script = <<<ENDOFSCRIPT
+			$mapinstance = ecp1_get_map_provider_instance();
+			if ( ! is_null( $mapinstance ) ) {
+				if ( ( ! _ecp1_event_meta_is_default( 'ecp1_coord_lat' ) && ! _ecp1_event_meta_is_default( 'ecp1_coord_lng' ) ) ||	// event has have coordinates
+						( ! _ecp1_event_meta_is_default( 'ecp1_location' ) && $mapinstance->support_geocoding() ) ) {				// or have address + geocoding
+					// Render a placeholder and setup some init scripts
+					$ecp1_map_placeholder = '<div id="ecp1_event_map">' . __( 'Loading map...' ) . '</div>';
+					$ecp1_init_func_call = $mapinstance->get_onload_function();
+					$ecp1_render_func_call = $mapinstance->get_maprender_function();
+					
+					//TODO: Build the Coord / Location string and PlaceMarker options
+					$coord_param_string = '';
+					$placemarker_string = 'false';
+					
+					// Dynamic script to run on document ready
+					$_ecp1_dynamic_event_script = <<<ENDOFSCRIPT
 jQuery(document).ready(function($) {
 	// $() will work as an alias for jQuery() inside of this function
-
-	// Adapted from Googles Async load example
-	var script = document.createElement("script");
-	script.type = "text/javascript";
-	script.src = "http://maps.googleapis.com/maps/api/js?v=3.4&sensor=false&callback=ecp1EventMapInitialize";
-	document.body.appendChild( script )
-} );
-
-// Initialize the Event Map instance
-function ecp1EventMapInitialize() {
-	var myLatlng = new google.maps.LatLng(-34.397, 150.644);
-	var myOptions = {
-		zoom: 8,
-		center: myLatlng,
-		mapTypeId: google.maps.MapTypeId.ROADMAP
-	}
 	var container = jQuery( '#ecp1_event_map' );
 	if ( container.length > 0 ) {
 		var pWidth = container.parent().parent().width() - 150 - 90 - 25; // thumb - title - buffer
 		var pHeight = pWidth * 0.65;
 		container.css( { width:pWidth, height:pHeight } );
-		var _ecp1Map = new google.maps.Map( container[0], myOptions );
 	}
-}
+	$ecp1_init_func_call( function() { $ecp1_render_func_call( 'ecp1_event_map', $coord_param_string, $placemarker_string ); } )
+} );
 ENDOFSCRIPT;
+				}
+			}
 		}
 	}
 

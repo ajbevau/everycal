@@ -31,7 +31,6 @@ function ecp1_event_edit_libs() {
 	// inplace of the <textarea></textarea> tags on the event meta box - and naturally will
 	// obey user preferences on richtext editors etc...
 	if ( user_can_richedit() ) {
-		wp_register_script( 'ecp1_event_wysiwyg_script', plugins_url( '/js/tinymce.js', dirname( __FILE__ ) ), false, false, true );	
 		wp_enqueue_script( 'common' );
 		wp_enqueue_script( 'jquery-color' );
 		wp_enqueue_scripts( 'editor' );

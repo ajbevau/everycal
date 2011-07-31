@@ -17,104 +17,104 @@ function ecp1_onrender( calEvent, element, view ) {
 
 	try {
 
-	var popup = jQuery( '<div></div>' )
-			.addClass( 'ecp1-popup' )
-			.append( jQuery( '<div></div>' )
-				.addClass( 'ptab' )
+		var popup = jQuery( '<div></div>' )
+				.addClass( 'ecp1-popup' )
 				.append( jQuery( '<div></div>' )
-					.addClass( 'pfloater' ) ) );
-
-	if ( calEvent.imageurl ) {
-		if ( calEvent.url ) {
-			popup.find( '.pfloater' ).first()
-				.append( jQuery( '<a></a>' )
-					.attr( { href: calEvent.url, title: calEvent.title } )
-					.addClass( 'ecp1-goto' )
-					.html( calEvent.imageurl ) );
-		} else {
-			popup.find( '.pfloater' ).first()
-				.append( jQuery( '<span></span>' )
-					.html( calEvent.imageurl ) );
-		}
-
-		popup.children( '.ptab' ).first().append( jQuery( '<div></div>' ).addClass( 'pfloater' ) );
-	}
-
-	popup.find( '.pfloater' ).last().append( jQuery( '<ul></ul>' ).addClass( 'nodeco' ) );
-	popup.find( '.nodeco' ).append( jQuery( '<li><strong>' + calEvent.title + '</strong></li>' ) );
-
-	var ds = jQuery.fullCalendar.formatDates(
-			jQuery.fullCalendar.parseDate( calEvent.start ),
-			jQuery.fullCalendar.parseDate( calEvent.end ),
-			'h:mmtt( - h:mmtt )' );
-	popup.find( '.nodeco' ).append( jQuery( '<li></li>' ).text( ds ) );
-
-	if ( calEvent.location ) {
-		popup.find( '.nodeco' )
-			.append( jQuery( '<li></li>' )
-				.append( jQuery( '<span><strong>@</strong></span>' )
-					.addClass( 'h' ) )
-				.append( jQuery( '<span></span>' )
-					.addClass( 'mlblock' )
-					.text( calEvent.location ) ) );
-		if ( calEvent.coords || ( calEvent.location && _geocodeAddr ) ) {
-			popup.find( '.mlblock' )
-				.append( jQuery( '<br>' ) )
-				.append( jQuery( '<a></a>' )
-					.text( _showMap )
-					.click( function() {
-						// Tree is <div><div TAB><div><ul><li><span><a>
-						phide = jQuery( this ).parentsUntil( '.ecp1-popup' ).last();
-						phide.slideUp( 250, function() {
-							pshow = jQuery( this ).siblings( '.ptabhide' ).first();
-							if ( ! pshow.hasClass( 'pmapdone' ) ) {
-								pshow.addClass( 'pmapdone' ).slideDown( 250 );
-								if ( _mapInitFunction )
-									_mapInitFunction( '_ecp1ev_' + _ecp1Counter, calEvent.location, true );
-							} else {
-								pshow.slideDown( 250 );
-							}
-						 } );
-						return false;
-					} )
-					.css( { cursor:'pointer' } ) );
-
-			popup.append( jQuery( '<div></div>' )
-					.addClass( 'ptab ptabhide' )
+					.addClass( 'ptab' )
 					.append( jQuery( '<div></div>' )
-						.attr( { id: '_ecp1ev_' + _ecp1Counter } )
-						.text( _loadMap ) )
-					.append( jQuery( '<div><div>' )
-						.append( jQuery( '<a></a>' )
-							.text( _showEventDetails )
-							.click( function() {
-								phide = jQuery( this ).parentsUntil( '.ecp1-popup' ).last();
-								phide.slideUp( 250, function() {
-									pshow = jQuery( this ).siblings( '.ptab' ).first();
-									pshow.slideDown( 250 );
-								} );
-								return false;
-							} )
-							.css( { cursor:'pointer' } ) ) ) );
-		}
-	}
+						.addClass( 'pfloater' ) ) );
 
-	if ( calEvent.description )
-		popup.find( '.nodeco' ).append( jQuery( '<li></li>' ).text( calEvent.description ) );
-
-	if ( calEvent.url )
-		popup.find( '.nodeco' ).append( jQuery( '<li></li>' )
+		if ( calEvent.imageurl ) {
+			if ( calEvent.url ) {
+				popup.find( '.pfloater' ).first()
 					.append( jQuery( '<a></a>' )
-						.text( _readMore )
+						.attr( { href: calEvent.url, title: calEvent.title } )
 						.addClass( 'ecp1-goto' )
-						.attr( { href: calEvent.url, title: calEvent.title } ) ) );
+						.html( calEvent.imageurl ) );
+			} else {
+				popup.find( '.pfloater' ).first()
+					.append( jQuery( '<span></span>' )
+						.html( calEvent.imageurl ) );
+			}
 
-	popup.append( jQuery( '<span></span>' ).addClass( 'clear' ) );
+			popup.children( '.ptab' ).first().append( jQuery( '<div></div>' ).addClass( 'pfloater' ) );
+		}
 
-	element.append( popup );
+		popup.find( '.pfloater' ).last().append( jQuery( '<ul></ul>' ).addClass( 'nodeco' ) );
+		popup.find( '.nodeco' ).append( jQuery( '<li><strong>' + calEvent.title + '</strong></li>' ) );
+
+		var ds = jQuery.fullCalendar.formatDates(
+				jQuery.fullCalendar.parseDate( calEvent.start ),
+				jQuery.fullCalendar.parseDate( calEvent.end ),
+				'h:mmtt( - h:mmtt )' );
+		popup.find( '.nodeco' ).append( jQuery( '<li></li>' ).text( ds ) );
+
+		if ( calEvent.location ) {
+			popup.find( '.nodeco' )
+				.append( jQuery( '<li></li>' )
+					.append( jQuery( '<span><strong>@</strong></span>' )
+						.addClass( 'h' ) )
+					.append( jQuery( '<span></span>' )
+						.addClass( 'mlblock' )
+						.text( calEvent.location ) ) );
+			if ( calEvent.coords || ( calEvent.location && _geocodeAddr ) ) {
+				popup.find( '.mlblock' )
+					.append( jQuery( '<br>' ) )
+					.append( jQuery( '<a></a>' )
+						.text( _showMap )
+						.click( function() {
+							// Tree is <div><div TAB><div><ul><li><span><a>
+							phide = jQuery( this ).parentsUntil( '.ecp1-popup' ).last();
+							phide.slideUp( 250, function() {
+								pshow = jQuery( this ).siblings( '.ptabhide' ).first();
+								if ( ! pshow.hasClass( 'pmapdone' ) ) {
+									pshow.addClass( 'pmapdone' ).slideDown( 250 );
+									if ( _mapInitFunction )
+										_mapInitFunction( '_ecp1ev_' + _ecp1Counter, calEvent.location, true );
+								} else {
+									pshow.slideDown( 250 );
+								}
+							 } );
+							return false;
+						} )
+						.css( { cursor:'pointer' } ) );
+
+				popup.append( jQuery( '<div></div>' )
+						.addClass( 'ptab ptabhide' )
+						.append( jQuery( '<div></div>' )
+							.attr( { id: '_ecp1ev_' + _ecp1Counter } )
+							.text( _loadMap ) )
+						.append( jQuery( '<div><div>' )
+							.append( jQuery( '<a></a>' )
+								.text( _showEventDetails )
+								.click( function() {
+									phide = jQuery( this ).parentsUntil( '.ecp1-popup' ).last();
+									phide.slideUp( 250, function() {
+										pshow = jQuery( this ).siblings( '.ptab' ).first();
+										pshow.slideDown( 250 );
+									} );
+									return false;
+								} )
+								.css( { cursor:'pointer' } ) ) ) );
+			}
+		}
+
+		if ( calEvent.description )
+			popup.find( '.nodeco' ).append( jQuery( '<li></li>' ).text( calEvent.description ) );
+
+		if ( calEvent.url )
+			popup.find( '.nodeco' ).append( jQuery( '<li></li>' )
+						.append( jQuery( '<a></a>' )
+							.text( _readMore )
+							.addClass( 'ecp1-goto' )
+							.attr( { href: calEvent.url, title: calEvent.title } ) ) );
+
+		popup.append( jQuery( '<span></span>' ).addClass( 'clear' ) );
+
+		element.append( popup );
 
 	} catch(ex_pop) {
-		alert( ex_pop );
+		alert( 'Unexpected calendar error: ' + ex_pop );
 	}
 
 	_ecp1Counter += 1;
@@ -127,7 +127,8 @@ function ecp1_onrender( calEvent, element, view ) {
 // If the target of the click was the _readMore link sends browser there
 function ecp1_onclick( calEvent, jEvent, view ) {
 	// If the event target was a link inside popup then go there
-	if ( ( jQuery( jEvent.target ).is( 'a' ) || ( jQuery( jEvent.target ).is( 'img' ) && jQuery( jEvent.target ).parent().is( 'a' ) ) ) && jQuery( jEvent.target ).hasClass( 'ecp1-goto' ) )
+	if ( ( jQuery( jEvent.target ).is( 'a' ) || ( jQuery( jEvent.target ).is( 'img' ) && jQuery( jEvent.target ).parent().is( 'a' ) ) )
+	 		&& jQuery( jEvent.target ).hasClass( 'ecp1-goto' ) )
 		return true;
 
 	// If there are no popup children but there is a url return true to go to it
@@ -146,13 +147,13 @@ function ecp1_onclick( calEvent, jEvent, view ) {
 	// Need to set max z-index on parent to ensure element is on top
 	var maxZ = 15;
 	try {
-	sibs = jQuery( this ).parent().children();
-	maxZ = Math.max.apply( null, jQuery.map( sibs, function( e, n ) {
-		if ( jQuery( e ).css( 'position' ) == 'absolute' )
-			return parseInt( jQuery( e ).css( 'z-index' ) ) || 15; // Full Calendar has 8 so being safe
-	} ) );
+		sibs = jQuery( this ).parent().children();
+		maxZ = Math.max.apply( null, jQuery.map( sibs, function( e, n ) {
+			if ( jQuery( e ).css( 'position' ) == 'absolute' )
+				return parseInt( jQuery( e ).css( 'z-index' ) ) || 15; // Full Calendar has 8 so being safe
+		} ) );
 	} catch (ex_pnt) {
-		alert('parent error: ' + ex_pnt);
+		alert( 'Unexpected parent z-index error: ' + ex_pnt );
 	}
 
 
