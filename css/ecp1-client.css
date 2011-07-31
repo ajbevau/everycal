@@ -18,8 +18,9 @@ div.ecp1-popup {
 	background-color: #fff;
 	color: #666;
 	font-family: "Lucida Grande", "Lucida Sans Unicode", "Lucida Sans", sans-serif;
-	width:300px;
-	padding:0.5em;
+	width:350px;
+	min-height:115px;
+	padding:8px;
 	border:2px solid #999;
 	padding:1em;
 	-moz-border-radius:5px;
@@ -32,11 +33,15 @@ div.ecp1-popup {
 	display:none;
 	z-index:999999;
 	cursor:auto;
+	overflow:hidden;
 }
-div.ecp1-popup-show {
-	display:block;
-}
+div.ecp1-popup-show {display:block;}
+div.ecp1-popup div.ptab {float:left;}
+div.ecp1-popup div.ptabhide {display:none;}
 div.ecp1-popup div.pfloater {float:left;}
 div.ecp1-popup span.clear {clear:both;}
 div.ecp1-popup a:hover {text-decoration:underline;}
-
+div.ecp1-popup span.mlblock {display:inline-block;}
+div.ecp1-popup ul.nodeco {padding:0;margin:0;}
+div.ecp1-popup ul.nodeco li {list-style-type:none;padding:0;margin:0 0 2px;}
+div.ecp1-popup ul.nodeco li span.h {display:inline-block;vertical-align:top;padding-right:5px;}

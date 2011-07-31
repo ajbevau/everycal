@@ -2,52 +2,123 @@
  * Every Calendar +1 WordPress Plugin Calendar Popup
  */
 
-// Global variable for i18n of the read more link
+// Global variable for i18n of the read more and show map link
 var _readMore = 'Read more...';
+var _showMap = 'Location Map';
+var _loadMap = 'Loading...';
+var _showEventDetails = 'Back to Event Details';
+var _geocodeAddr = false;
+var _mapInitFunction = false;
+var _ecp1Counter = 0;
 
 // Called when FullCalendar renders an event
 // Adds a dynamic div with the event details
 function ecp1_onrender( calEvent, element, view ) {
-	var popup = '';
-	try{
-	
-	popup = '<div class="ecp1-popup"><div class="pfloater">';
+
+	try {
+
+	var popup = jQuery( '<div></div>' )
+			.addClass( 'ecp1-popup' )
+			.append( jQuery( '<div></div>' )
+				.addClass( 'ptab' )
+				.append( jQuery( '<div></div>' )
+					.addClass( 'pfloater' ) ) );
+
 	if ( calEvent.imageurl ) {
-		if ( calEvent.url )
-			popup += '<a class="ecp1-goto" href="' + calEvent.url +'" title="' + calEvent.title +'">';
-		popup += calEvent.imageurl;
-		if ( calEvent.url )
-			popup += '</a>';
-		popup += '</div><div class="pfloater">';
+		if ( calEvent.url ) {
+			popup.find( '.pfloater' ).first()
+				.append( jQuery( '<a></a>' )
+					.attr( { href: calEvent.url, title: calEvent.title } )
+					.addClass( 'ecp1-goto' )
+					.html( calEvent.imageurl ) );
+		} else {
+			popup.find( '.pfloater' ).first()
+				.append( jQuery( '<span></span>' )
+					.html( calEvent.imageurl ) );
+		}
+
+		popup.children( '.ptab' ).first().append( jQuery( '<div></div>' ).addClass( 'pfloater' ) );
 	}
 
-	// Title of the event
-	popup += '<strong>' + calEvent.title + '</strong><br/>';
+	popup.find( '.pfloater' ).last().append( jQuery( '<ul></ul>' ).addClass( 'nodeco' ) );
+	popup.find( '.nodeco' ).append( jQuery( '<li><strong>' + calEvent.title + '</strong></li>' ) );
 
-	// Put the dates on display
 	var ds = jQuery.fullCalendar.formatDates(
 			jQuery.fullCalendar.parseDate( calEvent.start ),
 			jQuery.fullCalendar.parseDate( calEvent.end ),
 			'h:mmtt( - h:mmtt )' );
-	popup += ds + '<br/>';
-	
-	if ( calEvent.location )
-		popup += '<strong>@</strong> ' + calEvent.location + '<br/>';
-	if ( calEvent.description )
-		popup += calEvent.description + '<br/>'; // internals rewrite summary to this
-	
-	// This URL will be dependent on the event external url || description fields
-	if ( calEvent.url )
-		popup += '<br/><a class="ecp1-goto" href="' + calEvent.url + '" title="' + calEvent.title + '">' + _readMore + '</a>';
-	
-	// Add this to clear the floats
-	popup += '</div><span class="clear"></span></div>';
-	} catch (ex_pop) {
-		alert('popup error: ' + ex_pop);
-		popup = '';
+	popup.find( '.nodeco' ).append( jQuery( '<li></li>' ).text( ds ) );
+
+	if ( calEvent.location ) {
+		popup.find( '.nodeco' )
+			.append( jQuery( '<li></li>' )
+				.append( jQuery( '<span><strong>@</strong></span>' )
+					.addClass( 'h' ) )
+				.append( jQuery( '<span></span>' )
+					.addClass( 'mlblock' )
+					.text( calEvent.location ) ) );
+		if ( calEvent.coords || ( calEvent.location && _geocodeAddr ) ) {
+			popup.find( '.mlblock' )
+				.append( jQuery( '<br>' ) )
+				.append( jQuery( '<a></a>' )
+					.text( _showMap )
+					.click( function() {
+						// Tree is <div><div TAB><div><ul><li><span><a>
+						phide = jQuery( this ).parentsUntil( '.ecp1-popup' ).last();
+						phide.slideUp( 250, function() {
+							pshow = jQuery( this ).siblings( '.ptabhide' ).first();
+							if ( ! pshow.hasClass( 'pmapdone' ) ) {
+								pshow.addClass( 'pmapdone' ).slideDown( 250 );
+								if ( _mapInitFunction )
+									_mapInitFunction( '_ecp1ev_' + _ecp1Counter, calEvent.location, true );
+							} else {
+								pshow.slideDown( 250 );
+							}
+						 } );
+						return false;
+					} )
+					.css( { cursor:'pointer' } ) );
+
+			popup.append( jQuery( '<div></div>' )
+					.addClass( 'ptab ptabhide' )
+					.append( jQuery( '<div></div>' )
+						.attr( { id: '_ecp1ev_' + _ecp1Counter } )
+						.text( _loadMap ) )
+					.append( jQuery( '<div><div>' )
+						.append( jQuery( '<a></a>' )
+							.text( _showEventDetails )
+							.click( function() {
+								phide = jQuery( this ).parentsUntil( '.ecp1-popup' ).last();
+								phide.slideUp( 250, function() {
+									pshow = jQuery( this ).siblings( '.ptab' ).first();
+									pshow.slideDown( 250 );
+								} );
+								return false;
+							} )
+							.css( { cursor:'pointer' } ) ) ) );
+		}
 	}
 
-	element.append(popup);
+	if ( calEvent.description )
+		popup.find( '.nodeco' ).append( jQuery( '<li></li>' ).text( calEvent.description ) );
+
+	if ( calEvent.url )
+		popup.find( '.nodeco' ).append( jQuery( '<li></li>' )
+					.append( jQuery( '<a></a>' )
+						.text( _readMore )
+						.addClass( 'ecp1-goto' )
+						.attr( { href: calEvent.url, title: calEvent.title } ) ) );
+
+	popup.append( jQuery( '<span></span>' ).addClass( 'clear' ) );
+
+	element.append( popup );
+
+	} catch(ex_pop) {
+		alert( ex_pop );
+	}
+
+	_ecp1Counter += 1;
+
 }
 
 // Called when an event in FullCalendar is clicked on
@@ -56,7 +127,7 @@ function ecp1_onrender( calEvent, element, view ) {
 // If the target of the click was the _readMore link sends browser there
 function ecp1_onclick( calEvent, jEvent, view ) {
 	// If the event target was a link inside popup then go there
-	if ( ( jQuery( jEvent.target ).is( 'a' ) || ( jQuery( jEvent.target ).is( 'img' ) && jQuert( jEvent.target ).parent().is( 'a' ) ) ) && jQuery( jEvent.target ).hasClass( 'ecp1-goto' ) )
+	if ( ( jQuery( jEvent.target ).is( 'a' ) || ( jQuery( jEvent.target ).is( 'img' ) && jQuery( jEvent.target ).parent().is( 'a' ) ) ) && jQuery( jEvent.target ).hasClass( 'ecp1-goto' ) )
 		return true;
 
 	// If there are no popup children but there is a url return true to go to it

@@ -104,7 +104,11 @@ function ecp1_render_calendar( $calendar ) {
 
 	// A string for i18n-ing the read more links
 	$_read_more = htmlspecialchars( __( 'Read more...' ) );
-	
+	$_show_map = htmlspecialchars( __( 'Location Map' ) );
+	$_load_map = htmlspecialchars( __( 'Loading map...' ) );
+	$_back_to_event = htmlspecialchars( __( 'Back to Event' ) );
+	$_geocode_addresses = 'true'; // TODO: Move map/geocoding to maps interface and settings
+		
 	// Now build the actual JS that will be loaded
 	// TODO: Add eventClick function
 	// TODO: Event Colors + Featured Events Source
@@ -124,8 +128,13 @@ jQuery(document).ready(function($) {
 		eventRender: ecp1_onrender
 	});
 
-	// Assign the global Read More link variable for i18n
+	// Assign the global Read More / Show Map link variable for i18n
 	_readMore = '$_read_more';
+	_showMap = '$_show_map';
+	_showEventDetails = '$_back_to_event';
+	_loadMap = '$_load_map';
+	_geocodeAddr = $_geocode_addresses;
+	_mapInitFunction = function(id, loc, mark) { alert('jojo: ' + id + ' @ ' + loc); }
 });
 ENDOFSCRIPT;
 	
@@ -166,7 +175,7 @@ function ecp1_render_event( $event ) {
 	$ecp1_time = __( 'Unknown' );
 	if ( ! _ecp1_event_meta_is_default( 'ecp1_start_ts' ) || ! _ecp1_event_meta_is_default( 'ecp1_end_ts' ) ) {
 		$ecp1_time = ecp1_formatted_date_range( $event['ecp1_start_ts'][0], $event['ecp1_end_ts'][0],
-		 											$event['ecp1_full_day'][0], $event['_meta']['calendar_tz'] );
+							$event['ecp1_full_day'][0], $event['_meta']['calendar_tz'] );
 	}
 	
 	// String placeholder for the summary text
@@ -184,8 +193,30 @@ function ecp1_render_event( $event ) {
 			$_ecp1_dynamic_event_script = <<<ENDOFSCRIPT
 jQuery(document).ready(function($) {
 	// $() will work as an alias for jQuery() inside of this function
-	$('#ecp1_event #ecp1_event_map').empty().append('<div>DYNAMIC</div>');
-});
+
+	// Adapted from Googles Async load example
+	var script = document.createElement("script");
+	script.type = "text/javascript";
+	script.src = "http://maps.googleapis.com/maps/api/js?v=3.4&sensor=false&callback=ecp1EventMapInitialize";
+	document.body.appendChild( script )
+} );
+
+// Initialize the Event Map instance
+function ecp1EventMapInitialize() {
+	var myLatlng = new google.maps.LatLng(-34.397, 150.644);
+	var myOptions = {
+		zoom: 8,
+		center: myLatlng,
+		mapTypeId: google.maps.MapTypeId.ROADMAP
+	}
+	var container = jQuery( '#ecp1_event_map' );
+	if ( container.length > 0 ) {
+		var pWidth = container.parent().parent().width() - 150 - 90 - 25; // thumb - title - buffer
+		var pHeight = pWidth * 0.65;
+		container.css( { width:pWidth, height:pHeight } );
+		var _ecp1Map = new google.maps.Map( container[0], myOptions );
+	}
+}
 ENDOFSCRIPT;
 		}
 	}
@@ -222,7 +253,10 @@ ENDOFSCRIPT;
 		<li><span class="ecp1_event-title"><strong>$pwhen:</strong></span>
 				<span class="ecp1_event-text">$ecp1_time</span></li>
 		<li><span class="ecp1_event-title"><strong>$pwhere:</strong></span>
-				<span class="ecp1_event-text"><div id="ecp1_event_location">$ecp1_location</div>$ecp1_map_placeholder</span></li>
+				<span class="ecp1_event-text">
+					<span id="ecp1_event_location">$ecp1_location</span><br/>
+					$ecp1_map_placeholder
+				</span></li>
 		<li><span class="ecp1_event-title"><strong>$psummary:</strong></span>
 				<span class="ecp1_event-text_wide">$ecp1_summary</span></li>
 		<li><span class="ecp1_event-title"><strong>$pdetails:</strong></span>

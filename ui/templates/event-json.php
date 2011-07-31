@@ -155,8 +155,9 @@ if ( empty( $wp_query->query_vars['ecp1_start'] ) || empty( $wp_query->query_var
 
 					// If feature images are enabled by the them (aka Post Thumbnails) then show if there is one
 					if ( function_exists( 'add_theme_support' ) && function_exists( 'get_the_post_thumbnail' ) ) {
+						$attrs = array( 'title' => the_title( '', '', false ), 'alt' => __( 'Event Logo' ) );
 						if ( has_post_thumbnail( $post->ID ) )
-							$events_json[$_e_index]['imageurl'] = get_the_post_thumbnail( $post->ID, 'thumbnail' );
+							$events_json[$_e_index]['imageurl'] = get_the_post_thumbnail( $post->ID, 'thumbnail', $attrs );
 					}
 					
 					// Successfully added an event increment the counter
