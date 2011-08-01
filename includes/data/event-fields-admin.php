@@ -155,6 +155,7 @@ function ecp1_event_meta_form() {
 	$ecp1_map_zoom = _ecp1_event_meta_is_default( 'ecp1_map_zoom' ) ? 12 : $ecp1_event_fields['ecp1_map_zoom'][0];
 	$ecp1_placemark = _ecp1_event_meta_is_default( 'ecp1_map_placemarker' ) ? 'N' : $ecp1_event_fields['ecp1_map_placemarker'][0];
 	$ecp1_showmap = _ecp1_event_meta_is_default( 'ecp1_show_map' ) ? 'N' : $ecp1_event_fields['ecp1_show_map'][0];
+	// TODO: Add placemarkers image files
 
 	$ecp1_start_date = _ecp1_event_meta_is_default( 'ecp1_start_ts' ) ? '' : date( 'Y-m-d', $ecp1_event_fields['ecp1_start_ts'][0] );
 	$ecp1_start_time = _ecp1_event_meta_is_default( 'ecp1_start_ts' ) ? '' : $ecp1_event_fields['ecp1_start_ts'][0];
@@ -287,7 +288,7 @@ function ecp1_event_meta_form() {
 				'element' => "'ecp1-event-map'", // not quoted below so do it here
 				'mark' => 'Y' == $ecp1_placemark ? 'true' : 'false',
 				'zoom' => 'ecp1_zoom', 'lat' => 'ecp1_lat', 'lng' => 'ecp1_lnt' );
-
+			// TODO: Placemarker image files
 			$options_hash_str = '{';
 			foreach( $options_hash as $key=>$value )
 				$options_hash_str .= sprintf( ' %s:%s,', $key, $value );
