@@ -46,6 +46,21 @@ ORDER BY
 	s.meta_value, p.post_name ASC;
 ENDOFQUERY;
 
+// Define a query to get feature events
+$_featured_query = <<<ENDOFFEATURE
+SELECT  p.ID
+FROM    $wpdb->posts p
+	INNER JOIN $wpdb->postmeta f ON f.post_id=p.ID AND f.meta_key='ecp1_event_is_featured'
+	INNER JOIN $wpdb->postmeta s ON s.post_id=p.ID AND s.meta_key='ecp1_event_start'
+	INNER JOIN $wpdb->postmeta e ON e.post_id=p.ID AND e.meta_key='ecp1_event_end'
+WHERE   p.post_status='publish' AND
+	f.meta_value='Y' AND
+	s.meta_value<=%d AND
+	e.meta_value>=%d
+ORDER BY
+	s.meta_value, p.post_name ASC;
+ENDOFFEATURE;
+
 // Get and validate the input parameters
 if ( empty( $wp_query->query_vars['ecp1_start'] ) || empty( $wp_query->query_vars['ecp1_end'] ) ) {
 	_ecp1_template_event_json_error( __( 'Please specify a start and end timestamp for the lookup range' ),
@@ -96,8 +111,7 @@ if ( empty( $wp_query->query_vars['ecp1_start'] ) || empty( $wp_query->query_var
 			
 			// Now look to see if this calendar supports featured events and if so load ids
 			if ( _ecp1_calendar_show_featured( $cal->ID ) )
-				$event_ids = array_merge( $event_ids, $wpdb->get_col( 
-					"SELECT DISTINCT post_id FROM $wpdb->postmeta WHERE meta_key='ecp1_event_is_featured' AND meta_value='Y';" ) );
+				$event_ids = array_merge( $event_ids, $wpdb->get_col( $wpdb->prepare( $_featured_query, $end, $start ) ) );
 
 			// If any events were found load them into the loop
 			if ( count( $event_ids ) > 0 )
