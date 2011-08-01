@@ -254,7 +254,7 @@ jQuery(document).ready(function($) {
 		var pHeight = pWidth * 0.65;
 		container.css( { width:pWidth, height:pHeight } );
 	}
-	$ecp1_init_func_call( function() { $ecp1_render_func_call( $options_hash ); } )
+	$ecp1_init_func_call( function() { $ecp1_render_func_call( $options_hash ); } );
 } );
 ENDOFSCRIPT;
 		}

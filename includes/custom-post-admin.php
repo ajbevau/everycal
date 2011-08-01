@@ -6,6 +6,10 @@
 // Make sure we're included from within the plugin
 require( ECP1_DIR . '/includes/check-ecp1-defined.php' );
 
+// Ensure we can look at the event settings and map providers
+require_once( ECP1_DIR . '/includes/map-providers.php' );
+require_once( ECP1_DIR . '/includes/data/ecp1-settings.php' );
+
 // Functions that will enqueue CSS / JS based on param
 function ecp1_enqueue_admin_css() {
 	wp_register_style( 'ecp1_admin_style', plugins_url( '/css/ecp1-admin.css', dirname( __FILE__ ) ) );
@@ -43,6 +47,26 @@ function ecp1_event_edit_libs() {
 		do_action( 'admin_print_styles' );
 		wp_enqueue_script( 'ecp1_event_wysiwyg_script' );
 	}
+
+	// If maps are enabled then load the admin JS/CSS
+	if ( _ecp1_get_option( 'use_maps' ) ) {
+		$provider = ecp1_get_map_provider_instance();
+		if ( ! is_null( $provider ) ) {
+
+			$script = $provider->get_resources( ECP1Map::ECP1MAP_ADMIN, ECP1Map::ECP1MAP_SCRIPT );
+			if ( ! is_null( $script ) ) {
+				wp_register_script( 'ecp1_map_provider_script', plugins_url( '/includes/maps/' . $script, dirname( __FILE__ ) ) );
+				wp_enqueue_script( 'ecp1_map_provider_script' );
+			}
+
+			$style = $provider->get_resources( ECP1Map::ECP1MAP_ADMIN, ECP1Map::ECP1MAP_STYLE );
+			if ( ! is_null( $style ) ) {
+				wp_register_style( 'ecp1_map_provider_style', plugins_url( '/includes/maps/' . $style, dirname( __FILE__ ) ) );
+				wp_enqueue_style( 'ecp1_map_provider_style' );
+			}
+		}
+	}
+
 }
 
 // Add the CSS for either post type
@@ -145,7 +169,7 @@ function ecp1_filter_event_posts_requests( $query, $object ) {
 		// Get a CSV list of calendar ids this user can edit
 		$q = '';
 		$cals = _ecp1_current_user_calendars();
-		foreach( $cals as $cal ) // TODO: Find a better way than looping over all
+		foreach( $cals as $cal )
 			$q = '' == $q ? $cal->ID : $q.','.$cal->ID;
 		
 		// If the use cannot edit calendars then no events either

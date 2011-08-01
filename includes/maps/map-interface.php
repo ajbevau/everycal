@@ -46,12 +46,16 @@ abstract class ECP1Map {
 	// "I'm Ready" variable that the render function checks before acting.
 	// 
 	// The JS function should accept an options hash in two different forms:
-	// 1) { 'element': ID, 'lat': Lat, 'lng': Long, 'mark': DisplayAMarker }
-	// 2) { 'element': ID, 'location': TextString, 'mark': DisplayAMarker }
+	// 1) { 'element': ID, 'lat': Lat, 'lng': Long, 'mark': DisplayAMarker, 'zoom':Zoom }
+	// 2) { 'element': ID, 'location': TextString, 'mark': DisplayAMarker, 'zoom':Zoom }
 	//
 	// The function is called depending on if coords exist => 1 else => 2
 	// If the map provider does not support geocoding and the event does not
 	// have lat/long meta values then NEITHER will be called.
+	//
+	// NOTE: In the Administration script the values of Lat, Long, and Zoom
+	// will contain hidden input fields that will contain the appropriate
+	// values and should be UPDATED when the map changes.
 	abstract public function get_maprender_function();
 
 	// Should return the name of a function defined in the CLIENT and ADMIN

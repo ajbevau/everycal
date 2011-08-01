@@ -9,11 +9,31 @@ require( ECP1_DIR . '/includes/check-ecp1-defined.php' );
 // Make sure the plugin settings and event fields have been loaded
 require_once( ECP1_DIR . '/includes/data/ecp1-settings.php' );
 require_once( ECP1_DIR . '/includes/data/event-fields.php' );
+require_once( ECP1_DIR . '/includes/map-providers.php' );
 
 // Add filters and hooks to add columns and display them
 add_filter( 'manage_edit-ecp1_event_columns', 'ecp1_event_edit_columns' );
 add_action( 'manage_posts_custom_column', 'ecp1_event_custom_columns' );
 add_action( 'admin_init', 'ecp1_event_meta_fields' );
+add_action( 'admin_print_footer_scripts', '_ecp1_event_render_admin_init_js' );
+
+// Global variable to store footer js code for on init
+$_ecp1_event_admin_init_js = '';
+
+// Function hooked to the print footer scripts to print the above init JS
+function _ecp1_event_render_admin_init_js() {
+	global $_ecp1_event_admin_init_js, $post_type;
+
+	// Only needed for Event Post Type
+	if ( 'ecp1_event' != $post_type )
+		return;
+
+printf('<!-- XYS -->');
+	if ( '' != $_ecp1_event_admin_init_js ) {
+		printf( '%s<!-- Every Calendar +1 Init -->%s<script type="text/javascript">/* <![CDATA[ */%s%s%s/* ]]> */</script>%s', "\n", "\n", "\n", $_ecp1_event_admin_init_js, "\n", "\n" );
+	}
+
+}
 
 // Function that adds extra columns to the post type
 function ecp1_event_edit_columns( $columns ) {
@@ -106,7 +126,7 @@ function ecp1_event_meta_fields() {
 
 // Function that generates a html section for adding inside a meta fields box
 function ecp1_event_meta_form() {
-	global $ecp1_event_fields;
+	global $ecp1_event_fields, $_ecp1_event_admin_init_js;
 
 	// Load a list of calendars this user has access to
 	$calendars = _ecp1_current_user_calendars();
@@ -130,7 +150,11 @@ function ecp1_event_meta_form() {
 	$ecp1_full_day = _ecp1_event_meta_is_default( 'ecp1_full_day' ) ? 'N' : $ecp1_event_fields['ecp1_full_day'][0];
 	$ecp1_featured = _ecp1_event_meta_is_default( 'ecp1_featured' ) ? 'N' : $ecp1_event_fields['ecp1_featured'][0];
 	$ecp1_location = _ecp1_event_meta_is_default( 'ecp1_location' ) ? '' : $ecp1_event_fields['ecp1_location'][0];
-	// TODO: Coords
+	$ecp1_lat = _ecp1_event_meta_is_default( 'ecp1_coord_lat' ) ? null : $ecp1_event_fields['ecp1_coord_lat'][0];
+	$ecp1_lng = _ecp1_event_meta_is_default( 'ecp1_coord_lng' ) ? null : $ecp1_event_fields['ecp1_coord_lng'][0];
+	$ecp1_map_zoom = _ecp1_event_meta_is_default( 'ecp1_map_zoom' ) ? 12 : $ecp1_event_fields['ecp1_map_zoom'][0];
+	$ecp1_placemark = _ecp1_event_meta_is_default( 'ecp1_map_placemarker' ) ? 'N' : $ecp1_event_fields['ecp1_map_placemarker'][0];
+	$ecp1_showmap = _ecp1_event_meta_is_default( 'ecp1_show_map' ) ? 'N' : $ecp1_event_fields['ecp1_show_map'][0];
 
 	$ecp1_start_date = _ecp1_event_meta_is_default( 'ecp1_start_ts' ) ? '' : date( 'Y-m-d', $ecp1_event_fields['ecp1_start_ts'][0] );
 	$ecp1_start_time = _ecp1_event_meta_is_default( 'ecp1_start_ts' ) ? '' : $ecp1_event_fields['ecp1_start_ts'][0];
@@ -250,13 +274,83 @@ function ecp1_event_meta_form() {
 			<tr valign="top">
 				<th scope="row"><label for="ecp1_location"><?php _e( 'Location' ); ?></label></th>
 				<td>
-					<input id="ecp1_location" name="ecp1_location" type="text" class="ecp1_w100" value="<?php echo $ecp1_location; ?>" />
+					<input id="ecp1_location" name="ecp1_location" type="text" class="ecp1_w75" value="<?php echo $ecp1_location; ?>" />
 <?php
 	// If maps are supported then we need to render a container div and some controls
 	if ( _ecp1_get_option( 'use_maps' ) ) {
-		// TODO: Want to be able to pick a point / geocode etc...
-		printf( '<br/>TODO: Add support for map rendering here + geocoding...' );
-	}
+		$mapinstance = ecp1_get_map_provider_instance();
+		if ( ! is_null( $mapinstance ) ) {
+			// Add dynamic function on load to render a map with the appropriate details
+			$ecp1_init_func_call = $mapinstance->get_onload_function();
+			$ecp1_render_func_call = $mapinstance->get_maprender_function();
+			$options_hash = array(
+				'element' => "'ecp1-event-map'", // not quoted below so do it here
+				'mark' => 'Y' == $ecp1_placemark ? 'true' : 'false',
+				'zoom' => 'ecp1_zoom', 'lat' => 'ecp1_lat', 'lng' => 'ecp1_lnt' );
+
+			$options_hash_str = '{';
+			foreach( $options_hash as $key=>$value )
+				$options_hash_str .= sprintf( ' %s:%s,', $key, $value );
+			$options_hash_str = trim( $options_hash_str, ',' ) . ' }';
+
+			$_ecp1_event_admin_init_js .= <<<ENDOFSCRIPT
+// Global variable for function reference for render actions
+var _mapLoadFunction = function( args ) { $ecp1_render_func_call( args ); };
+jQuery(document).ready(function($) {
+	// $() will work as an alias for jQuery() inside of this function
+	$ecp1_init_func_call( function() { $ecp1_render_func_call( $options_hash_str ); } );
+} );
+
+ENDOFSCRIPT;
+
+			// If the map provider supports geocoding put a lookup button in place
+			if ( $mapinstance->support_geocoding() ) {
+				printf( '<input id="ecp1_event_geocode" type="button" value="%s" />', __( 'Lookup Address' ) );
+				$_ecp1_event_admin_init_js .= <<<ENDOFSCRIPT
+jQuery(document).ready(function($) {
+	// $() will work as an alias for jQuery() inside of this function
+	$( '#ecp1_event_geocode' ).click( function() {
+		var address = $.trim( $( this ).val() );
+		if ( '' != address ) {
+			// TODO: Call the function
+			alert(address + ' ready to geocode');
+		}
+	} );
+} );
+
+ENDOFSCRIPT;
+			}
+			printf( '<br/>' ); // new line now
+
+			// Next render a maps container with two checkboxes and three hidden inputs
+			// the checkboxes are: 1) Show Placemarker and 2) Show This Map on Website
+			// if (1) is checked it implies (2). The purpose of (2) is to allow a map
+			// to be centered without a placemarker. The event will store center coords.
+			// TODO: Make text into hidden
+?>
+	<div>
+		<input type="text" id="ecp1_lat" name="ecp1_lat" value="<?php echo is_null( $ecp1_lat ) ? '' : $ecp1_lat; ?>" />
+		<input type="text" id="ecp1_lng" name="ecp1_lng" value="<?php echo is_null( $ecp1_lng ) ? '' : $ecp1_lng; ?>" />
+		<input type="text" id="ecp1_zoom" name="ecp1_zoom" value="<?php echo $ecp1_zoom; ?>" />
+		<div class="mfloater">
+			<ul>
+				<li>
+					<input type="checkbox" id="ecp1_show_placemarker" name="ecp1_show_placemarker" value="1" <?php checked( 'Y', $ecp1_placemark ); ?>/>
+					<label for="ecp1_show_placemarker">Show Placemarker?</label>
+				</li>
+				<li>
+					<input type="checkbox" id="ecp1_show_map" name="ecp1_show_map" value="1" <?php checked( 'Y', $ecp1_showmap ); ?>/>
+					<label for="ecp1_show_map">Show Map on Event Page?</label>
+				</li>
+			</ul>
+		</div>
+		<div class="mfloater">
+			<div id="ecp1-event-map"><?php _e( 'Loading map...' ); ?></div>
+		</div>
+	</div>
+<?php
+		} // mapinstance not null
+	} // use maps
 ?>
 				</td>
 			</tr>

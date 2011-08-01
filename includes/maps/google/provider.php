@@ -13,7 +13,7 @@ require_once( ECP1_DIR . '/includes/maps/map-interface.php' );
 class ECP1GoogleMap extends ECP1Map {
 	
 	// Resource files for Google Maps
-	private $resources = array( 'admin_js'=>null, 'admin_css'=>null, 'client_js'=>'google/client.js', 'client_css'=>null );
+	private $resources = array( 'admin_js'=>'google/admin.js', 'admin_css'=>null, 'client_js'=>'google/client.js', 'client_css'=>null );
 	
 	// Return file names of JS/CSS need or null if none
 	public function get_resources( $type=null, $file=null ) {

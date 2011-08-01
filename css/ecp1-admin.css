@@ -1,5 +1,6 @@
 /* Every Calendar +1 Admin Styling */
 div.ecp1_meta input.ecp1_url {width:70%;}
+div.ecp1_meta input.ecp1_w75 {width:72%;}
 div.ecp1_meta input.ecp1_w100 {width:95%;}
 div.ecp1_meta textarea.ecp1_sml {width:70%;height:25px;}
 div.ecp1_meta textarea.ecp1_med {width:70%;height:50px;}
@@ -16,3 +17,7 @@ span.ecp1_floater_r {display:inline-block;width:40%;float:right;}
 div.ecp1_meta table.form-table td, div.ecp1_meta table.form-table th {vertical-align:top;clear:both;}
 div.ecp1_meta table.form-table th label {padding-top:5px;display:inline-block;}
 div.ecp1_meta #ecp1_featured {margin-right:10px;}
+div.ecp1_meta div.mfloater {float:left;}
+div.ecp1_meta span.clear {clear:both;}
+div.ecp1_meta div.mfloater ul {padding-right:10px;}
+div.ecp1_meta #ecp1-event-map {width:600px;height:300px;}
