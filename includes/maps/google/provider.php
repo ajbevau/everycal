@@ -13,16 +13,16 @@ require_once( ECP1_DIR . '/includes/maps/map-interface.php' );
 class ECP1GoogleMap extends ECP1Map {
 	
 	// Resource files for Google Maps
-	private $resources = array( 'admin_js'=>null, 'admin_css'=>null, 'client_js'=>'google/load.js', 'client_css'=>null );
+	private $resources = array( 'admin_js'=>null, 'admin_css'=>null, 'client_js'=>'google/client.js', 'client_css'=>null );
 	
 	// Return file names of JS/CSS need or null if none
 	public function get_resources( $type=null, $file=null ) {
 		if ( is_null( $type ) || is_null( $file ) || ! is_numeric( $type ) || ! is_numeric( $file ) )
 			return null;
 		
-		$lookup = 
-			( self::ECP1MAP_ADMIN == $file ? 'admin' : self::ECP1MAP_CLIENT == $file ? 'client' : '' ) . '_' .
-			( self::ECP1MAP_SCRIPT == $type ? 'js' : self::ECP1MAP_STYLE == $type ? 'css' : '' );
+		$type = ECP1Map::ECP1MAP_ADMIN == $type ? 'admin' : ( ECP1Map::ECP1MAP_CLIENT == $type ? 'client' : '' );
+		$file = ECP1Map::ECP1MAP_SCRIPT == $file ? 'js' : ( ECP1Map::ECP1MAP_STYLE == $file ? 'css' : '' );
+		$lookup = $type . '_' . $file;
 		return array_key_exists( $lookup, $this->resources ) ? $this->resources[$lookup] : null;
 	}
 	
@@ -33,8 +33,34 @@ class ECP1GoogleMap extends ECP1Map {
 	}
 	
 	// Returns the Map Render function
+	// This function actually calls two separate functions depending on the options hash
 	public function get_maprender_function() {
 		return 'RenderGoogleMap';
+	}
+
+	// Returns the Center Point function
+	public function get_centerpoint_function() {
+		return 'GetGoogleMapCenterPoint';
+	}
+
+	// Returns the Marker List function
+	public function get_markerlist_function() {
+		return 'GetGoogleMapMarkers';
+	}
+
+	// Returns the Add Marker function
+	public function get_addmarker_function() {
+		return 'AddGoogleMapMarker';
+	}
+
+	// Returns the Get Map Zoom function
+	public function get_mapzoom_function() {
+		return 'GetGoogleMapZoom';
+	}
+	
+	// Returns the Unload Map function
+	public function get_unload_function() {
+		return 'DeleteGoogleMap';
 	}
 	
 	// Yes we support geocoding and are ready to run

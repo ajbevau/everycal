@@ -19,6 +19,7 @@ abstract class ECP1Map {
 	// to load into the browser session: there are four parameter combos
 	// type: ECP1MAP_CLIENT or ECP1MAP_ADMIN; and
 	// file: ECP1MAP_SCRIPT or ECP1MAP_STYLE
+	// e.g. $this->get_resources( client, style );
 	//
 	// If a particular resource is not needed / provided return null
 	//
@@ -44,15 +45,52 @@ abstract class ECP1Map {
 	// For example the Google Maps interface callback function sets a global
 	// "I'm Ready" variable that the render function checks before acting.
 	// 
-	// The JS function will be called in two different ways:
-	// 1) func( ElementID, CoordX, CoordY, DisplayAMarker ); or
-	// 2) func( ElementID, LocationString, DisplayAMarker )
+	// The JS function should accept an options hash in two different forms:
+	// 1) { 'element': ID, 'lat': Lat, 'lng': Long, 'mark': DisplayAMarker }
+	// 2) { 'element': ID, 'location': TextString, 'mark': DisplayAMarker }
 	//
 	// The function is called depending on if coords exist => 1 else => 2
-	// but if the map provider does not support geocoding and there are
-	// no coords then NEITHER will be called.
+	// If the map provider does not support geocoding and the event does not
+	// have lat/long meta values then NEITHER will be called.
 	abstract public function get_maprender_function();
-	
+
+	// Should return the name of a function defined in the CLIENT and ADMIN
+	// SCRIPT where the named function will be called to get the center
+	// point of a map. The map container ID will be passed to the function.
+	//
+	// This should return { 'lat':X, 'lng':Y }
+	abstract public function get_centerpoint_function();
+
+	// Should return the name of a function defined in the CLIENT and ADMIN
+	// SCRIPT where the named function will be called to get an array of 
+	// markers on a given map. If the map provider does not support markers
+	// an empty array should be returned.
+	//
+	// The map container ID will be passed to the function.
+	//
+	// This should return array of { 'lat':X, 'lng':Y, 'src':URL to Image }
+	abstract public function get_markerlist_function();
+
+	// Should return the name of a function defined in the CLIENT and ADMIN
+	// SCRIPT where the named function will be called to add a marker to a
+	// map that has been created. If the provider does not support markers
+	// then the function can do nothing.
+	//
+	// Params: Map container ID and { 'lat':X, 'lng':Y, 'src':URL to Image }
+	abstract public function get_addmarker_function();
+
+	// Should return the name of a function defined in the CLIENT and ADMIN
+	// SCRIPT where the named function will be called to get the zoom level
+	// of a given map. The map container ID will be passed to the function.
+	//
+	// Return a number.
+	abstract public function get_mapzoom_function();
+
+	// Should return the name of a function defined in the CLIENT and ADMIN
+	// SCRIPT where the named function will be called to unload a map. The
+	// map container ID will be passed to the function.
+	abstract public function get_unload_function();
+
 	// Returns true or false if this Map Provider can be used now
 	// Always returns false in the abstract class
 	public function good_to_go() {

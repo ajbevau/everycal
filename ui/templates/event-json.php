@@ -7,6 +7,9 @@
 // Make sure we're included from within the plugin
 require( ECP1_DIR . '/includes/check-ecp1-defined.php' );
 
+// We need the Every Calendar settings
+require_once( ECP1_DIR . '/includes/data/ecp1-settings.php' );
+
 // We need to know about the event post type meta/custom fields
 require_once( ECP1_DIR . '/includes/data/event-fields.php' );
 

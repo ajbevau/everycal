@@ -107,12 +107,41 @@ function ecp1_render_calendar( $calendar ) {
 	$_show_map = htmlspecialchars( __( 'Location Map' ) );
 	$_load_map = htmlspecialchars( __( 'Loading map...' ) );
 	$_back_to_event = htmlspecialchars( __( 'Back to Event' ) );
-	$_geocode_addresses = 'true'; // TODO: Move map/geocoding to maps interface and settings
-		
+	$_large_map = htmlspecialchars( __( 'Large Map' ) );
+	$_geocode_addresses = 'false'; // TODO: Move map/geocoding to maps interface and settings
+	$_use_maps = 'false';
+	$_map_show_func = 'false';
+	$_map_delete_func = 'false';
+	$_map_center_func = 'false';
+	$_map_markers_func = 'false';
+	$_map_addmarker_func = 'false';
+	$_map_getzoom_func = 'false';
+	$_init_maps_func = '';
+	$_default_pin = plugins_url( '/img/mapicons/pin.png', dirname( __FILE__ ) );
+
+	if ( _ecp1_get_option( 'use_maps' ) ) {
+		$_use_maps = 'true';
+		$mapinstance = ecp1_get_map_provider_instance();
+		if ( ! is_null( $mapinstance ) ) {
+			if ( $mapinstance->support_geocoding() )
+				$_geocode_addresses = 'true';
+			$_map_show_func = sprintf( 'function( args ) { %s( args ); }',
+						$mapinstance->get_maprender_function() );
+			$_map_delete_func = sprintf( 'function( args ) { %s( args ); }',
+						$mapinstance->get_unload_function() );
+			$_map_center_func = sprintf( 'function( args ) { return %s( args ); }',
+						$mapinstance->get_centerpoint_function() );
+			$_map_markers_func = sprintf( 'function( args ) { return %s( args ); }',
+						$mapinstance->get_markerlist_function() );
+			$_map_addmarker_func = sprintf( 'function( id, args ) { %s( id, args ); }',
+						$mapinstance->get_addmarker_function() );
+			$_map_getzoom_func = sprintf( 'function( args ) { return %s( args ); }',
+						$mapinstance->get_mapzoom_function() );
+			$_init_maps_func = sprintf( '%s()', $mapinstance->get_onload_function() ); // might not be used so need () here
+		}
+	}
+
 	// Now build the actual JS that will be loaded
-	// TODO: Add eventClick function
-	// TODO: Event Colors + Featured Events Source
-	// TODO: Add Event Sources
 	// TODO: Add date formatting
 	$_ecp1_dynamic_calendar_script = <<<ENDOFSCRIPT
 jQuery(document).ready(function($) {
@@ -130,11 +159,20 @@ jQuery(document).ready(function($) {
 
 	// Assign the global Read More / Show Map link variable for i18n
 	_readMore = '$_read_more';
-	_showMap = '$_show_map';
+	_showMapStr = '$_show_map';
+	_loadMapStr = '$_load_map';
 	_showEventDetails = '$_back_to_event';
-	_loadMap = '$_load_map';
+	_showLargeMap = '$_large_map';
+	_defaultPin = '$_default_pin';
 	_geocodeAddr = $_geocode_addresses;
-	_mapInitFunction = function(id, loc, mark) { alert('jojo: ' + id + ' @ ' + loc); }
+	_showMap = $_use_maps;
+	_mapLoadFunction = $_map_show_func;
+	_mapDeleteFunction = $_map_delete_func;
+	_mapCenterFunction = $_map_center_func;
+	_mapMarkersFunction = $_map_markers_func;
+	_mapAddMarkerFunction = $_map_addmarker_func;
+	_mapGetZoomFunction = $_map_getzoom_func;
+	$_init_maps_func;
 });
 ENDOFSCRIPT;
 	
@@ -185,25 +223,29 @@ function ecp1_render_event( $event ) {
 	
 	// String placeholders for the location and map coords if enabled
 	$ecp1_location = $event['ecp1_location'][1];
-	if ( ! _ecp1_event_meta_is_default( 'ecp1_location' ) ) {
+	if ( ! _ecp1_event_meta_is_default( 'ecp1_location' ) )
 		$ecp1_location = htmlspecialchars( $event['ecp1_location'][0] );
-		$ecp1_map_placeholder = '';
-		if ( _ecp1_get_option( 'use_maps' ) ) {
-			$mapinstance = ecp1_get_map_provider_instance();
-			if ( ! is_null( $mapinstance ) ) {
-				if ( ( ! _ecp1_event_meta_is_default( 'ecp1_coord_lat' ) && ! _ecp1_event_meta_is_default( 'ecp1_coord_lng' ) ) ||	// event has have coordinates
-						( ! _ecp1_event_meta_is_default( 'ecp1_location' ) && $mapinstance->support_geocoding() ) ) {				// or have address + geocoding
-					// Render a placeholder and setup some init scripts
-					$ecp1_map_placeholder = '<div id="ecp1_event_map">' . __( 'Loading map...' ) . '</div>';
-					$ecp1_init_func_call = $mapinstance->get_onload_function();
-					$ecp1_render_func_call = $mapinstance->get_maprender_function();
+
+	$ecp1_map_placeholder = ''; 
+	if ( _ecp1_get_option( 'use_maps' ) ) {
+		$mapinstance = ecp1_get_map_provider_instance();
+		if ( ! is_null( $mapinstance ) &&
+			( ( ! _ecp1_event_meta_is_default( 'ecp1_coord_lat' ) && ! _ecp1_event_meta_is_default( 'ecp1_coord_lng' ) ) || // has lat/lng
+			( ! _ecp1_event_meta_is_default( 'ecp1_location' ) && $mapinstance->support_geocoding() ) ) ) { // or have address + geocoding
+				// Render a placeholder and setup some init scripts
+				$ecp1_element_id = 'ecp1_event_map';
+				$ecp1_map_placeholder = '<div id="' . $ecp1_element_id . '">' . __( 'Loading map...' ) . '</div>';
+				$ecp1_init_func_call = $mapinstance->get_onload_function();
+				$ecp1_render_func_call = $mapinstance->get_maprender_function();
 					
-					//TODO: Build the Coord / Location string and PlaceMarker options
-					$coord_param_string = '';
-					$placemarker_string = 'false';
+				//TODO: Build the Coord / Location string and PlaceMarker options
+				$location = htmlspecialchars( _ecp1_event_meta( 'ecp1_location' ) );
+				$placemark = plugins_url( '/img/mapicons/pin.png', dirname( __FILE__ ) );
+				$map_zoom = 11;
+				$options_hash = "{ element:'$ecp1_element_id', location:'$location', mark:'$placemark', zoom:$map_zoom }";
 					
-					// Dynamic script to run on document ready
-					$_ecp1_dynamic_event_script = <<<ENDOFSCRIPT
+				// Dynamic script to run on document ready
+				$_ecp1_dynamic_event_script = <<<ENDOFSCRIPT
 jQuery(document).ready(function($) {
 	// $() will work as an alias for jQuery() inside of this function
 	var container = jQuery( '#ecp1_event_map' );
@@ -212,11 +254,9 @@ jQuery(document).ready(function($) {
 		var pHeight = pWidth * 0.65;
 		container.css( { width:pWidth, height:pHeight } );
 	}
-	$ecp1_init_func_call( function() { $ecp1_render_func_call( 'ecp1_event_map', $coord_param_string, $placemarker_string ); } )
+	$ecp1_init_func_call( function() { $ecp1_render_func_call( $options_hash ); } )
 } );
 ENDOFSCRIPT;
-				}
-			}
 		}
 	}
 

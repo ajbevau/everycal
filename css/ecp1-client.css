@@ -18,8 +18,8 @@ div.ecp1-popup {
 	background-color: #fff;
 	color: #666;
 	font-family: "Lucida Grande", "Lucida Sans Unicode", "Lucida Sans", sans-serif;
-	width:350px;
-	min-height:115px;
+	min-width:350px; /* these match to numbers in js/popup.js for map container width/height */
+	min-height:115px; /* if you change here change there also see ecp1-map-container below */
 	padding:8px;
 	border:2px solid #999;
 	padding:1em;
@@ -45,3 +45,5 @@ div.ecp1-popup span.mlblock {display:inline-block;}
 div.ecp1-popup ul.nodeco {padding:0;margin:0;}
 div.ecp1-popup ul.nodeco li {list-style-type:none;padding:0;margin:0 0 2px;}
 div.ecp1-popup ul.nodeco li span.h {display:inline-block;vertical-align:top;padding-right:5px;}
+div.ecp1-popup div.ecp1-map-container {min-width:345px;min-height:100px;} /* these match js/popup.js */
+div.ecp1-popup div.ecp1-map-linker {min-width:345px;} /* these match js/popup.js */

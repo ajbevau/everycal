@@ -4,11 +4,17 @@
 
 // Global variable for i18n of the read more and show map link
 var _readMore = 'Read more...';
-var _showMap = 'Location Map';
-var _loadMap = 'Loading...';
+var _showMapStr = 'Location Map';
+var _loadMapStr = 'Loading...';
 var _showEventDetails = 'Back to Event Details';
+var _showLargeMap = 'Large Map';
 var _geocodeAddr = false;
-var _mapInitFunction = false;
+var _showMap = false;
+var _mapLoadFunction = false;
+var _mapDeleteFunction = false;
+var _mapCenterFunction = false;
+var _mapMarkersFunction = false;
+var _mapAddMarkerFunction = false;
 var _ecp1Counter = 0;
 
 // Called when FullCalendar renders an event
@@ -57,20 +63,33 @@ function ecp1_onrender( calEvent, element, view ) {
 					.append( jQuery( '<span></span>' )
 						.addClass( 'mlblock' )
 						.text( calEvent.location ) ) );
-			if ( calEvent.coords || ( calEvent.location && _geocodeAddr ) ) {
+			if ( _showMap && ( ( calEvent.lat && calEvent.lng ) || ( calEvent.location && _geocodeAddr ) ) ) {
 				popup.find( '.mlblock' )
 					.append( jQuery( '<br>' ) )
 					.append( jQuery( '<a></a>' )
-						.text( _showMap )
+						.text( _showMapStr )
 						.click( function() {
 							// Tree is <div><div TAB><div><ul><li><span><a>
 							phide = jQuery( this ).parentsUntil( '.ecp1-popup' ).last();
+							var pWidth = phide.width();
+							var pHeight = phide.height();
 							phide.slideUp( 250, function() {
 								pshow = jQuery( this ).siblings( '.ptabhide' ).first();
 								if ( ! pshow.hasClass( 'pmapdone' ) ) {
-									pshow.addClass( 'pmapdone' ).slideDown( 250 );
-									if ( _mapInitFunction )
-										_mapInitFunction( '_ecp1ev_' + _ecp1Counter, calEvent.location, true );
+									pshow.css( { width:pWidth, height:pHeight } ).addClass( 'pmapdone' ).slideDown( 250, function() {
+										jQuery( this ).children( 'div' ).each( function() { jQuery( this ).css( { width:(pWidth-1) } ); } );
+										var mapElem = jQuery( this ).children().first( 'div' );
+										if ( mapElem.length > 0 && typeof _mapLoadFunction == 'function' ) {
+											mapElem.css( { height:(pHeight-20) } );
+											var lZoom = 10;
+											if ( typeof calEvent.zoom == 'number' ) lZoom = calEvent.zoom;
+											var lMark = _defaultPin;
+											if ( typeof calEvent.mark == 'string' ) lMark = calEvent.mark;
+											var lID = mapElem.attr( 'id' );
+											var lOpts = { element:lID, location:calEvent.location, zoom:lZoom, mark:lMark };
+											_mapLoadFunction( lOpts );
+										}
+									} );
 								} else {
 									pshow.slideDown( 250 );
 								}
@@ -83,8 +102,57 @@ function ecp1_onrender( calEvent, element, view ) {
 						.addClass( 'ptab ptabhide' )
 						.append( jQuery( '<div></div>' )
 							.attr( { id: '_ecp1ev_' + _ecp1Counter } )
-							.text( _loadMap ) )
-						.append( jQuery( '<div><div>' )
+							.addClass( 'donotclose ecp1-map-container' )
+							.text( _loadMapStr ) )
+						.append( jQuery( '<div></div>' )
+							.addClass( 'donotclose ecp1-map-linker' )
+							.css( { padding:'5px 0 0 0' } )
+							.append( jQuery( '<a></a>' )
+								.text( _showLargeMap )
+								.click( function() {
+									var lm = jQuery( '#_ecp1-large-map' );
+									if ( lm.length == 0 ) {
+										jQuery( 'body' ).append( jQuery( '<div></div>' )
+											.attr( { id:'_ecp1-large-map' } ).css( { display:'none', 'z-index':99999 } ) );
+										lm = jQuery( '#_ecp1-large-map' );
+									}
+
+									// Get the the center point and markers off the map
+									var id = jQuery( this ).parent().siblings( '.ecp1-map-container' ).first().attr( 'id' );
+									var cp = _mapCenterFunction( id );
+									var mk = _mapMarkersFunction( id );
+									var zm = _mapGetZoomFunction( id );
+
+									var pw = jQuery( window ).width();
+									var ph = jQuery( document ).height();
+									var ps = jQuery( document ).scrollTop(); ps = ( ps+20 ) + 'px auto 0 auto';
+									lm.css( { width:pw, height:ph, position:'absolute', top:0, left:0, 
+											display:'block', textAlign:'center', background:'rgba(0,0,0,0.7)' } )
+										.append( jQuery( '<div></div>' )
+											.css( { background:'#ffffff', opacity:1, padding:'1em', width:800, height:600, margin:ps } )
+											.append( jQuery( '<div></div>' )
+												.css( { textAlign:'right' } )
+												.append( jQuery( '<a></a>' )
+													.css( { cursor:'pointer' } )
+													.text( _showEventDetails )
+													.click( function() {
+														_mapDeleteFunction( '_ecp1-lmcontainer' );
+														jQuery( '#_ecp1-large-map' ).remove();
+													} ) ) )
+											.append( jQuery( '<div></div>' )
+												.attr( { id:'_ecp1-lmcontainer' } )
+												.css( { textAlign:'left', width:800, height:575 } )
+												.text( _loadMapStr ) ) );
+
+									if ( typeof _mapLoadFunction == 'function' ) {
+										var lOpts = { element:'_ecp1-lmcontainer', lat:cp.lat, lng:cp.lng, zoom:zm, mark:false };
+										_mapLoadFunction( lOpts );
+										for ( var i=0; i < mk.length; i++ ) {
+											_mapAddMarkerFunction( '_ecp1-lmcontainer', mk[i] );
+										}
+									}
+								} )
+								.css( { cursor:'pointer', float:'right' } ) )
 							.append( jQuery( '<a></a>' )
 								.text( _showEventDetails )
 								.click( function() {
@@ -131,11 +199,14 @@ function ecp1_onclick( calEvent, jEvent, view ) {
 	 		&& jQuery( jEvent.target ).hasClass( 'ecp1-goto' ) )
 		return true;
 
+	// If this is an element specificied with class donotclose then keep popup open
+	if ( jQuery( jEvent.target ).parents( '.donotclose' ).length > 0 )
+		return false;
+
 	// If there are no popup children but there is a url return true to go to it
 	if ( jQuery( this ).children( '.ecp1-popup' ).length == 0) {
-		alert('no popups found');
 		if ( calEvent.url )
-			return false; // TODO: Change to TRUE
+			return true;
 		return false; // no popup or url so do nothing
 	}
 
@@ -179,11 +250,6 @@ function ecp1_onclick( calEvent, jEvent, view ) {
 				else if ( right_balance < 0 ) jQuery(this).animate( { left: right_balance + 'px' }, 100 );
 				if ( top_balance < 0 ) jQuery(this).animate( { top: (-1*top_balance) + 'px' }, 100 );
 				else if ( bottom_balance < 1 ) jQuery(this).animate( { top: bottom_balance + 'px' }, 100 );
-		} );
-		
-		// register a click event to close the info popup
-		pElement.click( function() {
-			jQuery(this).animate( { opacity:0, top:'-25px' }, 250, 'swing', function() { pElement.removeClass( 'ecp1-popup-show' ); } );
 		} );
 	}
 
