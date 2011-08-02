@@ -153,7 +153,28 @@ if ( empty( $wp_query->query_vars['ecp1_start'] ) || empty( $wp_query->query_var
 					// Create a Where string like event post page
 					if ( ! _ecp1_event_meta_is_default( 'ecp1_location' ) )
 						$events_json[$_e_index]['location'] = sprintf( '%s',  _ecp1_event_meta( 'ecp1_location' ) );
-					
+
+					// Does this event want maps to be shown?
+					$events_json[$_e_index]['showmap'] = 'Y' == _ecp1_event_meta( 'ecp1_showmap' ) ? true : false;
+					if ( $events_json[$_e_index]['showmap'] ) { // only send map zoom and marker if show map
+						if ( ! _ecp1_event_meta_is_default( 'ecp1_map_zoom' ) )
+							$events_json[$_e_index]['zoom'] = (int) _ecp1_event_meta( 'ecp1_map_zoom' );
+						if ( 'Y' == _ecp1_event_meta( 'ecp1_showmarker' ) ) {
+							if ( ! _ecp1_event_meta_is_default( 'ecp1_map_placemarker' ) && file_exists( ECP1_DIR . '/img/mapicons/' . _ecp1_event_meta( 'ecp1_map_placemarker' ) ) )
+								$events_json[$_e_index]['mark'] = plugins_url( '/img/mapicons/' . _ecp1_event_meta( 'ecp1_map_placemarker' ), dirname( dirname( __FILE__ ) ) );
+							else
+								$events_json[$_e_index]['mark'] = true;
+						} else {
+							$events_json[$_e_index]['mark'] = false;
+						}
+					}
+
+					// If there are Lat/Lng send them for the event
+					if ( ! _ecp1_event_meta_is_default( 'ecp1_coord_lat' ) && ! _ecp1_event_meta_is_default( 'ecp1_coord_lng' ) ) {
+						$events_json[$_e_index]['lat'] = (float) _ecp1_event_meta( 'ecp1_coord_lat' );
+						$events_json[$_e_index]['lng'] = (float) _ecp1_event_meta( 'ecp1_coord_lng' );
+					}
+
 					// Now for the tricky part: if an event only has a URL then set URL to that
 					// if event only has a description set URL to the event post page; and if
 					// neither then don't set the URL option
@@ -174,7 +195,7 @@ if ( empty( $wp_query->query_vars['ecp1_start'] ) || empty( $wp_query->query_var
 					if ( function_exists( 'add_theme_support' ) && function_exists( 'get_the_post_thumbnail' ) ) {
 						$attrs = array( 'title' => the_title( '', '', false ), 'alt' => __( 'Event Logo' ) );
 						if ( has_post_thumbnail( $post->ID ) )
-							$events_json[$_e_index]['imageurl'] = get_the_post_thumbnail( $post->ID, 'thumbnail', $attrs );
+							$events_json[$_e_index]['imageelem'] = get_the_post_thumbnail( $post->ID, 'thumbnail', $attrs );
 					}
 					
 					// Successfully added an event increment the counter

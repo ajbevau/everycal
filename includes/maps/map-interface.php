@@ -55,7 +55,8 @@ abstract class ECP1Map {
 	//
 	// NOTE: In the Administration script the values of Lat, Long, and Zoom
 	// will contain hidden input fields that will contain the appropriate
-	// values and should be UPDATED when the map changes.
+	// values and should be UPDATED when the map changes. DisplayMark will
+	// contain a checkbox that if checked indicates show a marker.
 	abstract public function get_maprender_function();
 
 	// Should return the name of a function defined in the CLIENT and ADMIN

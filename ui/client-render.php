@@ -117,7 +117,6 @@ function ecp1_render_calendar( $calendar ) {
 	$_map_addmarker_func = 'false';
 	$_map_getzoom_func = 'false';
 	$_init_maps_func = '';
-	$_default_pin = plugins_url( '/img/mapicons/pin.png', dirname( __FILE__ ) );
 
 	if ( _ecp1_get_option( 'use_maps' ) ) {
 		$_use_maps = 'true';
@@ -163,7 +162,6 @@ jQuery(document).ready(function($) {
 	_loadMapStr = '$_load_map';
 	_showEventDetails = '$_back_to_event';
 	_showLargeMap = '$_large_map';
-	_defaultPin = '$_default_pin';
 	_geocodeAddr = $_geocode_addresses;
 	_showMap = $_use_maps;
 	_mapLoadFunction = $_map_show_func;
@@ -227,7 +225,7 @@ function ecp1_render_event( $event ) {
 		$ecp1_location = htmlspecialchars( $event['ecp1_location'][0] );
 
 	$ecp1_map_placeholder = ''; 
-	if ( _ecp1_get_option( 'use_maps' ) ) {
+	if ( _ecp1_get_option( 'use_maps' ) && 'Y' == _ecp1_event_meta( 'ecp1_showmap' ) ) {
 		$mapinstance = ecp1_get_map_provider_instance();
 		if ( ! is_null( $mapinstance ) &&
 			( ( ! _ecp1_event_meta_is_default( 'ecp1_coord_lat' ) && ! _ecp1_event_meta_is_default( 'ecp1_coord_lng' ) ) || // has lat/lng
@@ -237,13 +235,37 @@ function ecp1_render_event( $event ) {
 				$ecp1_map_placeholder = '<div id="' . $ecp1_element_id . '">' . __( 'Loading map...' ) . '</div>';
 				$ecp1_init_func_call = $mapinstance->get_onload_function();
 				$ecp1_render_func_call = $mapinstance->get_maprender_function();
-					
-				//TODO: Build the Coord / Location string and PlaceMarker options
-				$location = htmlspecialchars( _ecp1_event_meta( 'ecp1_location' ) );
-				$placemark = plugins_url( '/img/mapicons/pin.png', dirname( __FILE__ ) );
-				$map_zoom = 11;
-				$options_hash = "{ element:'$ecp1_element_id', location:'$location', mark:'$placemark', zoom:$map_zoom }";
-					
+				$options_hash = array( 'element' => "'$ecp1_element_id'" );
+				
+				// Decide between location string and lat/lng
+				$ecp1_lat = _ecp1_event_meta( 'ecp1_coord_lat' );
+				$ecp1_lng = _ecp1_event_meta( 'ecp1_coord_lng' );
+				if ( is_numeric( $ecp1_lat ) && is_numeric( $ecp1_lng ) ) {
+					$options_hash['lat'] = $ecp1_lat;
+					$options_hash['lng'] = $ecp1_lng;
+				} else {
+					$options_hash['location'] = "'$ecp1_location'";
+				}
+
+				// Do we want placemarks? and if so default or a url?
+				if ( 'Y' == _ecp1_event_meta( 'ecp1_showmarker' ) ) {
+					if ( _ecp1_event_meta_is_default( 'ecp1_map_placemarker' ) ||
+						! file_exists( ECP1_DIR . '/img/mapicons/' . _ecp1_event_meta( 'ecp1_map_placemarker' ) ) )
+						$options_hash['mark'] = 'true';
+					else // file given and exists
+						$options_hash['mark'] = sprintf( '"%s"', plugins_url( '/img/mapicons/' . _ecp1_event_meta( 'ecp1_map_placemarker' ), dirname( __FILE__ ) ) );
+				} else {
+					$options_hash['mark'] = 'false';
+				}
+
+				// Map zoom is simple
+				$options_hash['zoom'] = _ecp1_event_meta( 'ecp1_map_zoom' );
+
+				$options_hash_str = '{ ';
+				foreach( $options_hash as $_k=>$_v )
+					$options_hash_str .= sprintf( '%s:%s, ', $_k, $_v );
+				$options_hash_str = trim( $options_hash_str, ',' ) . ' }';
+
 				// Dynamic script to run on document ready
 				$_ecp1_dynamic_event_script = <<<ENDOFSCRIPT
 jQuery(document).ready(function($) {
@@ -254,7 +276,7 @@ jQuery(document).ready(function($) {
 		var pHeight = pWidth * 0.65;
 		container.css( { width:pWidth, height:pHeight } );
 	}
-	$ecp1_init_func_call( function() { $ecp1_render_func_call( $options_hash ); } );
+	$ecp1_init_func_call( function() { $ecp1_render_func_call( $options_hash_str ); } );
 } );
 ENDOFSCRIPT;
 		}

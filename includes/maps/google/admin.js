@@ -12,12 +12,18 @@ var _ecp1GoogleCallback = false;
 var _ecp1GoogleMapCounter = 0;
 var _ecp1GoogleMapInstances = new Array();
 var _ecp1GoogleMarkers = new Array();
+var _ecp1GoogleUpdateFields = new Array();
 
 // Global reference to a Geocoder instance (for efficiency)
 var _ecp1GoogleGeocoder = false;
+var _geocodeFailedMessage = 'Could not find your location';
 
 // Global map of element id to map instance index
 var _ecp1GoogleMapElements = new Array();
+
+// Variables for holding the icon path and image array
+var _iconsPath = '';
+var _iconsArray = [];
 
 // Called on page load
 function InitGoogleMaps( _finishCallback ) {
@@ -35,9 +41,7 @@ function InitGoogleMaps( _finishCallback ) {
 // Helper to track library load
 function _ecp1GoogleMapsReady() {
 	_ecp1GoogleGoodToGo = true;
-	alert( 'callback running' );
 	if ( _ecp1GoogleCallback ) {
-		alert( 'custom callback call' );
 		_ecp1GoogleCallback();
 	}
 }
@@ -48,40 +52,126 @@ function _ecp1GoogleMapsReady() {
 // address and geocodes it. Once geocoding is complete this
 // function is called to render the map.
 function _RenderGoogleMap( ElementID, Zoom, Lat, Lng, DisplayMarker ) {
-alert( '_RENDER: ' + Lat + ' ' + Lng + ' @ ' + Zoom ); return;
-	var myLatLng = new google.maps.LatLng(Lat, Lng);
-	var myOptions = { zoom: Zoom, center: myLatLng, mapTypeId: google.maps.MapTypeId.ROADMAP, disableDefaultUI:true, zoomControl:true };
-	var myElement = document.getElementById( ElementID );
-	if ( typeof myElement == 'null' || typeof myElement == 'undefined' )
-		throw "Non-existent Element ID provided to RenderGoogleMap";
+	try {
 
-	_ecp1GoogleMapInstances[_ecp1GoogleMapCounter] = new google.maps.Map( document.getElementById( ElementID ), myOptions );
-	_ecp1GoogleMapElements[_ecp1GoogleMapCounter] = { index:_ecp1GoogleMapCounter, element:ElementID };
-	if ( typeof DisplayMarker != 'undefined' && DisplayMarker ) {
-		_ecp1GoogleMarkers[_ecp1GoogleMapCounter] = new Array();
-		_ecp1GoogleMarkers[_ecp1GoogleMapCounter][0] = 1; // marker counter 1 onwards are markers
- 		var markOpts = { map:_ecp1GoogleMapInstances[_ecp1GoogleMapCounter], draggable:false, position:myLatLng };
-		_ecp1GoogleMarkers[_ecp1GoogleMapCounter][_ecp1GoogleMarkers[_ecp1GoogleMapCounter][0]] = new google.maps.Marker( markOpts );
-		if ( typeof DisplayMarker == 'string' ) {
-			var image = new google.maps.MarkerImage( DisplayMarker );
-			_ecp1GoogleMarkers[_ecp1GoogleMapCounter][_ecp1GoogleMarkers[_ecp1GoogleMapCounter][0]].setIcon( image );
+		var eLat = document.getElementById( Lat );
+		var eLng = document.getElementById( Lng );
+		if ( eLat == null && eLng == null )
+			throw "Invalid Lat ('" + Lat + "') / Lng ('" + Lng + "') elements provided to RenderGoogleMap";
+		else if ( eLat == null )
+			throw "Invalid Lat ('" + Lat + "') element provided to RenderGoogleMap";
+		else if ( eLng == null )
+			throw "Invalid Lng ('" + Lng + "') element provided to RenderGoogleMap";
+	
+		var myElement = document.getElementById( ElementID );
+		if ( typeof myElement == 'null' || typeof myElement == 'undefined' )
+			throw "Non-existent Element ID provided to RenderGoogleMap";
+
+		var zoomTo = 1;
+		if ( Zoom != null ) {
+			eZoom = document.getElementById( Zoom );
+			if ( eZoom != null && '' != eZoom.value ) {
+				zoomTo = parseInt( eZoom.value );
+				if ( isNaN( zoomTo ) ) zoomTo = 1;
+			}
 		}
-		_ecp1GoogleMarkers[_ecp1GoogleMapCounter][0] += 1;
-	}
-	_ecp1GoogleMapCounter += 1;
+
+		var _lat = 0;
+		var _lng = 0;
+		if ( '' != eLat.value && '' != eLng.value ) {
+			_lat = parseFloat( eLat.value );
+			if ( isNaN( _lat ) ) { DisplayMarker = false; _lat = 0; }
+			_lng = parseFloat( eLng.value );
+			if ( isNaN( _lng ) ) { DisplayMarker = false; _lng = 0; }
+		} else { DisplayMarker = false; } // prevent mark on default map
+
+		// does the map already exist: if so move dont't create
+		var mapIndex = _GoogleElementMapLookup( ElementID );
+		if ( mapIndex == null )
+			mapIndex = _ecp1GoogleMapCounter;
+
+		var myLatLng = new google.maps.LatLng( _lat, _lng );
+		if ( typeof _ecp1GoogleMapInstances[mapIndex] != 'object' ) {
+			var myOptions = { mapTypeId: google.maps.MapTypeId.ROADMAP, disableDefaultUI:true, zoomControl:true, zoom:zoomTo, center:myLatLng };
+			_ecp1GoogleMapInstances[mapIndex] = new google.maps.Map( document.getElementById( ElementID ), myOptions );
+			_ecp1GoogleMapElements[mapIndex] = { index:mapIndex, element:ElementID };
+			google.maps.event.addListener( _ecp1GoogleMapInstances[mapIndex], 'dragend', function() {
+				_UpdateGoogleMapFields( mapIndex );
+			} );
+			google.maps.event.addListener( _ecp1GoogleMapInstances[mapIndex], 'zoom_changed', function() {
+				_UpdateGoogleMapFields( mapIndex );
+			} );
+		} else {
+			_ecp1GoogleMapInstances[mapIndex].setCenter( myLatLng );
+			_ecp1GoogleMapInstances[mapIndex].setZoom( zoomTo );
+			if ( typeof _ecp1GoogleMarkers[mapIndex] != 'undefined' && _ecp1GoogleMarkers[mapIndex] != null ) {
+				for ( var i=1; i < _ecp1GoogleMarkers[mapIndex][0]; i++ ) {
+					_ecp1GoogleMarkers[mapIndex][i].setMap( null );
+					_ecp1GoogleMarkers[mapIndex][i] = null;
+				}
+				_ecp1GoogleMarkers[mapIndex] = null;
+			}
+		}
+
+		var eDisplayMarkers = null;
+		var eMarkerImage = null;
+		if ( typeof DisplayMarker == 'object' ) {
+			if ( DisplayMarker.length > 0 )
+				eDisplayMarkers = document.getElementById( DisplayMarker[0] );
+			if ( DisplayMarker.length > 1 )
+				eMarkerImage = document.getElementById( DisplayMarker[1] );
+		}
+
+		if ( eDisplayMarkers != null && eDisplayMarkers.checked ) {
+			_ecp1GoogleMarkers[mapIndex] = new Array();
+			_ecp1GoogleMarkers[mapIndex][0] = 1; // marker counter 1 onwards are markers
+	 		var markOpts = { map:_ecp1GoogleMapInstances[mapIndex], draggable:true, position:myLatLng };
+			_ecp1GoogleMarkers[mapIndex][_ecp1GoogleMarkers[mapIndex][0]] = new google.maps.Marker( markOpts );
+			google.maps.event.addListener( _ecp1GoogleMarkers[mapIndex][_ecp1GoogleMarkers[mapIndex][0]], 'dragend', function() {
+				_UpdateGoogleMapFields( mapIndex );
+			} );
+
+			if ( eMarkerImage != null && '' != eMarkerImage.value ) {
+				var image = new google.maps.MarkerImage( _iconsPath + '/' + eMarkerImage.value );
+				_ecp1GoogleMarkers[mapIndex][_ecp1GoogleMarkers[mapIndex][0]].setIcon( image );
+			}
+
+			_ecp1GoogleMarkers[mapIndex][0] += 1;
+		}
+
+		_ecp1GoogleUpdateFields[mapIndex] = { zoom:Zoom, lat:Lat, lng:Lng };
+		_ecp1GoogleMapCounter += 1;
+
+	} catch( lm_ex ) { throw "GoogleMapRender Error: " + lm_ex; }
 }
 
 // Called when a map needs to be rendered (and first geocoded)
 function _GeocodeGoogleMap( ElementID, Zoom, Lat, Lng, DisplayMarker, Location ) {
-alert( '_GEOCODE: ' + Location + ' to ' + Lat + ' ' + Lng + ' @ ' + Zoom ); return;
 	if ( ! _ecp1GoogleGeocoder )
 		_ecp1GoogleGeocoder = new google.maps.Geocoder();
+
+	var eLat = document.getElementById( Lat );
+	var eLng = document.getElementById( Lng );
+	if ( eLat == null && eLng == null )
+		throw "Invalid Lat ('" + Lat + "') / Lng ('" + Lng + "') elements provided to RenderGoogleMap";
+	else if ( eLat == null )
+		throw "Invalid Lat ('" + Lat + "') element provided to RenderGoogleMap";
+	else if ( eLng == null )
+		throw "Invalid Lng ('" + Lng + "') element provided to RenderGoogleMap";
 	
 	_ecp1GoogleGeocoder.geocode( { 'address': Location }, function( results, status ) {
 		if ( google.maps.GeocoderStatus.OK == status ) {
 			var _ll = results[0].geometry.location;
-			_RenderGoogleMap( ElementID, Zoom, _ll.lat(), _ll.lng(), DisplayMarker );
-		}
+			eLat.value = _ll.lat();
+			eLng.value = _ll.lng();
+			var zElement = document.getElementById( Zoom );
+			if ( zElement != null ) {
+				zElementV = parseInt( zElement.value );
+				if ( isNaN( zElementV ) || zElementV < 6 )
+					zElement.value = '6';
+			}
+			_RenderGoogleMap( ElementID, Zoom, Lat, Lng, DisplayMarker );
+		} else { alert( _geocodeFailedMessage ); }
 	} );
 }
 
@@ -97,8 +187,8 @@ function RenderGoogleMap( options ) {
 		throw 'No ElementID passed to RenderGoogleMap';
 	var eID = options.element;
 
-	var mark = false;
-	if ( typeof options.mark == 'boolean' || typeof options.mark == 'string' )
+	var mark = [];
+	if ( typeof options.mark == 'object' )
 		mark = options.mark;
 
 	var zoom = null; // zoom we can live with defaults
@@ -114,6 +204,32 @@ function RenderGoogleMap( options ) {
 		_GeocodeGoogleMap( eID, zoom, options.lat, options.lng, mark, options.location );
 	else
 		_RenderGoogleMap( eID, zoom, options.lat, options.lng, mark );
+}
+
+// Helper function that updates the form fields with details from the map
+function _UpdateGoogleMapFields( mapIndex ) {
+	if ( typeof _ecp1GoogleUpdateFields[mapIndex] == 'object' ) {
+		var map = _ecp1GoogleMapInstances[mapIndex];
+		var fields = _ecp1GoogleUpdateFields[mapIndex];
+		var markers = _ecp1GoogleMarkers[mapIndex];
+		var cp = null;
+		if ( typeof markers == 'undefined' || markers == null )
+			cp = map.getCenter();
+		else if ( typeof markers == 'object' )
+			cp = markers[1].getPosition();
+
+		var lat = document.getElementById( fields.lat );
+		var lng = document.getElementById( fields.lng );
+		if ( lat == null || lng == null )
+			throw "GoogleMap Error: Unabled to update Lat / Lng fields.";
+
+		lat.value = cp.lat();
+		lng.value = cp.lng();
+
+		var zoom = document.getElementById( fields.zoom );
+		if ( zoom != null )
+			zoom.value = map.getZoom();
+	}
 }
 
 // Helper function that turns a map element id into an index
@@ -198,6 +314,7 @@ function DeleteGoogleMap( mapid ) {
 		var mapIndex = _GoogleElementMapLookup( mapid );
 		_ecp1GoogleMapInstances[mapIndex] = null;
 		_ecp1GoogleMarkers[mapIndex] = null;
+		_ecp1GoogleUpdateFields[mapIndex] = null;
 		for ( var i=0; i < _ecp1GoogleMapCounter; i++ ) {
 			var elementMap = _ecp1GoogleMapElements[i];
 			if ( elementMap != null && elementMap.element == mapid ) {

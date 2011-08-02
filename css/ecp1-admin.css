@@ -17,7 +17,6 @@ span.ecp1_floater_r {display:inline-block;width:40%;float:right;}
 div.ecp1_meta table.form-table td, div.ecp1_meta table.form-table th {vertical-align:top;clear:both;}
 div.ecp1_meta table.form-table th label {padding-top:5px;display:inline-block;}
 div.ecp1_meta #ecp1_featured {margin-right:10px;}
-div.ecp1_meta div.mfloater {float:left;}
-div.ecp1_meta span.clear {clear:both;}
-div.ecp1_meta div.mfloater ul {padding-right:10px;}
 div.ecp1_meta #ecp1-event-map {width:600px;height:300px;}
+div.ecp1_meta div.mapmeta ul li span {display:inline-block;padding-left:50px;}
+span#ecp1_marker_preview {padding:0 5px;display:inline-block;vertical-align:top;}

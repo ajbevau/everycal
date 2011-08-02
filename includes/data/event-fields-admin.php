@@ -149,13 +149,14 @@ function ecp1_event_meta_form() {
 	$ecp1_calendar = _ecp1_event_meta_is_default( 'ecp1_calendar' ) ? '-1' : $ecp1_event_fields['ecp1_calendar'][0];
 	$ecp1_full_day = _ecp1_event_meta_is_default( 'ecp1_full_day' ) ? 'N' : $ecp1_event_fields['ecp1_full_day'][0];
 	$ecp1_featured = _ecp1_event_meta_is_default( 'ecp1_featured' ) ? 'N' : $ecp1_event_fields['ecp1_featured'][0];
+	
 	$ecp1_location = _ecp1_event_meta_is_default( 'ecp1_location' ) ? '' : $ecp1_event_fields['ecp1_location'][0];
 	$ecp1_lat = _ecp1_event_meta_is_default( 'ecp1_coord_lat' ) ? null : $ecp1_event_fields['ecp1_coord_lat'][0];
 	$ecp1_lng = _ecp1_event_meta_is_default( 'ecp1_coord_lng' ) ? null : $ecp1_event_fields['ecp1_coord_lng'][0];
-	$ecp1_map_zoom = _ecp1_event_meta_is_default( 'ecp1_map_zoom' ) ? 12 : $ecp1_event_fields['ecp1_map_zoom'][0];
-	$ecp1_placemark = _ecp1_event_meta_is_default( 'ecp1_map_placemarker' ) ? 'N' : $ecp1_event_fields['ecp1_map_placemarker'][0];
-	$ecp1_showmap = _ecp1_event_meta_is_default( 'ecp1_show_map' ) ? 'N' : $ecp1_event_fields['ecp1_show_map'][0];
-	// TODO: Add placemarkers image files
+	$ecp1_zoom = _ecp1_event_meta_is_default( 'ecp1_map_zoom' ) ? 1 : $ecp1_event_fields['ecp1_map_zoom'][0];
+	$ecp1_placemarker = _ecp1_event_meta_is_default( 'ecp1_map_placemarker' ) ? '' : urldecode( $ecp1_event_fields['ecp1_map_placemarker'][0] );
+	$ecp1_showmarker = _ecp1_event_meta_is_default( 'ecp1_showmarker' ) ? 'Y' : $ecp1_event_fields['ecp1_showmarker'][0];
+	$ecp1_showmap = _ecp1_event_meta_is_default( 'ecp1_showmap' ) ? 'Y' : $ecp1_event_fields['ecp1_showmap'][0];
 
 	$ecp1_start_date = _ecp1_event_meta_is_default( 'ecp1_start_ts' ) ? '' : date( 'Y-m-d', $ecp1_event_fields['ecp1_start_ts'][0] );
 	$ecp1_start_time = _ecp1_event_meta_is_default( 'ecp1_start_ts' ) ? '' : $ecp1_event_fields['ecp1_start_ts'][0];
@@ -285,36 +286,120 @@ function ecp1_event_meta_form() {
 			$ecp1_init_func_call = $mapinstance->get_onload_function();
 			$ecp1_render_func_call = $mapinstance->get_maprender_function();
 			$options_hash = array(
-				'element' => "'ecp1-event-map'", // not quoted below so do it here
-				'mark' => 'Y' == $ecp1_placemark ? 'true' : 'false',
-				'zoom' => 'ecp1_zoom', 'lat' => 'ecp1_lat', 'lng' => 'ecp1_lnt' );
+				'element' => '"ecp1-event-map"', // not quoted below so do it here
+				'mark' => '["ecp1_showmarker","ecp1_marker"]', // checkbox and img url
+				'zoom' => '"ecp1_zoom"', 'lat' => '"ecp1_lat"', 'lng' => '"ecp1_lng"' );
 			// TODO: Placemarker image files
 			$options_hash_str = '{';
 			foreach( $options_hash as $key=>$value )
 				$options_hash_str .= sprintf( ' %s:%s,', $key, $value );
 			$options_hash_str = trim( $options_hash_str, ',' ) . ' }';
 
+			// Build an array of map placemarker icons
+			$marker_path = plugins_url( '/img/mapicons', dirname( dirname( __FILE__ ) ) );
+			$marker_icons = glob( ECP1_DIR . '/img/mapicons/*.png' );
+			$marker_icons_str = '[';
+			foreach( $marker_icons as $icon )
+				$marker_icons_str .= sprintf( '"%s",', basename( $icon ) );
+			$marker_icons_str = trim( $marker_icons_str, ',' ) . ']';
+			$feature_icons_str = '["pin.png","information.png","zoom.png","downloadicon.png"]';
+
+			$_map_default_str = __( 'Map Default' );
+			$_show_event_details = __( 'Back to Edit Event' );
+			$_loading_icons_message = __( 'Loading Icons' );
+
 			$_ecp1_event_admin_init_js .= <<<ENDOFSCRIPT
 // Global variable for function reference for render actions
 var _mapLoadFunction = function( args ) { $ecp1_render_func_call( args ); };
+var _mapDefaultIcon = '$_map_default_str';
+var _iconsPath = '$marker_path';
+var _featureIconsArray = $feature_icons_str;
+var _iconsArray = $marker_icons_str;
+var _showEventDetails = '$_show_event_details';
+var _loadIconStr = '$_loading_icons_message';
 jQuery(document).ready(function($) {
 	// $() will work as an alias for jQuery() inside of this function
 	$ecp1_init_func_call( function() { $ecp1_render_func_call( $options_hash_str ); } );
+
+	$( '#ecp1_showmarker' ).change( function() { $ecp1_render_func_call( $options_hash_str ); } );
+
+	$( '#ecp1_reset_marker' ).css( { padding:'0 5px', cursor:'pointer' } ).click( function() {
+		$( '#ecp1_marker' ).val( '' );
+		$( '#ecp1_marker_preview' ).empty().text( _mapDefaultIcon );
+		$ecp1_render_func_call( $options_hash_str );
+	} );
+
+	$( '#ecp1_change_marker' ).css( { padding:'0 5px', cursor:'pointer' } ).click( function() {
+		var lm = $( '#_ecp1-map-icon' );
+		if ( lm.length == 0 ) {
+			$( 'body' ).append( $( '<div></div>' )
+						.attr( { id:'_ecp1-map-icon' } ).css( { display:'none', 'z-index':99999 } ) );
+			lm = $( '#_ecp1-map-icon' );
+		}
+
+		var pw = $( window ).width();
+		var ph = $( document ).height();
+		var ps = $( document ).scrollTop(); ps = ( ps+20 ) + 'px auto 0 auto';
+		lm.css( { width:pw, height:ph, position:'absolute', top:0, left:0,
+				display:'block', textAlign:'center', background:'rgba(0,0,0,0.7)' } )
+			.append( $( '<div></div>' )
+				.css( { background:'#ffffff', opacity:1, padding:'1em', width:800, margin:ps } )
+				.append( $( '<div></div>' )
+					.css( { textAlign:'right' } )
+					.append( $( '<a></a>' )
+						.css( { cursor:'pointer' } )
+						.text( _showEventDetails )
+						.click( function() {
+							$( '#_ecp1-map-icon' ).remove();
+						} ) ) )
+					.append( $( '<div></div>' )
+						.attr( { id:'_ecp1-icontainer' } )
+						.css( { textAlign:'left', width:800 } ) ) );
+
+		var ic = $( '#_ecp1-icontainer' );
+		var comb = _featureIconsArray.concat( _iconsArray );
+		for ( var i=0; i < comb.length; i++ )
+			ic.append( $( '<span></span>' )
+				.css( { display:'inline-block', margin:'2px' } )
+				.append( $( '<img>' )
+					.attr( { alt:comb[i].split('.')[0], src:( _iconsPath + '/' + comb[i] ), id:comb[i] } )
+					.css( { cursor:'pointer' } )
+					.click( function() {
+						var part = $( this ).attr( 'id' );
+						$( '#ecp1_marker' ).val( part );
+						$( '#ecp1_marker_preview' ).empty().append( $( this ).clone() );
+						$ecp1_render_func_call( $options_hash_str );
+						lm.find( 'div div a' ).first().click();
+					} ) ) );
+	} );
+
+	$( '#ecp1_location' ).keypress( function(e) {
+		var code = (e.keyCode ? e.keyCode : e.which);
+		if ( 13 == code && $( '#ecp1_event_geocode' ).length > 0 ) {
+			$( '#ecp1_event_geocode' ).click();
+			return false;
+		} else {
+			return true;
+		}
+	} ); // prevent form submit
 } );
 
 ENDOFSCRIPT;
 
 			// If the map provider supports geocoding put a lookup button in place
 			if ( $mapinstance->support_geocoding() ) {
+				$_failed_message = htmlspecialchars( __( 'Could not find the address you entered' ) );
 				printf( '<input id="ecp1_event_geocode" type="button" value="%s" />', __( 'Lookup Address' ) );
 				$_ecp1_event_admin_init_js .= <<<ENDOFSCRIPT
+var _geocodeFailedMessage = '$_failed_message';
 jQuery(document).ready(function($) {
 	// $() will work as an alias for jQuery() inside of this function
 	$( '#ecp1_event_geocode' ).click( function() {
-		var address = $.trim( $( this ).val() );
+		var address = $.trim( $( '#ecp1_location' ).val() );
 		if ( '' != address ) {
-			// TODO: Call the function
-			alert(address + ' ready to geocode');
+			var opts = $options_hash_str;
+			opts.location = address;
+			_mapLoadFunction( opts );
 		}
 	} );
 } );
@@ -323,32 +408,43 @@ ENDOFSCRIPT;
 			}
 			printf( '<br/>' ); // new line now
 
-			// Next render a maps container with two checkboxes and three hidden inputs
+			// Next render a maps container with two checkboxes and four hidden inputs
 			// the checkboxes are: 1) Show Placemarker and 2) Show This Map on Website
 			// if (1) is checked it implies (2). The purpose of (2) is to allow a map
 			// to be centered without a placemarker. The event will store center coords.
-			// TODO: Make text into hidden
+			//
+			// The hidden inputs store the values for form submit.
+
+			// Build a preview URL or text for markers
+			$marker_preview = $_map_default_str;
+			if ( '' != $ecp1_placemarker )
+				$marker_preview = sprintf( '<img alt="Marker Image Not Found" title="Marker Image" src="%s"/>', plugins_url( '/img/mapicons/' . $ecp1_placemarker, dirname( dirname( __FILE__ ) ) ) );
+
 ?>
-	<div>
-		<input type="text" id="ecp1_lat" name="ecp1_lat" value="<?php echo is_null( $ecp1_lat ) ? '' : $ecp1_lat; ?>" />
-		<input type="text" id="ecp1_lng" name="ecp1_lng" value="<?php echo is_null( $ecp1_lng ) ? '' : $ecp1_lng; ?>" />
-		<input type="text" id="ecp1_zoom" name="ecp1_zoom" value="<?php echo $ecp1_zoom; ?>" />
-		<div class="mfloater">
-			<ul>
-				<li>
-					<input type="checkbox" id="ecp1_show_placemarker" name="ecp1_show_placemarker" value="1" <?php checked( 'Y', $ecp1_placemark ); ?>/>
-					<label for="ecp1_show_placemarker">Show Placemarker?</label>
-				</li>
-				<li>
-					<input type="checkbox" id="ecp1_show_map" name="ecp1_show_map" value="1" <?php checked( 'Y', $ecp1_showmap ); ?>/>
-					<label for="ecp1_show_map">Show Map on Event Page?</label>
-				</li>
-			</ul>
-		</div>
-		<div class="mfloater">
-			<div id="ecp1-event-map"><?php _e( 'Loading map...' ); ?></div>
-		</div>
+	<input type="hidden" id="ecp1_lat" name="ecp1_lat" value="<?php echo is_null( $ecp1_lat ) ? '' : $ecp1_lat; ?>" />
+	<input type="hidden" id="ecp1_lng" name="ecp1_lng" value="<?php echo is_null( $ecp1_lng ) ? '' : $ecp1_lng; ?>" />
+	<input type="hidden" id="ecp1_zoom" name="ecp1_zoom" value="<?php echo $ecp1_zoom; ?>" />
+	<input type="hidden" id="ecp1_marker" name="ecp1_marker" value="<?php echo $ecp1_placemarker; ?>" />
+	<div class="mapmeta">
+		<ul>
+			<li>
+				<input type="checkbox" id="ecp1_showmarker" name="ecp1_showmarker" value="1" <?php checked( 'Y', $ecp1_showmarker ); ?>/>
+				<label for="ecp1_showmarker">Show Placemarker?</label>
+				<span>
+					<strong><?php _e( 'Marker:' ); ?></strong>
+					<span id="ecp1_marker_preview"><?php echo $marker_preview; ?></span>
+					<a id="ecp1_change_marker"><?php _e( 'Change Marker' ); ?></a>
+					<a id="ecp1_reset_marker"><?php _e( 'Use Default' ); ?></a>
+				</span>
+			</li>
+			<li>
+				<input type="checkbox" id="ecp1_showmap" name="ecp1_showmap" value="1" <?php checked( 'Y', $ecp1_showmap ); ?>/>
+				<label for="ecp1_showmap">Show Map on Event Page?</label>
+				<span><?php _e( 'Remember to save your changes.' ); ?></span>
+			</li>
+		</ul>
 	</div>
+	<div id="ecp1-event-map"><?php _e( 'Loading map...' ); ?></div>
 <?php
 		} // mapinstance not null
 	} // use maps
@@ -505,8 +601,31 @@ function ecp1_event_save() {
 	$ecp1_location = $ecp1_event_fields['ecp1_location'][1];
 	if ( isset( $_POST['ecp1_location'] ) )
 		$ecp1_location = $_POST['ecp1_location'];
-	$ecp1_coord_lat = '';
-	$ecp1_coord_lng = '';
+
+	// Yes if set No if not for show map/markers
+	$ecp1_showmap = $ecp1_showmarker = 'N';
+	if ( isset( $_POST['ecp1_showmap'] ) && '1' == $_POST['ecp1_showmap'] )
+		$ecp1_showmap = 'Y';
+	if ( isset( $_POST['ecp1_showmarker'] ) && '1' == $_POST['ecp1_showmarker'] )
+		$ecp1_showmarker = 'Y';
+
+	// Lat/Lng values are default or what is set
+	$ecp1_coord_lat = $ecp1_event_fields['ecp1_coord_lat'][1];
+	$ecp1_coord_lng = $ecp1_event_fields['ecp1_coord_lng'][1];
+	if ( isset( $_POST['ecp1_lat'] ) && is_numeric( $_POST['ecp1_lat'] ) )
+		$ecp1_coord_lat = $_POST['ecp1_lat'];
+	if ( isset( $_POST['ecp1_lng'] ) && is_numeric( $_POST['ecp1_lng'] ) )
+		$ecp1_coord_lng = $_POST['ecp1_lng'];
+
+	// Zoom level will default to 1 if not set
+	$ecp1_map_zoom = $ecp1_event_fields['ecp1_map_zoom'][1];
+	if ( isset( $_POST['ecp1_zoom'] ) && is_numeric( $_POST['ecp1_zoom'] ) )
+		$ecp1_map_zoom = $_POST['ecp1_zoom'];
+
+	// The placemarker image should be a file in ECP1_DIR/img/mapicons
+	$ecp1_map_placemarker = $ecp1_event_fields['ecp1_map_placemarker'][1];
+	if ( isset( $_POST['ecp1_marker'] ) && file_exists( ECP1_DIR . '/img/mapicons/' . $_POST['ecp1_placemarker'] ) )
+		$ecp1_map_placemarker = $_POST['ecp1_marker'];
 	
 	// Create an array to save as post meta (automatically serialized)
 	$save_fields_group = array();
