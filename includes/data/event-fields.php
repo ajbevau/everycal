@@ -40,8 +40,6 @@ $ecp1_event_fields = array(
 		'_id' => null, // the event ID
 	)
 );
-// TODO: Add social media pages to 'like' etc...
-// TODO: Repeating events
 
 // Function to parse the custom post fields into the fields above
 function _ecp1_parse_event_custom( $post_id=-1 ) {

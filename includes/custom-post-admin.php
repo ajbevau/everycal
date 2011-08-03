@@ -137,13 +137,43 @@ function ecp1_calendar_updated_messages() {
 // Display contextual help for calendars and events
 add_action( 'contextual_help', 'ecp1_add_help_text', 15, 3 );
 function ecp1_add_help_text($contextual_help, $screen_id, $screen) {
-	$contextual_help .= var_dump($screen); // DEBUG code to determine $screen->id
+	//$contextual_help .= var_dump($screen); // DEBUG code to determine $screen->id
 	
-	// If looking at a calendar
-	if ( 'ecp1_calendar?' == $screen->id ) {
-		$contextual_help = '<p>TODO: some help text for calendars</p>';
-	} elseif ( 'ecp1_event?' == $screen->id ) {
-		$contextual_help = '<p>TODO: some help text for events</p>';
+	if ( 'edit-ecp1_calendar' == $screen->id ) { // List of Calendar posts
+
+		$contextual_help =
+'<p>' . __( 'This is a list of calendars you can edit.' ) . '</p>';
+
+	} else if ( 'edit-ecp1_event' == $screen->id ) {
+
+		$contextual_help = 
+'<p>' . __( 'This is a list of your events and events on calendars you can edit.' ) . '</p>';
+
+	} else if ( 'ecp1_calendar' == $screen->id ) { // Edit Calendar Post
+
+		$contextual_help =
+'<p>' . __( 'A calendar can contain local events and can load events from external calendars too.' ) . '</p>' .
+'<ul>' .
+	'<li>' . __( 'Please use a clear and descriptive title' ) . '</li>' .
+	'<li>' . __( 'Your description will be displayed on the calendar page above your calendar' ) . '</li>' .
+	'<li>' . __( 'Timezone tells readers if there is any time offset for events in this calendar' ) . '</li>' .
+	'<li>' . __( 'Month view shows a month grid, week view shows an agenda for the week' ) . '</li>' .
+'</ul>';
+
+	} else if ( 'ecp1_event' == $screen->id ) { // Edit Event Post
+
+		$contextual_help =
+'<p>' . __( 'An event occurs on a local calendar and optionally on calendars setup to show feature events.' ) . '</p>' .
+'<ul>' .
+	'<li>' . __( 'The event title should be informative and name your event.' ) . '</li>' .
+	'<li>' . __( 'The calendar field nominates which of your calendars the event should appear on.' ) . '</li>' .
+	'<li>' . __( 'You should provide a breif summary description of your event.' ) . '</li>' .
+	'<li>' . __( 'Optionally you can provide an event website (such as a Facebook page) and/or a full event description: if you provide BOTH a link to the external page will be display at the bottom of the local event page.' ) . '</li>' .
+	'<li>' . __( 'Start and end dates / times should be entered. If the event runs all day tick the full day event box.' ) . '</li>' .
+	'<li>' . __( 'Location should be an address or commonly known landmark.' ) . '</li>' .
+	'<li>' . __( 'You can use the map to give a visual representation of the area: you can move the map and placemarkers.' ) . '</li>' .
+'</ul>';
+
 	}
 	
 	return $contextual_help;

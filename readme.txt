@@ -10,7 +10,29 @@ A WordPress plugin that integrates calendars, custom post types, maps, and offsi
 
 == Description ==
 
-TODO: Create a better brief and full description in the readme.txt file.
+Every Calendar +1 is a pluggable interface for displaying locally entered events (as a custom post type) and displaying syndicated calendar feeds. You can use any calendar feed that is supported by the FullCalendar jQuery library (at time of writing this was only Google Calendar). The event colours are customisable for each event source and the plugin supports a pluggable maps interface for event locations (initially the plugin only provides a Google Maps implementation but many more can be added).
+
+The plugin creates two custom post types:
+1) Events
+2) Calendars
+
+A Calendar Post can contain as many event posts as you like and can also syndicate as many external calendars as you like.
+
+Events can be labeled as feature events: feature events will be displayed on any calendar the administratos configure as a Featured Calendar. This is a great way to have local site calendars (for say a regional office) and a global calendar which shows feature events from the local sites.
+
+Roles and Capbilities: If you can edit a calendar and have edit_others_posts for events then you can edit any event in that calendar. Otherwise you can only edit your own as per normal.
+
+This plugin was written because I could not find a plugin that provided great events management, calendar integration and worked reliably.
+
+There is a planned development roadmap (grep -R ROADMAP *):
+- Add support for extra calendar providers
+- Perform better security checks on events and write a map_meta_cap function for calendar checks
+- Provide a syndication feed for events in a calendar: XML, JSON, ICS, etc... (priority)
+- Add repeating events (priority)
+- Add extra shortcodes for different types of calendars
+- Add widget support
+- Dynamic UI in admin when clicking checkboxes
+- Tags for events and calendars of tagged events
 
 == Installation ==
 

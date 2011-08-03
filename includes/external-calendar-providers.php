@@ -8,7 +8,7 @@ require( ECP1_DIR . '/includes/check-ecp1-defined.php' );
 
 // Define the calendar providers
 $_ecp1_calendars = array(
-	'google' => array( 'name' => 'Google Calendar', 'fullcal_plugin' => 'gcal.js' ),
+	'google' => array( 'name' => 'Google Calendar', 'fullcal_plugin' => 'gcal.js', 'fullcal_datatype' => 'gcal' ),
 );
 
 // Function that shamelessly returns the above array so we don't have to global it

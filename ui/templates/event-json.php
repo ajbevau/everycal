@@ -106,7 +106,7 @@ if ( empty( $wp_query->query_vars['ecp1_start'] ) || empty( $wp_query->query_var
 			// The parameters are at UTC and so are dates in database => no converting needed
 			// Note: Using query_posts is supported here as this is meant to be the main loop
 			// Note: The SQL has start comparission BEFORE end comparisson $end before $start
-			// TODO: Repeating events - probably will need to abstract this
+			// ROADMAP: Repeating events - probably will need to abstract this
 			$event_ids = $wpdb->get_col( $wpdb->prepare( $_events_query, $cal->ID, $end, $start ) );
 			
 			// Now look to see if this calendar supports featured events and if so load ids

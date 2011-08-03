@@ -88,6 +88,13 @@ function ecp1_calendar_meta_form() {
 ?>
 	<input type="hidden" name="ecp1_calendar_nonce" id="ecp1_calendar_nonce" value="<?php echo wp_create_nonce( 'ecp1_calendar_nonce' ); ?>" />
 	<div class="ecp1_meta">
+<?php
+	if ( '' != $post->post_title ) {
+?>
+		<div>You can display the calendar on any WordPress post/page by using the shortcode: [largecalendar name=&quot;<?php the_title(); ?>&quot;]</div>
+<?php
+	}
+?>
 		<table class="form-table">
 			<tr valign="top">
 				<th scope="row"><label for="ecp1_description"><?php _e( 'Description' ); ?></label></th>
@@ -122,8 +129,7 @@ function ecp1_calendar_meta_form() {
 				<th scope="row"><label for="ecp1_default_view"><?php _e( 'Default View' ); ?></label></th>
 				<td>
 					<input id="ecp1_default_view-month" type="radio"  name="ecp1_default_view" value="month" <?php checked( 'month', $ecp1_defview ); ?>/><label for="ecp1_default_view-month"><?php _e( 'Month' ); ?></label>
-					<input id="ecp1_default_view-week" type="radio" name="ecp1_default_view" value="week" <?php checked( 'week', $ecp1_defview ); ?>/><label for="ecp1_default_view-week"><?php _e( 'Week' ); ?></label>
-					<input id="ecp1_default_view-day" type="radio" name="ecp1_default_view" value="day" <?php checked( 'day', $ecp1_defview ); ?>/><label for="ecp1_default_view-day"><?php _e( 'Day' ); ?></label><br/>
+					<input id="ecp1_default_view-week" type="radio" name="ecp1_default_view" value="week" <?php checked( 'week', $ecp1_defview ); ?>/><label for="ecp1_default_view-week"><?php _e( 'Week' ); ?></label><br/>
 					<label for="ecp1_first_day"><?php _e( 'First day of the week:' ); ?></label><select id="ecp1_first_day" name="ecp1_first_day"><option value="-1"><?php _e( 'WordPress Default' );?></option>
 <?php
 	// Loop over the days of the week
@@ -191,7 +197,7 @@ function ecp1_calendar_save() {
 	// Verify month|week|day is the value for default view
 	$ecp1_default_view = 'none';
 	if ( isset( $_POST['ecp1_default_view'] ) &&
-			in_array( $_POST['ecp1_default_view'], array( 'month', 'week', 'day' ) ) ) {
+			in_array( $_POST['ecp1_default_view'], array( 'month', 'week' ) ) ) {
 		$ecp1_default_view = $_POST['ecp1_default_view'];
 	}
 	

@@ -108,7 +108,7 @@ function ecp1_render_calendar( $calendar ) {
 	$_load_map = htmlspecialchars( __( 'Loading map...' ) );
 	$_back_to_event = htmlspecialchars( __( 'Back to Event' ) );
 	$_large_map = htmlspecialchars( __( 'Large Map' ) );
-	$_geocode_addresses = 'false'; // TODO: Move map/geocoding to maps interface and settings
+	$_geocode_addresses = 'false';
 	$_use_maps = 'false';
 	$_map_show_func = 'false';
 	$_map_delete_func = 'false';
@@ -141,7 +141,6 @@ function ecp1_render_calendar( $calendar ) {
 	}
 
 	// Now build the actual JS that will be loaded
-	// TODO: Add date formatting
 	$_ecp1_dynamic_calendar_script = <<<ENDOFSCRIPT
 jQuery(document).ready(function($) {
 	// $() will work as an alias for jQuery() inside of this function

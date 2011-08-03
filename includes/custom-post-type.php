@@ -98,8 +98,8 @@ function ecp1_map_calendar_cap_to_event( $caps, $cap, $user_id, $args ) {
 	$event_id = is_array( $args ) ? $args[0] : $args;
 	$event = get_post( $event_id );
 	if ( 'ecp1_event' == get_post_type( $post ) ) {
-		// TODO: look at $cap and $user_id and ecp1_calendar in post meta
 		// NOTE: This is a RoadMap feature at the moment it's faked
+		// ROADMAP: look at $cap and $user_id and ecp1_calendar in post meta
 	}
 	
 	// Finally return the caps that are left over

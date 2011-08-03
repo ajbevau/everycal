@@ -289,7 +289,7 @@ function ecp1_event_meta_form() {
 				'element' => '"ecp1-event-map"', // not quoted below so do it here
 				'mark' => '["ecp1_showmarker","ecp1_marker"]', // checkbox and img url
 				'zoom' => '"ecp1_zoom"', 'lat' => '"ecp1_lat"', 'lng' => '"ecp1_lng"' );
-			// TODO: Placemarker image files
+
 			$options_hash_str = '{';
 			foreach( $options_hash as $key=>$value )
 				$options_hash_str .= sprintf( ' %s:%s,', $key, $value );
@@ -597,7 +597,6 @@ function ecp1_event_save() {
 		$ecp1_full_day = 'Y';
 	
 	// The location as human address and lat/long coords
-	// TODO: Add support for coord lat / lng
 	$ecp1_location = $ecp1_event_fields['ecp1_location'][1];
 	if ( isset( $_POST['ecp1_location'] ) )
 		$ecp1_location = $_POST['ecp1_location'];

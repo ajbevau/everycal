@@ -30,6 +30,7 @@ function ecp1_onrender( calEvent, element, view ) {
 					.append( jQuery( '<div></div>' )
 						.addClass( 'pfloater' ) ) );
 
+		var listClasses = 'nodeco';
 		if ( calEvent.imageelem ) {
 			if ( calEvent.url ) {
 				popup.find( '.pfloater' ).first()
@@ -37,6 +38,7 @@ function ecp1_onrender( calEvent, element, view ) {
 						.attr( { href: calEvent.url, title: calEvent.title } )
 						.addClass( 'ecp1-goto' )
 						.html( calEvent.imageelem ) );
+				popup.find( '.pfloater a img' ).first().addClass( 'ecp1-goto' );
 			} else {
 				popup.find( '.pfloater' ).first()
 					.append( jQuery( '<span></span>' )
@@ -44,9 +46,10 @@ function ecp1_onrender( calEvent, element, view ) {
 			}
 
 			popup.children( '.ptab' ).first().append( jQuery( '<div></div>' ).addClass( 'pfloater' ) );
+			listClasses += ' hasimg';
 		}
 
-		popup.find( '.pfloater' ).last().append( jQuery( '<ul></ul>' ).addClass( 'nodeco' ) );
+		popup.find( '.pfloater' ).last().append( jQuery( '<ul></ul>' ).addClass( listClasses ) );
 		popup.find( '.nodeco' ).append( jQuery( '<li><strong>' + calEvent.title + '</strong></li>' ) );
 
 		var ds = jQuery.fullCalendar.formatDates(

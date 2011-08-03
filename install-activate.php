@@ -8,8 +8,6 @@
 // Make sure we're included from within the plugin
 require( ECP1_DIR . '/includes/check-ecp1-defined.php' );
 
-// TODO: Uninstall function to clean up the database
- 
 // Create the rewrite rules needed for plugin
 function ecp1_add_rewrite_rules() {
 	// Rewrite rules as target => destination

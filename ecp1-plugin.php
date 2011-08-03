@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: Every Calendar +1 for WordPress
-Plugin URI: http://andrewbevitt.com/code/wp/everycalplus1
+Plugin URI: http://andrewbevitt.com/code/everycalplus1
 Description: A WordPress Calendar plugin with custom types and maps support.
 Version: 0.1-alpha
 Author: Andrew Bevitt
@@ -52,9 +52,6 @@ register_deactivation_hook( __FILE__, 'ecp1_plugin_deactivation' );
 function ecp1_plugin_deactivation() {
     _ecp1_deactivate_rewrite();
 }
-
-// TODO: Register an uninstall hook
-
 
 // If displaying the administration dashboard load admin UI
 // otherwise load the client UI or a custom template

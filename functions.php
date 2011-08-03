@@ -12,7 +12,6 @@ function ecp1_the_content( $content ) {
 	// We can't call the apply_filters directly because this function
 	// is called from within a filter hooked to 'the_content' which
 	// will create an infinite recursive loop and segfaults
-	// TODO: Is there a better way to get these functions?
 	$c = wptexturize( $content );
 	$c = convert_smilies( $c );
 	$c = convert_chars( $c );
