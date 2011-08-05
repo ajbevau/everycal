@@ -13,6 +13,10 @@ $ecp1_calendar_fields = array(
 	'ecp1_timezone' => array( '', '_' ),
 	'ecp1_first_day' => array( '', -1 ),
 	'ecp1_default_view' => array( '', 'none' ),
+	'ecp1_local_event_color' => array( '', '#3366CC' ),
+	'ecp1_local_event_textcolor' => array( '', '#FFFFFF' ),
+	'ecp1_external_cals' => array( array(), array() ),
+		// array( 'color'=>'#eeffee', 'text'=>'#333333', 'url'=>'url', 'provider'=>'provider array key' ),
 
 	// meta fields about the data
 	'_meta' => array(

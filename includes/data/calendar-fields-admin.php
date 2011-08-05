@@ -45,10 +45,10 @@ function ecp1_calendar_custom_columns( $column ) {
 			if ( ! _ecp1_calendar_meta_is_default( 'ecp1_description' ) ) 
 				printf( '%s<br/>', htmlspecialchars( $ecp1_calendar_fields['ecp1_description'][0] ) );
 
-			if ( _ecp1_calendar_meta_is_default( 'ecp1_external_url' ) )
-				printf( '<strong>%s</strong>', __( 'Local calendar' ) );
+			if ( _ecp1_calendar_meta_is_default( 'ecp1_external_cals' ) )
+				printf( '<strong>%s</strong>', __( 'Local calendar only' ) );
 			else
-				printf( '<strong>%s</strong>: %s', __( 'From' ), urldecode( $ecp1_calendar_fields['ecp1_external_url'][0] ) );
+				printf( '<strong>%s</strong>', __( 'Has external calendars' ) );
 
 			break;
 		
@@ -79,10 +79,16 @@ function ecp1_calendar_meta_form() {
 	
 	// Sanitize and do security checks
 	$ecp1_desc = _ecp1_calendar_meta_is_default( 'ecp1_description' ) ? '' : htmlspecialchars( $ecp1_calendar_fields['ecp1_description'][0] );
-	$ecp1_url = _ecp1_calendar_meta_is_default( 'ecp1_external_url' ) ? '' : urldecode( $ecp1_calendar_fields['ecp1_external_url'][0] );
 	$ecp1_tz = _ecp1_calendar_meta_is_default( 'ecp1_timezone' ) ? '_' : $ecp1_calendar_fields['ecp1_timezone'][0];
 	$ecp1_defview = _ecp1_calendar_meta_is_default( 'ecp1_default_view' ) ? '' : $ecp1_calendar_fields['ecp1_default_view'][0];
 	$ecp1_first_day = _ecp1_calendar_meta_is_default( 'ecp1_first_day' ) ? '-1' : $ecp1_calendar_fields['ecp1_first_day'][0];
+
+	// Colors for local events
+	$ecp1_local_color = _ecp1_calendar_meta( 'ecp1_local_event_color' );
+	$ecp1_local_textcolor = _ecp1_calendar_meta( 'ecp1_local_event_textcolor' );
+
+	// External calendars array
+	$ecp1_cals = _ecp1_calendar_meta( 'ecp1_external_cals' );
 	
 	// Output the meta box with a custom nonce
 ?>
@@ -100,13 +106,68 @@ function ecp1_calendar_meta_form() {
 				<th scope="row"><label for="ecp1_description"><?php _e( 'Description' ); ?></label></th>
 				<td><textarea id="ecp1_description" name="ecp1_description" class="ecp1_big"><?php echo $ecp1_desc; ?></textarea></td>
 			</tr>
+			<tr valign="top">
+				<th scope="row"><label for="ecp1_color"><?php _e( 'Local Event Colours' ); ?></label><br/>#FFFFFF / #3366CC</th>
+				<td>
+					<div class="color_selector">
+						<span><?php _e( 'Text' ); ?>:</span>
+						<input type="hidden" id="ecp1_local_text" name="ecp1_local_text" value="<?php echo $ecp1_local_textcolor; ?>" /> 
+						<div><div class="_eCS" style="background-color:<?php echo $ecp1_local_textcolor; ?>"></div></div></div>
+					<div class="color_selector">
+						<span><?php _e( 'Background' ); ?>:</span>
+						<input type="hidden" id="ecp1_local_color" name="ecp1_local_color" value="<?php echo $ecp1_local_color; ?>" />
+						<div><div class="_eCS" style="background-color:<?php echo $ecp1_local_color; ?>"></div></div></div>
+				</td>
+			</tr>
 <?php
 	// Check if external calendars are enabled
-	if ( _ecp1_get_option( 'use_external_cals' ) ) {
+	if ( _ecp1_get_option( 'use_external_cals' ) && is_array( $ecp1_cals ) ) {
 ?>
 			<tr valign="top">
-				<th scope="row"><label for="ecp1_external_url"><?php _e( 'External URL' ); ?></label></th>
-				<td><input id="ecp1_external_url" name="ecp1_external_url" type="text" class="ecp1_url" value="<?php echo $ecp1_url; ?>" /></td>
+				<th scope="row">
+					<label for="ecp1_external_url"><?php _e( 'External Calendars' ); ?></label>
+				</th>
+				<td>
+<?php
+		// Each calendar has: array( 'color'=>'#eeffee', 'text'=>'#333333', 'url'=>'url', 'provider'=>'provider array key' ),
+		$ecp1_existing_cals = 0;
+		$ecp1_cals['new'] = array( 'color'=>$ecp1_calendar_fields['ecp1_local_event_color'][1],
+					'text'=>$ecp1_calendar_fields['ecp1_local_event_textcolor'][1],
+					'url'=>__( 'New External Calendar' ), 'provider'=>'none' );
+		foreach( $ecp1_cals as $_e_id => $line ) {
+?>
+					<div id="ecp1_ex_<?php echo $_e_id; ?>" class="ecp1_ex_container">
+					<select id="ecp1_external_prov_<?php echo $_e_id; ?>" name="ecp1_external_prov_<?php echo $_e_id; ?>" class="ecp1_select">
+						<option value=""></option>
+<?php
+			$calproviders = ecp1_calendar_providers();
+			foreach( $calproviders as $name=>$details )
+				printf( '<option value="%s"%s>%s</option>', $name, $name == $line['provider'] ? ' selected="selected"' : '', $details['name'] );
+?>
+					</select>
+					<input name="ecp1_external_url_<?php echo $_e_id; ?>" type="text" class="ecp1_url" value="<?php echo urldecode( $line['url'] ); ?>" /><br/>
+					<div class="color_selector">
+						<span><?php _e( 'Text' ); ?>:</span>
+						<input type="hidden" name="ecp1_external_txtcol_<?php echo $_e_id; ?>" value="<?php echo $line['text']; ?>" />
+						<div><div class="_eCS" style="background-color:<?php echo $line['text']; ?>"></div></div>
+					</div>
+					<div class="color_selector">
+						<span><?php _e( 'Background' ); ?>:</span>
+						<input type="hidden" name="ecp1_external_col_<?php echo $_e_id; ?>" value="<?php echo $line['color']; ?>" />
+						<div><div class="_eCS" style="background-color:<?php echo $line['color']; ?>"></div></div>
+					</div>
+<?php
+			if ( 'new' !== $_e_id ) {
+				$ecp1_existing_cals += 1;
+				printf( '<a id="ecp1_remove_external_%s" class="ecp1_ex_rm">%s</a>', $_e_id, __( 'remove' ) );
+			}
+?>
+					</div>
+<?php
+		}
+?>
+					<input type="hidden" id="ecp1_existing_cals" name="ecp1_existing_cals" value="<?php echo $ecp1_existing_cals; ?>" />
+				</td>
 			</tr>
 <?php
 	}
@@ -169,11 +230,6 @@ function ecp1_calendar_save() {
 	if ( ! current_user_can( 'edit_ecp1_calendar', $post->ID ) )
 		return $post->ID;
 	
-	// URL Encode the external URL
-	$ecp1_external_url = '';
-	if ( isset( $_POST['ecp1_external_url'] ) )
-		$ecp1_external_url = urlencode( $_POST['ecp1_external_url'] ) ;
-	
 	// Escape any nasty in the description
 	$ecp1_description = '';
 	if ( isset( $_POST['ecp1_description'] ) )
@@ -207,6 +263,64 @@ function ecp1_calendar_save() {
 			( 0 <= $_POST['ecp1_first_day'] && $_POST['ecp1_first_day'] <= 6 ) ) {
 		$ecp1_first_day = intval( $_POST['ecp1_first_day'] );
 	}
+
+	// Get the local event color and text color
+	$ecp1_local_event_color = $ecp1_calendar_fields['ecp1_local_event_color'][1];
+	if ( isset( $_POST['ecp1_local_color'] ) && preg_match( '/#[0-9A-Fa-f]{6}/', $_POST['ecp1_local_color'] ) )
+		$ecp1_local_event_color = $_POST['ecp1_local_color'];
+	$ecp1_local_event_textcolor = $ecp1_calendar_fields['ecp1_local_event_textcolor'][1];
+	if ( isset( $_POST['ecp1_local_text'] ) && preg_match( '/#[0-9A-Fa-f]{6}/', $_POST['ecp1_local_text'] ) )
+		$ecp1_local_event_textcolor = $_POST['ecp1_local_text'];
+
+	// Are there any external calendar fields (existing)
+	$ecp1_external_cals = array();
+	$providers = ecp1_calendar_providers();
+	$_existing = isset( $_POST['ecp1_existing_cals'] ) ? $_POST['ecp1_existing_cals'] : -1;
+	for ( $i=0; $i < $_existing; $i++ ) {
+		if ( isset( $_POST['ecp1_external_prov_' . $i] ) && isset( $_POST['ecp1_external_url_' . $i] )
+				&& isset( $_POST['ecp1_external_col_' . $i] ) && isset( $_POST['ecp1_external_txtcol_' . $i] ) ) {
+			$prv = $_POST['ecp1_external_prov_' . $i];
+			$url = $_POST['ecp1_external_url_' . $i];
+			$col = $_POST['ecp1_external_col_' . $i];
+			$txt = $_POST['ecp1_external_txtcol_' . $i];
+
+			if ( ! array_key_exists( $prv, $providers ) )
+				$prv = null;
+			if ( '' == $url )
+				$url = null;
+			if ( ! preg_match( '/#[0-9A-Fa-f]{6}/', $col ) )
+				$col = $ecp1_calendar_fields['ecp1_local_event_color'][1];
+			if ( ! preg_match( '/#[0-9A-Fa-f]{6}/', $txt ) )
+				$txt = $ecp1_calendar_fields['ecp1_local_event_textcolor'][1];
+
+			if ( null != $prv && null != $url )
+				$ecp1_external_cals[] = array( 'color'=>$col, 'text'=>$txt, 'url'=>urlencode( $url ), 'provider'=>$prv );
+				// Note: this re-bases the numeric index key when items removed
+				// the index key is not important it's just used for form names
+		}
+	}
+
+	// Did someone try and add a new external calendar?
+	if ( isset( $_POST['ecp1_external_prov_new'] ) && isset( $_POST['ecp1_external_url_new'] )
+			&& isset( $_POST['ecp1_external_col_new'] ) && isset( $_POST['ecp1_external_txtcol_new'] ) ) {
+		$prv = $_POST['ecp1_external_prov_new'];
+		$url = $_POST['ecp1_external_url_new'];
+		$col = $_POST['ecp1_external_col_new'];
+		$txt = $_POST['ecp1_external_txtcol_new'];
+
+		if ( ! array_key_exists( $prv, $providers ) )
+			$prv = null;
+		if ( '' == $url || __( 'New External Calendar' ) == $url )
+			$url = null;
+		if ( ! preg_match( '/#[0-9A-Fa-f]{6}/', $col ) )
+			$col = $ecp1_calendar_fields['ecp1_local_event_color'][1];
+		if ( ! preg_match( '/#[0-9A-Fa-f]{6}/', $txt ) )
+			$txt = $ecp1_calendar_fields['ecp1_local_event_textcolor'][1];
+
+		if ( null != $prv && null != $url )
+			$ecp1_external_cals[] = array( 'color'=>$col, 'text'=>$txt, 'url'=>urlencode( $url ), 'provider'=>$prv );
+	}
+
 	
 	// Create an array to save as post meta (automatically serialized)
 	$save_fields = array();

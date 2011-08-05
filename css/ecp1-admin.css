@@ -1,5 +1,5 @@
 /* Every Calendar +1 Admin Styling */
-div.ecp1_meta input.ecp1_url {width:70%;}
+div.ecp1_meta input.ecp1_url {width:40%;}
 div.ecp1_meta input.ecp1_w75 {width:72%;}
 div.ecp1_meta input.ecp1_w100 {width:95%;}
 div.ecp1_meta textarea.ecp1_sml {width:70%;height:25px;}
@@ -20,3 +20,9 @@ div.ecp1_meta #ecp1_featured {margin-right:10px;}
 div.ecp1_meta #ecp1-event-map {width:600px;height:300px;}
 div.ecp1_meta div.mapmeta ul li span {display:inline-block;padding-left:50px;}
 span#ecp1_marker_preview {padding:0 5px;display:inline-block;vertical-align:top;}
+div.ecp1_meta a.ecp1_ex_rm {display:inline-block;vertical-align:top;padding-top:5px;color:#FF0000;cursor:pointer;}
+div.ecp1_meta div.ecp1_ex_container {margin-bottom:10px;padding-bottom:10px;border-bottom:2px solid #666666;}
+div.color_selector {display:inline-block;vertical-align:top;padding-top:5px;padding-right:1.5em;}
+div.color_selector > span {vertical-align:top;}
+div.color_selector > div {display:inline-block;position:relative;width:36px;height:36px;background:url(../colorpicker/images/select.png);}
+div.color_selector > div > div {position:absolute;top:3px;left:3px;width:30px;height:30px;background:url(../colorpicker/images/select.png) center;}

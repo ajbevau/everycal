@@ -67,21 +67,30 @@ function ecp1_render_calendar( $calendar ) {
 	// Create a URL and event parameter array for local event posts
 	$event_source_params['local'] = $event_source_params['_defaults'];
 	$event_source_params['local']['url'] = sprintf( "'%s/ecp1/%s/events.json'", site_url(), $calendar['slug'] );
-	// TODO: Allow color/textColor customisation
+	$event_source_params['local']['color'] = sprintf( "'%s'", _ecp1_calendar_meta( 'ecp1_local_event_color' ) );
+	$event_source_params['local']['textColor'] = sprintf( "'%s'", _ecp1_calendar_meta( 'ecp1_local_event_textcolor' ) );
 
 	// Test if there are external URLs and create source params as needed
-	// TODO: Abstract this to allow MANY external calendars
-	if ( ! _ecp1_calendar_meta_is_default( 'ecp1_external_url' ) && _ecp1_get_option( 'use_external_cals' ) ) {
-		$event_source_params['external0'] = $event_source_params['_defaults'];
-		$event_source_params['external0']['url'] = sprintf( "'%s'", urldecode( $calendar['ecp1_external_url'][0] ) );
-		unset( $event_source_params['external0']['startParam'] );
-		unset( $event_source_params['external0']['endParam'] );
-		// Google Accounts can have incorrect time offsets so peg to blog settings
-		// Set the external event data source to use red bubbles
-		// TODO: Make such source options controlable from the admin: how?
-		$event_source_params['external0']['currentTimezone'] = "'$raw_timezone'"; # Quoted see _defaults
-		$event_source_params['external0']['color'] = "'#cc3333'"; # Quoted see _defaults
-		$event_source_params['external0']['dataType'] = "'gcal'"; # TODO: This should come from the provider array
+	$providers = ecp1_calendar_providers();
+	$ecp1_cals = _ecp1_calendar_meta( 'ecp1_external_cals' );
+	foreach( $ecp1_cals as $id=>$cal ) {
+		if ( array_key_exists( $cal['provider'], $providers ) ) {
+			$provider = $providers[$cal['provider']];
+
+			$ns = $event_source_params['_defaults']; // New Source
+			$ns['url'] = sprintf( "'%s'", urldecode( $cal['url'] ) );
+			unset( $ns['startParam'] );
+			unset( $ns['endParam'] );
+			// Peg to the calendar timezone so don't get funny date/times
+			$ns['currentTimezone'] = "'$raw_timezone'"; # Quoted see _defaults
+			$ns['color'] = sprintf( "'%s'", $cal['color'] );
+			$ns['textColor'] = sprintf( "'%s'", $cal['text'] );
+			// Data type for FullCalendar helps to pick the plugin
+			$ns['dataType'] = sprintf( "'%s'", $provider['fullcal_datatype'] );
+		
+			// Add to the event sources array
+			$event_source_params['external' + $id] = $ns;
+		}
 	}
 
 	// Get rid of the defaults and write out an event sources array

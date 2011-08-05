@@ -15,11 +15,23 @@ function ecp1_enqueue_admin_css() {
 	wp_register_style( 'ecp1_admin_style', plugins_url( '/css/ecp1-admin.css', dirname( __FILE__ ) ) );
 	wp_enqueue_style( 'ecp1_admin_style' );
 }
+
 // Now for the JS
 function ecp1_enqueue_admin_js() {
 	wp_enqueue_script( 'jquery' );
 }
-// Specialised function for jQuery Date Picker
+
+// Specialised function for the calendar color picker
+function ecp1_calendar_edit_libs() {
+	wp_register_style( 'ecp1_colorpicker_style', plugins_url( '/colorpicker/css/colorpicker.css', dirname( __FILE__ ) ) );
+	wp_register_script( 'ecp1_colorpicker_script', plugins_url( '/colorpicker/js/colorpicker.js', dirname( __FILE__ ) ), array( 'jquery' ) );
+	wp_register_script( 'ecp1_colorpicker_init_script', plugins_url( '/js/colorpicker.js', dirname( __FILE__ ) ), array( 'ecp1_colorpicker_script' ) );
+	wp_enqueue_style( 'ecp1_colorpicker_style' );
+	wp_enqueue_script( 'ecp1_colorpicker_script' );
+	wp_enqueue_script( 'ecp1_colorpicker_init_script' );
+}
+
+// Specialised function for the event maps, date picker and editor
 function ecp1_event_edit_libs() {
 	wp_register_style( 'ecp1_jquery-ui-datepicker_style', plugins_url( '/jquery-ui/datepicker.css', dirname( __FILE__ ) ) );
 	wp_enqueue_style( 'ecp1_jquery-ui-datepicker_style' );
@@ -30,7 +42,7 @@ function ecp1_event_edit_libs() {
 	wp_enqueue_script( 'jquery-ui-core' );
 	wp_enqueue_script( 'ecp1_jquery_ui_datepicker_script' );
 	wp_enqueue_script( 'ecp1_event_datepicker_script' );
-	
+
 	// Include the TinyMCE editor - this requires use of the_editor($content, 'element_id')
 	// inplace of the <textarea></textarea> tags on the event meta box - and naturally will
 	// obey user preferences on richtext editors etc...
@@ -84,6 +96,9 @@ function ecp1_add_admin_scripts( $hook=null ) {
 	global $post_type;
 	if ( 'ecp1_calendar' == $post_type || 'ecp1_event' == $post_type ) {
 		ecp1_enqueue_admin_js();
+	}
+	if ( 'ecp1_calendar' == $post_type && in_array( $hook, array( 'post.php', 'post-new.php' ) ) ) {
+		ecp1_calendar_edit_libs();
 	}
 	if ( 'ecp1_event' == $post_type && in_array( $hook, array( 'post.php', 'post-new.php' ) ) ) {
 		ecp1_event_edit_libs();
