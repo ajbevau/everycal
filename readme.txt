@@ -4,7 +4,7 @@ Donate link: http://andrewbevitt.com/
 Tags: calendar, events
 Requires at least: 3.0
 Tested up to: 3.2.1
-Stable tag: 0.1-alpha
+Stable tag: 0.1-beta
 
 A WordPress plugin that integrates calendars, custom post types, maps, and offsite linking.
 
