@@ -7,77 +7,44 @@
 // Make sure we're included from within the plugin
 require( ECP1_DIR . '/includes/check-ecp1-defined.php' );
 
+// We need the global WP_Query and WPDB object in scope
+// BEFORE load any of the helper functions and queries
+global $wp_query, $wpdb;
+
+// Load the helper functions
+require_once( ECP1_DIR . '/functions.php' );
+
 // We need the Every Calendar settings
 require_once( ECP1_DIR . '/includes/data/ecp1-settings.php' );
 
 // We need to know about the event post type meta/custom fields
 require_once( ECP1_DIR . '/includes/data/event-fields.php' );
 
-// We need the global WP_Query and WPDB object
-global $wp_query, $wpdb;
-
-// A shortcut function for erroring out as plaintext
-function _ecp1_template_event_json_error( $msg=null, $http_code=200, $http_msg='Every Calendar +1 Plugin Error' ) {
-	if ( ! is_null( $msg ) ) {
-		header( 'Content-Type:text/html' );
-		header( sprintf( 'HTTP/1.1 %s %s', $http_code, $http_msg ), 1 );
-		header( sprintf( 'Status: %s %s', $http_code, $http_msg ), 1 );
-		printf( '<!DOCTYPE html><html><body><p>%s</p></body></html>', $msg );
-	}
-}
+// Load the DRY query list so we can use them
+require_once( ECP1_DIR . '/ui/templates/_querylist.php' );
 
 // WordPress will only pass ecp1_cal as a query_var if it passes
 // the registered regex (letters, numbers, _ and -) this is loosely
 // consistent with slugs as in sanitize_title_with_dashes but will
 // break if someone changes the calendar slug manually
-
-// Define a query to get event post ids
-$_events_query = <<<ENDOFQUERY
-SELECT	p.ID
-FROM	$wpdb->posts p
-	INNER JOIN $wpdb->postmeta c ON c.post_id=p.ID AND c.meta_key='ecp1_event_calendar'
-	INNER JOIN $wpdb->postmeta s ON s.post_id=p.ID AND s.meta_key='ecp1_event_start'
-	INNER JOIN $wpdb->postmeta e ON e.post_id=p.ID AND e.meta_key='ecp1_event_end'
-WHERE	p.post_status='publish' AND
-	c.meta_value=%d AND
-	s.meta_value<=%d AND
-	e.meta_value>=%d
-ORDER BY
-	s.meta_value, p.post_name ASC;
-ENDOFQUERY;
-
-// Define a query to get feature events
-$_featured_query = <<<ENDOFFEATURE
-SELECT  p.ID
-FROM    $wpdb->posts p
-	INNER JOIN $wpdb->postmeta f ON f.post_id=p.ID AND f.meta_key='ecp1_event_is_featured'
-	INNER JOIN $wpdb->postmeta s ON s.post_id=p.ID AND s.meta_key='ecp1_event_start'
-	INNER JOIN $wpdb->postmeta e ON e.post_id=p.ID AND e.meta_key='ecp1_event_end'
-WHERE   p.post_status='publish' AND
-	f.meta_value='Y' AND
-	s.meta_value<=%d AND
-	e.meta_value>=%d
-ORDER BY
-	s.meta_value, p.post_name ASC;
-ENDOFFEATURE;
+$cal = $wp_query->query_vars['ecp1_cal'];
 
 // Get and validate the input parameters
 if ( empty( $wp_query->query_vars['ecp1_start'] ) || empty( $wp_query->query_vars['ecp1_end'] ) ) {
-	_ecp1_template_event_json_error( __( 'Please specify a start and end timestamp for the lookup range' ),
+	_ecp1_template_error( __( 'Please specify a start and end timestamp for the lookup range' ),
 						412, __( 'Missing Parameters' ) );
 } else {
 
-	$cal   = $wp_query->query_vars['ecp1_cal'];
 	$start = preg_match( '/^\-?[0-9]+$/', $wp_query->query_vars['ecp1_start'] ) ? 
 			(int) $wp_query->query_vars['ecp1_start'] : null;
 	$end   = preg_match( '/^\-?[0-9]+$/', $wp_query->query_vars['ecp1_end'] ) ?
 			(int) $wp_query->query_vars['ecp1_end'] : null;
 
 	if ( is_null( $start ) || is_null( $end ) ) {
-		_ecp1_template_event_json_error( __( 'Please specify the start and end as timestamps' ),
+		_ecp1_template_error( __( 'Please specify the start and end as timestamps' ),
 							412, __( 'Incorrect Parameter Format' ) );
 	} elseif ( $end < $start ) {
-		_ecp1_template_event_json_error( __( 'The end date must be after the start date' ),
+		_ecp1_template_error( __( 'The end date must be after the start date' ),
 							412, __( 'Incorrect Parameter Format' ) );
 	} else {
 
@@ -95,7 +62,7 @@ if ( empty( $wp_query->query_vars['ecp1_start'] ) || empty( $wp_query->query_var
 		// Lookup the calendar post
 		$cal = get_page_by_path( $cal, OBJECT, 'ecp1_calendar' );
 		if ( is_null( $cal ) ) {
-			_ecp1_template_event_json_error( __( 'No such calendar.' ), 404, __( 'Calendar Not Found' ) );
+			_ecp1_template_error( __( 'No such calendar.' ), 404, __( 'Calendar Not Found' ) );
 		} else {
 
 			_ecp1_parse_calendar_custom( $cal->ID ); // Get the calendar meta data
@@ -107,11 +74,11 @@ if ( empty( $wp_query->query_vars['ecp1_start'] ) || empty( $wp_query->query_var
 			// Note: Using query_posts is supported here as this is meant to be the main loop
 			// Note: The SQL has start comparission BEFORE end comparisson $end before $start
 			// ROADMAP: Repeating events - probably will need to abstract this
-			$event_ids = $wpdb->get_col( $wpdb->prepare( $_events_query, $cal->ID, $end, $start ) );
+			$event_ids = $wpdb->get_col( $wpdb->prepare( $$ECP1_QUERY['EVENTS'], $cal->ID, $end, $start ) );
 			
 			// Now look to see if this calendar supports featured events and if so load ids
 			if ( _ecp1_calendar_show_featured( $cal->ID ) )
-				$event_ids = array_merge( $event_ids, $wpdb->get_col( $wpdb->prepare( $_featured_query, $end, $start ) ) );
+				$event_ids = array_merge( $event_ids, $wpdb->get_col( $wpdb->prepare( $$ECP1_QUERY['FEATURED_EVENTS'], $end, $start ) ) );
 
 			// If any events were found load them into the loop
 			if ( count( $event_ids ) > 0 )

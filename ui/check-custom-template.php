@@ -19,11 +19,14 @@ function ecp1_rewrite_custom_template() {
 		$template = ECP1_DIR . '/ui/templates/' . $wp_query->query_vars[ECP1_TEMPLATE_TAG] . '.php';
 
 		if ( ! is_readable( $template ) ) {
+			$http_msg = __( 'Invalid Template' );
+			header( sprintf( 'HTTP/1.1 404 %s',$http_msg ), 1 );
+			header( sprintf( 'Status: 404 %s', $http_msg ), 1 );
 ?><!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml"  dir="ltr" lang="en-US">
 <head><title><?php _e( 'Every Calendar +1 Plugin Invalid Template' ); ?></title></head>
 <body>
-	<h1><?php _e( 'Invalid Template' ); ?></h1>
+	<h1><?php echo $http_msg; ?></h1>
 	<div><?php _e( 'You specified an invalid template tag for Every Calendar +1: ' ); 
 			echo htmlspecialchars( $wp_query->query_vars[ECP1_TEMPLATE_TAG] ); ?></div>
 </body>

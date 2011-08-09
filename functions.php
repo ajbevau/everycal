@@ -116,17 +116,17 @@ function _ecp1_timezone_select( $id, $pick='_', $extra_attrs=null ) {
 // Function that returns the timezone string for a calendar
 // by looking at the calendar and WordPress settings
 function ecp1_get_calendar_timezone() {
-        $raw_timezone = 'UTC';
-        $timezone = get_option( 'timezone_string' );    // Use the WordPress default if available
-        $gmt_offset = get_option( 'gmt_offset' );       // or can use the GMT Offset and map (approximately)
+	$raw_timezone = 'UTC';
+	$timezone = get_option( 'timezone_string' );    // Use the WordPress default if available
+	$gmt_offset = get_option( 'gmt_offset' );       // or can use the GMT Offset and map (approximately)
 	
-        if ( ! _ecp1_calendar_meta_is_default( 'ecp1_timezone' ) // Calendar TZ Set
+	if ( ! _ecp1_calendar_meta_is_default( 'ecp1_timezone' ) // Calendar TZ Set
 			&& _ecp1_get_option( 'tz_change' ) )     //   and changes are allowed
-                $raw_timezone = _ecp1_calendar_meta( 'ecp1_timezone', false );
+		$raw_timezone = _ecp1_calendar_meta( 'ecp1_timezone', false );
 	elseif ( ! empty( $timezone ) )   // Using WordPress city based timezone
 		$raw_timezone = $timezone;
-        elseif ( ! empty( $gmt_offset ) ) // Using WordPress GMT Offset
-                $raw_timezone = _ecp1_gmt_offset_to_timezone( $gmt_offset ); // this is REALLY approximate
+	elseif ( ! empty( $gmt_offset ) ) // Using WordPress GMT Offset
+		$raw_timezone = _ecp1_gmt_offset_to_timezone( $gmt_offset ); // this is REALLY approximate
 
 	// go back to UTC if null
 	if ( is_null( $raw_timezone) )
@@ -184,5 +184,16 @@ function ecp1_formatted_date_range( $stimestamp, $etimestamp, $allday, $tzstring
 
 	return $ecp1_time;
 }
+
+// A shortcut function for erroring out as plaintext
+function _ecp1_template_error( $msg=null, $http_code=200, $http_msg='Every Calendar +1 Plugin Error' ) {
+	if ( ! is_null( $msg ) ) {
+		header( 'Content-Type:text/html' );
+		header( sprintf( 'HTTP/1.1 %s %s', $http_code, $http_msg ), 1 );
+		header( sprintf( 'Status: %s %s', $http_code, $http_msg ), 1 );
+		printf( '<!DOCTYPE html><html><body><p>%s</p></body></html>', $msg );
+	}
+}
+
 
 ?>

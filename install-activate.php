@@ -13,6 +13,7 @@ function ecp1_add_rewrite_rules() {
 	// Rewrite rules as target => destination
 	$rewrites = array(
 		'ecp1/([a-zA-Z0-9_\-]+)/events.json$' => 'index.php?ecp1tpl=event-json&ecp1_cal=$matches[1]', // Events as JSON
+		'ecp1/([a-zA-Z0-9_\-]+)/events.ics$' => 'index.php?ecp1tpl=ical-feed&ecp1_cal=$matches[1]', // Events iCalendar Feed
 	);
 
 	// Loop over the rules and add them to the top then
