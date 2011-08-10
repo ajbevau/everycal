@@ -31,13 +31,13 @@ div.ecp1-popup {
 	box-shadow:rgba(0,0,0,0.5) 10px 10px 24px; border-radius:12px;
 	position:absolute;
 	display:none;
-	z-index:999999;
+	z-index:999;
 	cursor:auto;
 	overflow:hidden;
 }
 div.ecp1-popup-show {display:block;}
-div.ecp1-popup div.ptab {float:left;}
-div.ecp1-popup div.ptabhide {display:none;}
+div.ecp1-popup div.ptab {position:relative;top:0;left:0;visibility:visible;/*float:left;*/}
+div.ecp1-popup div.ptabhide {left:-1000px;/*display:none;*/}
 div.ecp1-popup div.pfloater {float:left;}
 div.ecp1-popup span.clear {clear:both;}
 div.ecp1-popup a:hover {text-decoration:underline;}
@@ -47,5 +47,11 @@ div.ecp1-popup ul.hasimg {width:195px;}
 div.ecp1-popup ul.hasimg span.mlblock {width:175px;}
 div.ecp1-popup ul.nodeco li {list-style-type:none;padding:0;margin:0 0 2px;}
 div.ecp1-popup ul.nodeco li span.h {display:inline-block;vertical-align:top;padding-right:5px;}
-div.ecp1-popup div.ecp1-map-container {min-width:345px;min-height:100px;} /* these match js/popup.js */
+div.ecp1-popup div.ecp1-map-container {min-width:345px;min-height:100px;z-index:4000;} /* these match js/popup.js */
 div.ecp1-popup div.ecp1-map-linker {min-width:345px;} /* these match js/popup.js */
+#_ecp1-large-map {
+	position:absolute;top:0;left:0;display:none;text-align:center;
+	background:rgba(0,0,0,0.7); /* some cross browser opacity niceness */
+	filter:progid:DXImageTransform.Microsoft.gradient(startColorstr=#B3000000, endColorstr=#B3000000);
+}
+#_ecp1-large-map div.inner {background:#FFFFFF;} /* don't inherit opacity */

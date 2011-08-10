@@ -23,7 +23,15 @@ function ecp1_onrender( calEvent, element, view ) {
 
 	try {
 
+		var popupID = 'ecp1-popup_' + _ecp1Counter;
+
+		var pointer = jQuery( '<span></span>' )
+				.addClass( 'ecp1-popup-pointer' )
+				.attr( '_popup_id', popupID );
+		element.append( pointer );
+
 		var popup = jQuery( '<div></div>' )
+				.attr( 'id', popupID )
 				.addClass( 'ecp1-popup' )
 				.append( jQuery( '<div></div>' )
 					.addClass( 'ptab' )
@@ -78,7 +86,8 @@ function ecp1_onrender( calEvent, element, view ) {
 			popup.find( '.mlblock' )
 				.append( jQuery( '<a></a>' )
 					.text( _showMapStr )
-					.click( function() {
+					.click( function( event ) {
+						event.stopPropagation();
 						// Tree is <div><div TAB><div><ul><li><span><a>
 						phide = jQuery( this ).parentsUntil( '.ecp1-popup' ).last();
 						var pWidth = phide.width();
@@ -86,11 +95,14 @@ function ecp1_onrender( calEvent, element, view ) {
 						phide.slideUp( 250, function() {
 							pshow = jQuery( this ).siblings( '.ptabhide' ).first();
 							if ( ! pshow.hasClass( 'pmapdone' ) ) {
-								pshow.css( { width:pWidth, height:pHeight } ).addClass( 'pmapdone' ).slideDown( 250, function() {
-									jQuery( this ).children( 'div' ).each( function() { jQuery( this ).css( { width:(pWidth-1) } ); } );
-									var mapElem = jQuery( this ).children().first( 'div' );
+								pshow.children( 'div' ).each( function() { jQuery( this ).css( { width:(pWidth-1) } ); } );
+								pshow.children( 'div.ecp1-map-container' ).first().css( {height:(pHeight-20) } );
+								if ( parseInt( pshow.css( 'left' ) ) < 0 )
+									pshow.css( { left:0, width:pWidth, height:pHeight } );
+								pshow.slideDown( 250, function() {
+									jQuery( this ).addClass( 'pmapdone' );
+									var mapElem = jQuery( this ).children( 'div.ecp1-map-container' ).first();
 									if ( mapElem.length > 0 && typeof _mapLoadFunction == 'function' ) {
-										mapElem.css( { height:(pHeight-20) } );
 										var lZoom = 10;
 										if ( typeof calEvent.zoom == 'number' ) lZoom = calEvent.zoom;
 										var lMark = true;
@@ -103,14 +115,13 @@ function ecp1_onrender( calEvent, element, view ) {
 										} else {
 											lOpts.location = calEvent.location;
 										}
-
 										_mapLoadFunction( lOpts );
 									}
 								} );
 							} else {
 								pshow.slideDown( 250 );
 							}
-						 } );
+						} );
 						return false;
 					} )
 					.css( { cursor:'pointer' } ) );
@@ -126,11 +137,12 @@ function ecp1_onrender( calEvent, element, view ) {
 						.css( { padding:'5px 0 0 0' } )
 						.append( jQuery( '<a></a>' )
 							.text( _showLargeMap )
-							.click( function() {
+							.click( function( event ) {
+								event.stopPropagation();
 								var lm = jQuery( '#_ecp1-large-map' );
 								if ( lm.length == 0 ) {
 									jQuery( 'body' ).append( jQuery( '<div></div>' )
-										.attr( { id:'_ecp1-large-map' } ).css( { display:'none', 'z-index':99999 } ) );
+										.attr( { id:'_ecp1-large-map' } ).css( { display:'none', 'z-index':9999 } ) );
 									lm = jQuery( '#_ecp1-large-map' );
 								}
 
@@ -143,16 +155,17 @@ function ecp1_onrender( calEvent, element, view ) {
 								var pw = jQuery( window ).width();
 								var ph = jQuery( document ).height();
 								var ps = jQuery( document ).scrollTop(); ps = ( ps+20 ) + 'px auto 0 auto';
-								lm.css( { width:pw, height:ph, position:'absolute', top:0, left:0, 
-										display:'block', textAlign:'center', background:'rgba(0,0,0,0.7)' } )
+								lm.css( { width:pw, height:ph, display:'block' } )
 									.append( jQuery( '<div></div>' )
-										.css( { background:'#ffffff', opacity:1, padding:'1em', width:800, height:600, margin:ps } )
+										.addClass( 'inner' )
+										.css( { background:'#ffffff', padding:'1em', width:800, height:600, margin:ps } )
 										.append( jQuery( '<div></div>' )
 											.css( { textAlign:'right' } )
 											.append( jQuery( '<a></a>' )
 												.css( { cursor:'pointer' } )
 												.text( _showEventDetails )
-												.click( function() {
+												.click( function( event ) {
+													event.stopPropagation();
 													_mapDeleteFunction( '_ecp1-lmcontainer' );
 													jQuery( '#_ecp1-large-map' ).remove();
 												} ) ) )
@@ -172,7 +185,8 @@ function ecp1_onrender( calEvent, element, view ) {
 							.css( { cursor:'pointer', float:'right' } ) )
 						.append( jQuery( '<a></a>' )
 							.text( _showEventDetails )
-							.click( function() {
+							.click( function( event ) {
+								event.stopPropagation();
 								phide = jQuery( this ).parentsUntil( '.ecp1-popup' ).last();
 								phide.slideUp( 250, function() {
 									pshow = jQuery( this ).siblings( '.ptab' ).first();
@@ -195,7 +209,13 @@ function ecp1_onrender( calEvent, element, view ) {
 
 		popup.append( jQuery( '<span></span>' ).addClass( 'clear' ) );
 
-		element.append( popup );
+		var popcontainer = jQuery( '#ecp1-popups' );
+		if ( popcontainer.length == 0 ) {
+			jQuery( 'body' ).append( jQuery( '<div></div>' ).attr( 'id', 'ecp1-popups' ) );
+			popcontainer = jQuery( '#ecp1-popups' );
+		}
+
+		popcontainer.append( popup );
 
 	} catch(ex_pop) {
 		alert( 'Unexpected calendar error: ' + ex_pop );
@@ -220,21 +240,29 @@ function ecp1_onclick( calEvent, jEvent, view ) {
 		return false;
 
 	// If there are no popup children but there is a url return true to go to it
-	if ( jQuery( this ).children( '.ecp1-popup' ).length == 0) {
+	if ( jQuery( this ).children( '.ecp1-popup-pointer' ).length == 0) {
 		if ( calEvent.url )
 			return true;
 		return false; // no popup or url so do nothing
 	}
 
 	// Get the first popup
-	pElement = jQuery( this ).children( '.ecp1-popup' ).first();
+	pElement = jQuery( this ).children( '.ecp1-popup-pointer' ).first();
+	pElement = jQuery( '#' + pElement.attr( '_popup_id' ) );
+	if ( pElement.length == 0 ) {
+		if ( calEvent.url )
+			return true; // no popup but url so go there
+		return false; // no popup and no url do nothing
+	}
+
+	// Is the popup being animated into place?
 	if ( pElement.is( ':animated' ) ) // let it finish
 		return false;
 
-	// Need to set max z-index on parent to ensure element is on top
+	// Need to set max z-index on element to ensure element is on top
 	var maxZ = 15;
 	try {
-		sibs = jQuery( this ).parent().children();
+		sibs = pElement.parent().children();
 		maxZ = Math.max.apply( null, jQuery.map( sibs, function( e, n ) {
 			if ( jQuery( e ).css( 'position' ) == 'absolute' )
 				return parseInt( jQuery( e ).css( 'z-index' ) ) || 15; // Full Calendar has 8 so being safe
@@ -245,27 +273,30 @@ function ecp1_onclick( calEvent, jEvent, view ) {
 
 
 	if ( pElement.is( ':visible' ) ) { // hide it
-		pElement.animate( { opacity:0, top:'-25px' }, 150, 'swing', function() { pElement.removeClass( 'ecp1-popup-show' ); } );
+		pElement.animate( { top:'-25px' }, 150, 'swing', function() { pElement.removeClass( 'ecp1-popup-show' ); } );
 	} else { // show it
-		jQuery( this ).css( 'z-index', maxZ + 1 );
-		mVer = '-20'; // where to animate to
-		mHor = '-45';
+		pElement.css( 'z-index', maxZ + 1 );
+		mVer = parseInt( jQuery( this ).offset().top ) - 20; // where to animate to
+		mHor = parseInt( jQuery( this ).offset().left ) - 45;
 		if ( 'month' != view.name ) {
-			mVer = '50'; // in week/day view move down a little further
+			mVer += 70; // in week/day view move down a little further
 		}
 
-		pElement.addClass( 'ecp1-popup-show' ).css( { top: -180, left: -45 } ).animate( { opacity:1, top:mVer, left:mHor }, 250, function() {
-				// Make sure fully visible otherwise animate to there
-				me = jQuery( this );
-				pc = jQuery( '#ecp1_calendar' );
-				left_balance = me.offset().left - pc.offset().left - 20;
-				right_balance = pc.offset().left + pc.width() - (me.offset().left + me.width() + 150);
-				top_balance = me.offset().top - pc.offset().top - 20;
-				bottom_balance = pc.offset().top + pc.height() - (me.offset().top + me.height() + 40);
-				if ( left_balance < 0 ) jQuery(this).animate( { left: (-1*left_balance) + 'px' }, 100 );
-				else if ( right_balance < 0 ) jQuery(this).animate( { left: right_balance + 'px' }, 100 );
-				if ( top_balance < 0 ) jQuery(this).animate( { top: (-1*top_balance) + 'px' }, 100 );
-				else if ( bottom_balance < 1 ) jQuery(this).animate( { top: bottom_balance + 'px' }, 100 );
+		pElement.addClass( 'ecp1-popup-show' ).css( { top: -180, left: -45 } ).animate( { top:mVer, left:mHor }, 250, function() {
+			// Listen for clicks to aninmate out
+			pElement.click( function( event ) {
+				// If the event target was a link inside popup then go there
+				if ( ( jQuery( event.target ).is( 'a' ) || ( jQuery( event.target ).is( 'img' ) && jQuery( event.target ).parent().is( 'a' ) ) )
+						&& jQuery( event.target ).hasClass( 'ecp1-goto' ) )
+					return true;
+
+				// If this is an element specificied with class donotclose then keep popup open
+				if ( jQuery( event.target ).parents( '.donotclose' ).length > 0 )
+					return false;
+
+				// Finally hide the element
+				jQuery( this ).animate( { top:'-25px' }, 150, 'swing', function() { jQuery( this ).removeClass( 'ecp1-popup-show' ); } );
+			} );
 		} );
 	}
 
