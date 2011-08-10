@@ -59,8 +59,8 @@ function ecp1_render_calendar( $calendar ) {
 			'startParam' => "'ecp1_start'",  # default is start but plugin uses ecp1_start
 			'endParam'   => "'ecp1_end'",    #  as above but for end
 			'ignoreTimezone' => 'false',     # don't ignore ISO8601 timezone details
-			'color'     => "'#36c'",         # the event background and border colours
-			'textColor' => "'#fff'",         #  and the text colour (any css format)
+			'color'     => "'#3366cc'",      # the event background and border colours
+			'textColor' => "'#ffffff'",      #  and the text colour (any css format)
 		)
 	);
 	
@@ -69,6 +69,7 @@ function ecp1_render_calendar( $calendar ) {
 	$event_source_params['local']['url'] = sprintf( "'%s/ecp1/%s/events.json'", site_url(), $calendar['slug'] );
 	$event_source_params['local']['color'] = sprintf( "'%s'", _ecp1_calendar_meta( 'ecp1_local_event_color' ) );
 	$event_source_params['local']['textColor'] = sprintf( "'%s'", _ecp1_calendar_meta( 'ecp1_local_event_textcolor' ) );
+	$event_source_params['local']['ignoreTimezone'] = 'true'; # show events at time at event location
 
 	// Test if there are external URLs and create source params as needed
 	$providers = ecp1_calendar_providers();
@@ -184,7 +185,19 @@ ENDOFSCRIPT;
 	
 	// Now return HTML that the above script will use
 	$description = '' != $description ? '<p><strong>' . $description . '</strong></p>' : '';
-	$timezone = '<p><em>Events occur at ' . $timezone . ' local time.</em></p>';
+	$feature_msg = '';
+	if ( _ecp1_calendar_show_featured( _ecp1_calendar_meta_id() ) && 
+			'1' == _ecp1_get_option( 'base_featured_local_to_event' ) ) {
+		// calendar shows feature events and feature events are shown in their
+		// location local timezone -> show the note so people know different
+		$feature_msg = sprintf( '<div style="padding:0 5px;color:%s;background-color:%s"><em>%s</em></div>',
+				_ecp1_calendar_meta( 'ecp1_feature_event_textcolor' ),
+				_ecp1_calendar_meta( 'ecp1_feature_event_color' ),
+				htmlspecialchars( _ecp1_get_option( 'base_featured_local_note' ) ) );
+	}
+
+	$timezone = sprintf( '<div><div style="padding:0 5px;"><em>%s</em></div>%s</div>',
+			sprintf( __( 'Events occur at %s local time.' ), $timezone ), $feature_msg );
 	return sprintf( '<div id="ecp1_calendar">%s<div class="fullcal">%s</div>%s</div>', $description, __( 'Loading...' ), $timezone );
 }
 

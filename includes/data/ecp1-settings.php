@@ -36,6 +36,21 @@ $_ecp1_settings = array(
 	// Which calendar post IDs should show featured events (comma separated)
 	'_show_featured_on' => array( 'default' => '' ),
 
+	// Should feature events on other calendars be based in the calendar timezone
+	// or in the the event local timezone? By default we say the event local one
+	// e.g. Event starts are 10am Australia/Melbourne and is displayed on a 
+	//      calendar in timezone Europe/London (ignoring DST) if this is
+	//      event local: will show start as 10am on calendar (with note)
+	//	calendar local: will show start as midnight on calendar
+	'base_featured_local_to_event' => array( 'default' => 1 ),
+	'base_featured_local_note' => array( 
+		'default' => __( 'Featured events occur at location local time.' ) ),
+
+	// The number of seconds in the past to look back when exporting
+	// iCal files of calendars; and the corresponding numberto look
+	// forward by when exporting iCal files.
+	'ical_export_start_offset' => array( 'default' => '86400' ), // one day
+	'ical_export_end_offset' => array( 'default' => '15811200' ), // 6 months
 );
 
 // Helper function that returns the whole options array or just the 

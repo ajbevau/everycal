@@ -17,6 +17,8 @@ $ecp1_calendar_fields = array(
 	'ecp1_local_event_textcolor' => array( '', '#FFFFFF' ),
 	'ecp1_external_cals' => array( array(), array() ),
 		// array( 'color'=>'#eeffee', 'text'=>'#333333', 'url'=>'url', 'provider'=>'provider array key' ),
+	'ecp1_feature_event_color' => array( '', '#CC6633' ),
+	'ecp1_feature_event_textcolor' => array( '', '#FFFFFF' ),
 
 	// meta fields about the data
 	'_meta' => array(
@@ -97,5 +99,12 @@ function _ecp1_calendar_meta( $meta, $get_default=true ) {
 		return null;
 }
 
+// Returns the ID of the calendar the meta is for
+function _ecp1_calendar_meta_id() {
+	global $ecp1_calendar_fields;
+	if ( ! isset( $ecp1_calendar_fields['_meta'] ) || ! $ecp1_calendar_fields['_meta']['_loaded'] )
+		return -1; // not loaded
+	return $ecp1_calendar_fields['_meta']['_id'];
+}
 
 ?>

@@ -84,6 +84,9 @@ function ecp1_render_options_page() {
 			$display_counter = 0;
 		}
 	}
+	if ( 3 != $display_counter ) {
+		printf( '</div>' ); // close the div if not already done
+	}
 ?>
 					</td>
 				</tr>
@@ -109,6 +112,50 @@ function ecp1_render_options_page() {
 			$display_counter = 0;
 		}
 	}
+	if ( 3 != $display_counter ) {
+		printf( '</div>' ); // close the div if not already done
+	}
+
+	// Now ask the complicated question about how to display feature event times
+	// should they event location timezone'd or calendar timezone'd?
+?>
+		<div class="ecp1_meta">
+			<input id="<?php printf( '%s[feature_tz_local]', ECP1_GLOBAL_OPTIONS ); ?>" name="<?php printf( '%s[feature_tz_local]', ECP1_GLOBAL_OPTIONS ); ?>" type="checkbox" value="1"<?php echo '1' == _ecp1_get_option( 'base_featured_local_to_event' ) ? ' checked="checked"' : '' ?> />
+			<label for="<?php printf( '%s[feature_tz_local]', ECP1_GLOBAL_OPTIONS ); ?>"><?php _e( 'Should feature events display their location time?' ); ?></label><br/>
+			<label for="<?php printf( '%s[feature_tz_note]', ECP1_GLOBAL_OPTIONS ); ?>"><?php _e( 'Note text:' ); ?></label>
+			<input id="<?php printf( '%s[feature_tz_note]', ECP1_GLOBAL_OPTIONS ); ?>" name="<?php printf( '%s[feature_tz_note]', ECP1_GLOBAL_OPTIONS ); ?>" type="text" class="ecp1_w75" value="<?php echo _ecp1_get_option( 'base_featured_local_note' ); ?>" /><br/>
+			<p><em><?php _e( 'Should feature events on other calendars be based in the calendar timezone or in the the event location timezone? Default is event location! For example: An Event starts are 10am (Australia/Melbourne) and is displayed on a calendar with timezone Europe/London if this setting is enabled: the event will show starting time of 10am with the note text below  the calendar; if this setting is disabled: the event will show start time as midnight on the calendar (10am Melbourne is midnight London).' ); ?></em></p>
+		</div>
+					</td>
+				</tr>
+				<tr>
+					<th scope="row"><?php _e( 'iCal Export Offsets' ); ?></th>
+					<td>
+<?php
+	// How far back and forward should we export
+	$times = array( '86400'=>__( '1 Day' ), '604800'=>__( '1 Week' ), '2592000'=>__( '1 Month' ), '15811200'=>__( '6 Months' ), '31536000'=>__( '1 Year' ) );
+
+	$soffsetcustom = false;
+	printf( '<span class="ecp1_ical_q">%s</span>', __( 'How far back?' ) );
+	printf( '<select id="%s[ical_start]" name="%s[ical_start]"><option value="-1">%s</option>', ECP1_GLOBAL_OPTIONS, ECP1_GLOBAL_OPTIONS, __( 'Custom' ) );
+	foreach( $times as $val=>$time ) {
+		$soffsetcustom = $soffsetcustom || $val == _ecp1_get_option( 'ical_export_start_offset' ) ? true : false;
+		printf( '<option value="%s"%s>%s</option>', $val, $val == _ecp1_get_option( 'ical_export_start_offset' ) ? ' selected="selected"' : '', $time );
+	}
+	printf( '</select> or <input id="%s[ical_start_custom]" name="%s[ical_start_custom]" type="text" value="%s" /> %s<br/>',
+			ECP1_GLOBAL_OPTIONS, ECP1_GLOBAL_OPTIONS,
+			! $soffsetcustom ? _ecp1_get_option( 'ical_export_start_offset' ) : '', __( 'seconds' ) );
+
+	$eoffsetcustom = false;
+	printf( '<span class="ecp1_ical_q">%s</span>', __( 'How far forward?' ) );
+	printf( '<select id="%s[ical_end]" name="%s[ical_end]"><option value="-1">%s</option>', ECP1_GLOBAL_OPTIONS, ECP1_GLOBAL_OPTIONS, __( 'Custom' ) );
+	foreach( $times as $val=>$time ) {
+		$eoffsetcustom = $eoffsetcustom || $val == _ecp1_get_option( 'ical_export_end_offset' ) ? true : false;
+		printf( '<option value="%s"%s>%s</option>', $val, $val == _ecp1_get_option( 'ical_export_end_offset' ) ? ' selected="selected"' : '', $time );
+	}
+	printf( '</select> or <input id="%s[ical_end_custom]" name="%s[ical_end_custom]" type="text" value="%s" /> %s',
+			ECP1_GLOBAL_OPTIONS, ECP1_GLOBAL_OPTIONS,
+			! $eoffsetcustom ? _ecp1_get_option( 'ical_export_end_offset' ) : '', __( 'seconds' ) );
 ?>
 					</td>
 				</tr>
@@ -135,14 +182,21 @@ function ecp1_validate_options_page( $input ) {
 		$input['map_provider'] = _ecp1_option_get_default( 'map_provider' );
 	}
 	
-	// If the use_map/timezone setting is given then set to true otherwise to false
-	$boolean_options = array( 'use_maps', 'tz_change' );
-	foreach( $boolean_options as $key ) {
-		if ( isset( $input[$key] ) && '1' == $input[$key] ) {
-			$input[$key] = 1;
+	// If the checkbox setting is given then set to true otherwise to false
+	$boolean_options = array( 
+		'use_maps'=>'use_maps',
+		'tz_change'=>'tz_change',
+		'feature_tz_local'=>'base_featured_local_to_event' );
+	foreach( $boolean_options as $postkey=>$optkey ) {
+		if ( isset( $input[$postkey] ) && '1' == $input[$postkey] ) {
+			$input[$optkey] = 1;
 		} else {
-			$input[$key] = 0;
+			$input[$optkey] = 0;
 		}
+
+		// if different keys then unset the post
+		if ( $postkey != $optkey )
+			unset( $input[$postkey] );
 	}
 	
 	// Rebuild the _external_cal_providers CSV list from the checkboxes
@@ -177,6 +231,30 @@ function ecp1_validate_options_page( $input ) {
 
 	// If a external calendar provider is enabled then allow otherwise deny
 	$input['use_external_cals'] = strlen( $external_providers ) > 0 ? 1 : 0;
+
+	// Note to use when featured events display outside calendar timezone
+	$input['base_featured_local_note'] = _ecp1_get_option( 'base_featured_local_note' );
+	if ( isset( $input['feature_tz_note'] ) ) {
+		$input['base_featured_local_note'] = strip_tags( $input['feature_tz_note'] );
+		unset( $input['feature_tz_note'] );
+	}
+
+	// Validate and verify iCal export start and end offsets
+	$offsetnames = array( 'ical_export_start_offset'=>'ical_start', 'ical_export_end_offset'=>'ical_end' );
+	foreach( $offsetnames as $setting=>$postkey ) {
+		$input[$setting] = _ecp1_option_get_default( $setting );
+		if ( isset( $input[$postkey] ) ) {  // select box value
+			$fixed = $input[$postkey];
+			unset( $input[$postkey] );
+			if ( $fixed < 0 && isset( $input[$postkey.'_custom'] ) ) { // use custom value
+				$fixed = $input[$postkey.'_custom'];
+				unset( $input[$postkey.'_custom'] );
+			}
+
+			if ( is_numeric( $fixed ) && $fixed >= 0 )
+				$input[$setting] = $fixed;
+		}
+	}
 	
 	// Return the sanitized array
 	return $input;

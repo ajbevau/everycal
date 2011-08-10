@@ -126,7 +126,7 @@ function ecp1_event_meta_fields() {
 
 // Function that generates a html section for adding inside a meta fields box
 function ecp1_event_meta_form() {
-	global $ecp1_event_fields, $_ecp1_event_admin_init_js;
+	global $ecp1_event_fields, $_ecp1_event_admin_init_js, $post, $post_ID, $last_user, $last_id;
 
 	// Load a list of calendars this user has access to
 	$calendars = _ecp1_current_user_calendars();

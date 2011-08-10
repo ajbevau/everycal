@@ -72,7 +72,7 @@ function ecp1_calendar_meta_fields() {
 
 // Function that generates a html section for adding inside a meta fields box
 function ecp1_calendar_meta_form() {
-	global $ecp1_calendar_fields;
+	global $ecp1_calendar_fields, $post;
 	
 	// Make sure the meta is loaded
 	_ecp1_parse_calendar_custom();
@@ -89,6 +89,11 @@ function ecp1_calendar_meta_form() {
 
 	// External calendars array
 	$ecp1_cals = _ecp1_calendar_meta( 'ecp1_external_cals' );
+
+	// Colors for featured events (only displayed if allowed)
+	// rendered as hidden fields if not allowed to preserve
+	$ecp1_feature_color = _ecp1_calendar_meta( 'ecp1_feature_event_color' );
+	$ecp1_feature_textcolor = _ecp1_calendar_meta( 'ecp1_feature_event_textcolor' );
 	
 	// Output the meta box with a custom nonce
 ?>
@@ -107,7 +112,7 @@ function ecp1_calendar_meta_form() {
 				<td><textarea id="ecp1_description" name="ecp1_description" class="ecp1_big"><?php echo $ecp1_desc; ?></textarea></td>
 			</tr>
 			<tr valign="top">
-				<th scope="row"><label for="ecp1_color"><?php _e( 'Local Event Colours' ); ?></label><br/>#FFFFFF / #3366CC</th>
+				<th scope="row"><label for="ecp1_local_color"><?php _e( 'Local Event Colours' ); ?></label><br/>#FFFFFF / #3366CC</th>
 				<td>
 					<div class="color_selector">
 						<span><?php _e( 'Text' ); ?>:</span>
@@ -120,6 +125,31 @@ function ecp1_calendar_meta_form() {
 				</td>
 			</tr>
 <?php
+	// Check if this is a feature event calendar if so display color selectors
+	// if not then render as hidden fields to preserve the settings
+	if ( _ecp1_calendar_show_featured( $post->ID ) ) {
+?>
+			<tr valign="top">
+				<th scope="row"><label for="ecp1_feature_color"><?php _e( 'Feature Event Colours' ); ?></label><br/>#FFFFFF / #CC6633</th>
+				<td>
+					<div class="color_selector">
+						<span><?php _e( 'Text' ); ?>:</span>
+						<input type="hidden" id="ecp1_feature_text" name="ecp1_feature_text" value="<?php echo $ecp1_feature_textcolor; ?>" />
+						<div><div class="_eCS" style="background-color:<?php echo $ecp1_feature_textcolor; ?>"></div></div></div>
+					<div class="color_selector">
+						<span><?php _e( 'Background' ); ?>:</span>
+						<input type="hidden" id="ecp1_feature_color" name="ecp1_feature_color" value="<?php echo $ecp1_feature_color; ?>" />
+						<div><div class="_eCS" style="background-color:<?php echo $ecp1_feature_color; ?>"></div></div></div>
+				</td>
+			</tr>
+<?php
+	} else { // not allowed to show featured events
+?>
+			<input type="hidden" id="ecp1_feature_text" name="ecp1_feature_text" value="<?php echo $ecp1_feature_textcolor; ?>" />
+			<input type="hidden" id="ecp1_feature_color" name="ecp1_feature_color" value="<?php echo $ecp1_feature_color; ?>" />
+<?php
+	}
+
 	// Check if external calendars are enabled
 	if ( _ecp1_get_option( 'use_external_cals' ) && is_array( $ecp1_cals ) ) {
 ?>
@@ -170,7 +200,7 @@ function ecp1_calendar_meta_form() {
 				</td>
 			</tr>
 <?php
-	}
+	} // use external calendars
 ?>
 			<tr valign="top">
 				<th scope="row"><label for="ecp1_timezone"><?php _e( 'Timezone' ); ?></label></th>
@@ -271,6 +301,14 @@ function ecp1_calendar_save() {
 	$ecp1_local_event_textcolor = $ecp1_calendar_fields['ecp1_local_event_textcolor'][1];
 	if ( isset( $_POST['ecp1_local_text'] ) && preg_match( '/#[0-9A-Fa-f]{6}/', $_POST['ecp1_local_text'] ) )
 		$ecp1_local_event_textcolor = $_POST['ecp1_local_text'];
+
+	// Get the feature event color and text color
+	$ecp1_feature_event_color = $ecp1_calendar_fields['ecp1_feature_event_color'][1];
+	if ( isset( $_POST['ecp1_feature_color'] ) && preg_match( '/#[0-9A-Fa-f]{6}/', $_POST['ecp1_feature_color'] ) )
+		$ecp1_feature_event_color = $_POST['ecp1_feature_color'];
+	$ecp1_feature_event_textcolor = $ecp1_calendar_fields['ecp1_feature_event_textcolor'][1];
+	if ( isset( $_POST['ecp1_feature_text'] ) && preg_match( '/#[0-9A-Fa-f]{6}/', $_POST['ecp1_feature_text'] ) )
+		$ecp1_feature_event_textcolor = $_POST['ecp1_feature_text'];
 
 	// Are there any external calendar fields (existing)
 	$ecp1_external_cals = array();

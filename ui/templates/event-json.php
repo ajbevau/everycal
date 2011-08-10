@@ -77,8 +77,18 @@ if ( empty( $wp_query->query_vars['ecp1_start'] ) || empty( $wp_query->query_var
 			$event_ids = $wpdb->get_col( $wpdb->prepare( $$ECP1_QUERY['EVENTS'], $cal->ID, $end, $start ) );
 			
 			// Now look to see if this calendar supports featured events and if so load ids
-			if ( _ecp1_calendar_show_featured( $cal->ID ) )
-				$event_ids = array_merge( $event_ids, $wpdb->get_col( $wpdb->prepare( $$ECP1_QUERY['FEATURED_EVENTS'], $end, $start ) ) );
+			// and the event colors: can't load later because the calendar meta is updated 
+			// during _ecp1_parse_event_custom to be specific to THAT event
+			$feature_ids = array();
+			$feature_color = $feature_textcolor = '#000000';
+			if ( _ecp1_calendar_show_featured( $cal->ID ) ) {
+				$feature_ids = $wpdb->get_col( $wpdb->prepare( $$ECP1_QUERY['FEATURED_EVENTS'], $end, $start ) );
+				$feature_color = _ecp1_calendar_meta( 'ecp1_feature_event_color' );
+				$feature_textcolor = _ecp1_calendar_meta( 'ecp1_feature_event_textcolor' );
+			}
+
+			// Create a unique merged set of post ids to load
+			$event_ids = array_merge( $event_ids, $feature_ids );
 
 			// If any events were found load them into the loop
 			if ( count( $event_ids ) > 0 )
@@ -112,7 +122,22 @@ if ( empty( $wp_query->query_vars['ecp1_start'] ) || empty( $wp_query->query_var
 						'end'    => $ee->setTimezone( $dtz )->format( 'c' ), # the other seasonal variations in offset
 						'allDay' => 'Y' == _ecp1_event_meta( 'ecp1_full_day', false ) ? true : false,
 					); 
-					
+
+					// If this is a feature event (not from this calendar) then give it the feature colors
+					// and optionally also change the start/end times to be event local not calendar local
+					if ( _ecp1_event_meta( 'ecp1_calendar' ) != $cal->ID && in_array( get_the_ID(), $feature_ids ) ) {
+						$events_json[$_e_index]['color'] = $feature_color;
+						$events_json[$_e_index]['textColor'] = $feature_textcolor;
+
+						// Base feature events at local calendar timezone or event local timezone?
+						if ( '1' == _ecp1_get_option( 'base_featured_local_to_event' ) ) {
+							$tz = ecp1_get_calendar_timezone(); // updated on _ecp1_parse_event_custom()
+							$localdtz = new DateTimeZone( $tz );
+							$events_json[$_e_index]['start'] = $es->setTimezone( $localdtz )->format( 'c' );
+							$events_json[$_e_index]['end'] = $ee->setTimezone( $localdtz )->format( 'c' );
+						}
+					}
+
 					// If the event has a summary then put it in
 					if ( ! _ecp1_event_meta_is_default( 'ecp1_summary' ) )
 						$events_json[$_e_index]['description'] = _ecp1_event_meta( 'ecp1_summary' );

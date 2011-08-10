@@ -123,4 +123,12 @@ function _ecp1_event_meta( $meta, $get_default=true ) {
 		return null;
 }
 
+// Returns the ID of the event the meta is for
+function _ecp1_event_meta_id() {
+	global $ecp1_event_fields;
+	if ( ! isset( $ecp1_event_fields['_meta'] ) || ! $ecp1_event_fields['_meta']['_loaded'] )
+		return -1; // not loaded
+	return $ecp1_event_fields['_meta']['_id'];
+}
+
 ?>
