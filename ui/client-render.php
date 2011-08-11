@@ -184,6 +184,64 @@ jQuery(document).ready(function($) {
 ENDOFSCRIPT;
 	
 	// Now return HTML that the above script will use
+	$ical_addr = get_site_url() . '/ecp1/' . urlencode( $calendar['slug'] ) . '/events.ics';
+	$icalfeed = sprintf( '<a href="%s" title="%s"><img src="%s" alt="ICAL" /></a>',
+				$ical_addr, __( 'Subscribe to Calendar Feed' ),
+				plugins_url( '/img/famfamfam/date.png', dirname( __FILE__ ) ) );
+	$_close_feed_popup = htmlspecialchars( __( 'Back to Calendar' ) ); // strings for i18n
+	$_feed_addrs = array(
+		__( 'iCal / ICS' ) => $ical_addr,
+		__( 'Outlook WebCal' ) => preg_replace( '/http[s]?:\/\//', 'webcal:\/\/', $ical_addr ),
+	);
+	$_feed_addrs_js = '{';
+	foreach( $_feed_addrs as $title=>$link )
+		$_feed_addrs_js .= sprintf( "'%s':'%s',", htmlspecialchars( $title ), $link );
+	$_feed_addrs_js = trim( $_feed_addrs_js, ',' ) . '}';
+
+	$_ecp1_dynamic_calendar_script .= <<<ENDOFSCRIPT
+var _feedLinks = $_feed_addrs_js;
+jQuery(document).ready(function($) {
+	// $() will work as an alias for jQuery() inside of this function
+	$('#ecp1_calendar div.feeds a').click(function() {
+		var popup = $( '<div></div>' )
+				.attr( { id:'_ecp1-feed-popup' } ).css( { display:'none', 'z-index':9999 } );
+		var pw = $( window ).width();
+		var ph = $( document ).height();
+		var ps = $( document ).scrollTop(); ps = ( ps+175 ) + 'px auto 0 auto';
+
+		var fL = $( '<ul></ul>' );
+		for ( key in _feedLinks ) {
+			fL.append( $( '<li></li>' )
+					.append( $( '<span></span>' )
+						.text( key ) )
+					.append( $( '<a></a>' )
+						.attr( { href:_feedLinks[key], title:key } )
+						.text( _feedLinks[key] ) ) );
+		}
+
+		popup.css( { width:pw, height:ph, display:'block' } )
+			.append( $( '<div></div>' )
+				.addClass( 'inner' )
+				.css( { background:'#ffffff', padding:'1em', width:800, height:200, margin:ps } )
+				.append( jQuery( '<div></div>' )
+					.css( { textAlign:'right' } )
+					.append( jQuery( '<a></a>' )
+						.css( { cursor:'pointer' } )
+						.text( '$_close_feed_popup' )
+						.click( function( event ) {
+							event.stopPropagation();
+							jQuery( '#_ecp1-feed-popup' ).remove();
+						} ) ) )
+				.append( jQuery( '<div></div>' )
+					.css( { textAlign:'left', width:800, height:150, paddingTop:25 } )
+					.append( fL ) ) );
+
+		$('body').append(popup);
+		return false;
+	} );
+} );
+ENDOFSCRIPT;
+	$feeds = '<div class="feeds">' . $icalfeed . '</div>';
 	$description = '' != $description ? '<p><strong>' . $description . '</strong></p>' : '';
 	$feature_msg = '';
 	if ( _ecp1_calendar_show_featured( _ecp1_calendar_meta_id() ) && 
@@ -198,7 +256,7 @@ ENDOFSCRIPT;
 
 	$timezone = sprintf( '<div><div style="padding:0 5px;"><em>%s</em></div>%s</div>',
 			sprintf( __( 'Events occur at %s local time.' ), $timezone ), $feature_msg );
-	return sprintf( '<div id="ecp1_calendar">%s<div class="fullcal">%s</div>%s</div>', $description, __( 'Loading...' ), $timezone );
+	return sprintf( '<div id="ecp1_calendar">%s%s<div class="fullcal">%s</div>%s</div>', $feeds, $description, __( 'Loading...' ), $timezone );
 }
 
 // Function to print the dynamic calendar load script 

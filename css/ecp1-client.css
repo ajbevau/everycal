@@ -2,6 +2,7 @@
 #ecp1_calendar, #ecp1_event {margin-bottom:1em;}
 #ecp1_calendar .fc table {border-bottom:none;margin-bottom:0;}
 #ecp1_calendar .fc-header td, #ecp1_calendar .fc-header th {border-top:none;}
+#ecp1_calendar .feeds {float:right;}
 #ecp1_event ul.ecp1_event-details {margin:0;}
 #ecp1_event ul.ecp1_event-details li {list-style-type:none;}
 #ecp1_event span.ecp1_event-title {vertical-align:top;width:90px;display:inline-block;}
@@ -49,9 +50,12 @@ div.ecp1-popup ul.nodeco li {list-style-type:none;padding:0;margin:0 0 2px;}
 div.ecp1-popup ul.nodeco li span.h {display:inline-block;vertical-align:top;padding-right:5px;}
 div.ecp1-popup div.ecp1-map-container {min-width:345px;min-height:100px;z-index:4000;} /* these match js/popup.js */
 div.ecp1-popup div.ecp1-map-linker {min-width:345px;} /* these match js/popup.js */
-#_ecp1-large-map {
+#_ecp1-large-map, #_ecp1-feed-popup {
 	position:absolute;top:0;left:0;display:none;text-align:center;
 	background:rgba(0,0,0,0.7); /* some cross browser opacity niceness */
 	filter:progid:DXImageTransform.Microsoft.gradient(startColorstr=#B3000000, endColorstr=#B3000000);
 }
-#_ecp1-large-map div.inner {background:#FFFFFF;} /* don't inherit opacity */
+#_ecp1-large-map div.inner, #_ecp1-feed-popup div.inner {background:#FFFFFF;} /* don't inherit opacity */
+#_ecp1-feed-popup li {list-style-type:none;}
+#_ecp1-feed-popup li span {display:inline-block;width:150px;font-weight:bold;text-align:right;margin-right:1em;}
+#_ecp1-feed-popup li a {display:inline-block;}
