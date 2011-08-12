@@ -3,14 +3,22 @@
  * Every Calendar +1 Plugin
  *
  * Uninstall Script:
- *  - Does nothing by design at present: no tables created and meta fields shouldn't be deleted just because uninstalling?
+ *  1) Removes any cached external calendars (for ical export)
  */
 
 
 // Make sure WordPress is uninstalling the plugin and then do the clean up
 if ( defined( 'WP_UNINSTALL_PLUGIN' ) ) {
 
-	// Nothing
+	// 1 - Remove cached external calendars from calendar meta
+	$allcals = get_posts( 'numberposts=-1&post_type=ecp1_calendar&post_status=any' );
+	foreach( $allcals as $cal ) {
+		$custom = get_post_custom( $cal->ID );
+		foreach( $custom as $key=>$value ) {
+			if ( strpos( $key, 'ecp1_cache' ) === 0 )
+				delete_post_meta( $cal->ID, $key );
+		}
+	}
 
 }
 
