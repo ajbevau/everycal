@@ -116,6 +116,8 @@ function ecp1_onrender( calEvent, element, view ) {
 											lOpts.location = calEvent.location;
 										}
 										_mapLoadFunction( lOpts );
+									} else if ( typeof _mapLoadFunction != 'function' ) {
+										mapElem.empty().text( 'ERROR: Map provider does not support maps?' );
 									}
 								} );
 							} else {
@@ -144,6 +146,14 @@ function ecp1_onrender( calEvent, element, view ) {
 									jQuery( 'body' ).append( jQuery( '<div></div>' )
 										.attr( { id:'_ecp1-large-map' } ).css( { display:'none', 'z-index':9999 } ) );
 									lm = jQuery( '#_ecp1-large-map' );
+								}
+
+								// If the functions are not defined don't do anything
+								if ( ! ( typeof _mapCenterFunction == 'function' &&
+										typeof _mapMarkersFunction == 'function' &&
+										typeof _mapGetZoomFunction == 'function' ) ) {
+									alert( 'ERROR: Map provider does not support large maps' );
+									return false;
 								}
 
 								// Get the the center point and markers off the map

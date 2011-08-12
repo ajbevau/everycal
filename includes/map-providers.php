@@ -31,6 +31,8 @@ function ecp1_get_map_provider_instance() {
 	$provider = $providers[$provider];
 	if ( ! array_key_exists( 'classname', $provider ) || ! array_key_exists( 'filename', $provider ) )
 		return null; // no PHP class defined
+	if ( ! file_exists( ECP1_DIR . '/includes/maps/' . $provider['filename'] ) )
+		return null; // no plugin file
 	
 	// Load the PHP class script and return an instance
 	require_once( ECP1_DIR . '/includes/maps/' . $provider['filename'] );
