@@ -64,7 +64,7 @@ function ecp1_register_types() {
 		'map_meta_cap' => true, # make sure all meta capabilities are mapped
 		'supports' => array( 'title' ),
 		'rewrite' => array( 'slug' => 'calendar' ),
-		'show_in_nav_menus' => false,
+		'show_in_nav_menus' => true,
 	);
 	
 	// Custom event post type arguments
