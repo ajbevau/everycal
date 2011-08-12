@@ -257,7 +257,7 @@ function ecp1_calendar_save() {
 		return $post->ID;
 	
 	// Verify the user can actually edit posts
-	if ( ! current_user_can( 'edit_ecp1_calendar', $post->ID ) )
+	if ( ! current_user_can( 'edit_' . ECP1_CALENDAR_CAP, $post->ID ) )
 		return $post->ID;
 	
 	// Escape any nasty in the description

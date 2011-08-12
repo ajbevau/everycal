@@ -39,14 +39,16 @@ abstract class ECP1Calendar {
 	abstract public function fetch( $start, $end, $dtz );
 
 	// Calendar Constructor
-	// Takes the Calendar Post ID and External Calendar URL
+	// Takes the Calendar Post ID and External Calendar URL and
+	// a boolean which controls if the cache should be loaded
 	// If you overload this constructor YOU should call
-	//   parent::__construct( $id, $url )
+	//   parent::__construct( $id, $url, $loadcache )
 	// to set the instance variables and load cache.
-	public function __construct( $id, $url ) {
+	public function __construct( $id, $url, $loadcache=true ) {
 		$this->postid = $id;
 		$this->calendar_url = $url;
-		$this->load_from_cache(); // database reads are cheap
+		if ( $loadcache )
+			$this->load_from_cache(); // database reads are cheap
 	}
 
 	// Internal store of the calendar post ID
@@ -65,8 +67,9 @@ abstract class ECP1Calendar {
 	}
 
 	// Function that clears the set of events and any meta.
-	protected function clear() {
+	public function clear() {
 		$this->events = array();
+		delete_post_meta( $this->postid, 'ecp1_cache_' . $this->url_hash() );
 	}
 
 	// Function that loads the cached (if any) events for this URL
