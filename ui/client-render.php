@@ -181,6 +181,7 @@ jQuery(document).ready(function($) {
 	_mapGetZoomFunction = $_map_getzoom_func;
 	$_init_maps_func;
 });
+
 ENDOFSCRIPT;
 	
 	// Now return HTML that the above script will use
@@ -191,7 +192,7 @@ ENDOFSCRIPT;
 	$_close_feed_popup = htmlspecialchars( __( 'Back to Calendar' ) ); // strings for i18n
 	$_feed_addrs = array(
 		__( 'iCal / ICS' ) => $ical_addr,
-		__( 'Outlook WebCal' ) => preg_replace( '/http[s]?:\/\//', 'webcal:\/\/', $ical_addr ),
+		__( 'Outlook WebCal' ) => preg_replace( '/http[s]?:\/\//', 'webcal://', $ical_addr ),
 	);
 	$_feed_addrs_js = '{';
 	foreach( $_feed_addrs as $title=>$link )
@@ -240,6 +241,7 @@ jQuery(document).ready(function($) {
 		return false;
 	} );
 } );
+
 ENDOFSCRIPT;
 	$feeds = '<div class="feeds">' . $icalfeed . '</div>';
 	$description = '' != $description ? '<p><strong>' . $description . '</strong></p>' : '';

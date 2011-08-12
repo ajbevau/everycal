@@ -153,9 +153,25 @@ function ecp1_render_options_page() {
 		$eoffsetcustom = $eoffsetcustom || $val == _ecp1_get_option( 'ical_export_end_offset' ) ? true : false;
 		printf( '<option value="%s"%s>%s</option>', $val, $val == _ecp1_get_option( 'ical_export_end_offset' ) ? ' selected="selected"' : '', $time );
 	}
-	printf( '</select> or <input id="%s[ical_end_custom]" name="%s[ical_end_custom]" type="text" value="%s" /> %s',
+	printf( '</select> or <input id="%s[ical_end_custom]" name="%s[ical_end_custom]" type="text" value="%s" /> %s<br/>',
 			ECP1_GLOBAL_OPTIONS, ECP1_GLOBAL_OPTIONS,
 			! $eoffsetcustom ? _ecp1_get_option( 'ical_export_end_offset' ) : '', __( 'seconds' ) );
+
+	// Include options for ical_export_include_external and ical_export_external_cache_life
+	printf( '<input id="%s[export_external]" name="%s[export_external]" type="checkbox" value="1"%s /><label for="%s[export_external]">%s</label><br/>',
+			ECP1_GLOBAL_OPTIONS, ECP1_GLOBAL_OPTIONS,
+			'1' == _ecp1_get_option( 'ical_export_include_external' ) ? ' checked="checked"' : '',
+			ECP1_GLOBAL_OPTIONS, __( 'Include external calendars in iCal feed?' ) );
+	printf( '<span class="ecp1_ical_q">%s</span>', __( 'Cache locally for:' ) );
+	printf( '<select id="%s[cache_expire]" name="%s[cache_expire]"><option value="-1">%s</option>', ECP1_GLOBAL_OPTIONS, ECP1_GLOBAL_OPTIONS, __( 'Custom' ) );
+	$eoffsetcustom = false;
+	foreach( $times as $val=>$time ) {
+		$eoffsetcustom = $eoffsetcustom || $val == _ecp1_get_option( 'ical_export_external_cache_life' ) ? true : false;
+		printf( '<option value="%s"%s>%s</option>', $val, $val == _ecp1_get_option( 'ical_export_external_cache_life' ) ? ' selected="selected"' : '', $time );
+	}
+	printf( '</select> or <input id="%s[cache_expire_custom]" name="%s[cache_expire_custom]" type="text" value="%s" /> %s',
+			ECP1_GLOBAL_OPTIONS, ECP1_GLOBAL_OPTIONS,
+			! $eoffsetcustom ? _ecp1_get_option( 'ical_export_external_cache_life' ) : '', __( 'seconds' ) );
 ?>
 					</td>
 				</tr>
@@ -186,7 +202,8 @@ function ecp1_validate_options_page( $input ) {
 	$boolean_options = array( 
 		'use_maps'=>'use_maps',
 		'tz_change'=>'tz_change',
-		'feature_tz_local'=>'base_featured_local_to_event' );
+		'feature_tz_local'=>'base_featured_local_to_event',
+		'export_external'=>'ical_export_include_external' );
 	foreach( $boolean_options as $postkey=>$optkey ) {
 		if ( isset( $input[$postkey] ) && '1' == $input[$postkey] ) {
 			$input[$optkey] = 1;
@@ -239,8 +256,10 @@ function ecp1_validate_options_page( $input ) {
 		unset( $input['feature_tz_note'] );
 	}
 
-	// Validate and verify iCal export start and end offsets
-	$offsetnames = array( 'ical_export_start_offset'=>'ical_start', 'ical_export_end_offset'=>'ical_end' );
+	// Validate and verify iCal export start and end offsets and cache life
+	$offsetnames = array( 'ical_export_start_offset'=>'ical_start',
+				'ical_export_end_offset'=>'ical_end',
+				'ical_export_external_cache_life'=>'cache_expire' );
 	foreach( $offsetnames as $setting=>$postkey ) {
 		$input[$setting] = _ecp1_option_get_default( $setting );
 		if ( isset( $input[$postkey] ) ) {  // select box value

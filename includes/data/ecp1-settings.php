@@ -51,6 +51,12 @@ $_ecp1_settings = array(
 	// forward by when exporting iCal files.
 	'ical_export_start_offset' => array( 'default' => '86400' ), // one day
 	'ical_export_end_offset' => array( 'default' => '15811200' ), // 6 months
+
+	// The next two relate to if external calendars should be cached
+	// locally, and syndicated in the calendar feeds, or not. And if
+	// so how long the local cache should be considered valid for.
+	'ical_export_include_external' => array( 'default' => 1 ), // yes
+	'ical_export_external_cache_life' => array( 'default' => '604800' ), // one week 
 );
 
 // Helper function that returns the whole options array or just the 

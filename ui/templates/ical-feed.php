@@ -49,17 +49,18 @@ if ( is_null( $cal ) ) {
 	_ecp1_parse_calendar_custom( $cal->ID ); // Get the calendar meta data
 	$tz = ecp1_get_calendar_timezone();      // and the effective timezone
 	$dtz = new DateTimeZone( $tz );
+	$ex_cals = _ecp1_calendar_meta( 'ecp1_external_cals' ); // before loop
+	$my_id = $cal->ID; // because event meta reparses its calendars meta
 
-	// Make sure there is whitespace after the close php tag ? > to insert line break
 ?>
 BEGIN:VCALENDAR
 VERSION:2.0
 PRODID:-//<?php echo get_option( 'blogname' ) . ' - ' . $cal->post_name; ?>//NONSGML EveryCal+1 Events//EN
 METHOD:PUBLISH
-X-WR-CALNAME:<?php echo $cal->post_title; ?> 
-X-WR-CALDESC:<?php echo _ecp1_calendar_meta( 'ecp1_description' ); ?> 
-X-WR-TIMEZONE:<?php echo $dtz->getName(); ?> 
-X-ORIGINAL-URL:<?php echo get_permalink( $cal->ID ); ?> 
+X-WR-CALNAME:<?php echo $cal->post_title . "\n"; ?>
+X-WR-CALDESC:<?php echo _ecp1_calendar_meta( 'ecp1_description' ) . "\n"; ?>
+X-WR-TIMEZONE:<?php echo $dtz->getName() . "\n"; ?>
+X-ORIGINAL-URL:<?php echo get_permalink( $cal->ID ) . "\n"; ?>
 CALSCALE:GREGORIAN
 <?php
 
@@ -99,9 +100,10 @@ CALSCALE:GREGORIAN
 			$es = new DateTime( "@$e" ); // requires PHP 5.2.0
 			$e  = _ecp1_event_meta( 'ecp1_end_ts', false );
 			$ee = new DateTime( "@$e" ); // 5.2.0 again
+			$format = 'Ymd\THis\Z';
 
-			// If this is a feature event (not from this calendar) then give it the feature colors
-			// and optionally also change the start/end times to be event local not calendar local
+			// If this is a feature event (not from this calendar) then change the
+			// start/end times to be event local not calendar local if setting = 1
 			if ( _ecp1_event_meta( 'ecp1_calendar' ) != $cal->ID && in_array( get_the_ID(), $feature_ids ) &&
 					// Base feature events at local calendar timezone or event local timezone?
 					'1' == _ecp1_get_option( 'base_featured_local_to_event' ) ) {
@@ -112,11 +114,12 @@ CALSCALE:GREGORIAN
 				$es = new DateTime( "@$e" ); // requires PHP 5.2.0
 				$e = _ecp1_event_meta( 'ecp1_end_ts', false ) + $localdtz->getOffset( new DateTime() );
 				$ee = new DateTime( "@$e" ); // 5.2.0 again
+				$format = 'Ymd\THis'; // local time not Z(ulu) UTC GMT
 			}
 
-			// The start and end times are expecting YYYYMMDDTHHMMSSZ
-			$estart = $es->format( 'Ymd\THis\Z' );
-			$eend   = $ee->format( 'Ymd\THis\Z' );
+			// The start and end times are expecting YYYYMMDDTHHMMSS w/ optional Z
+			$estart = $es->format( $format );
+			$eend   = $ee->format( $format );
 
 			// The summary and location can be verbatim
 			$elocation = _ecp1_event_meta( 'ecp1_location' );
@@ -131,25 +134,90 @@ CALSCALE:GREGORIAN
 				$edescription .= "\\n------------------";
 			if ( ! is_null( $ecp1_url ) )
 				$edescription .= sprintf( "\\n%s", $ecp1_url );
+			else
+				$edescription .= sprintf( "\\n%s", get_permalink( _ecp1_event_meta_id() ) );
 			if ( ! is_null( $ecp1_desc ) )
 				$edescription .= sprintf( "\\n%s", $ecp1_desc );
 			$edescription = str_replace( array( "\r\n", "\r", "\n" ), array( "\\n", "\\n", "\\n" ), $edescription );
 
-			// Output this event in iCal
-			// Once again make sure there is whitespace to ensure line breaks
+// Output this event in iCal
 ?>
 BEGIN:VEVENT
-DTSTART:<?php echo $estart; ?> 
-DTEND:<?php echo $eend; ?> 
-SUMMARY:<?php echo the_title(); ?> 
-LOCATION:<?php echo $elocation; ?> 
-DESCRIPTION:<?php echo $edescription; ?> 
+DTSTART:<?php echo $estart . "\n"; ?>
+DTEND:<?php echo $eend . "\n"; ?>
+SUMMARY:<?php echo the_title() . "\n"; ?>
+LOCATION:<?php echo $elocation . "\n"; ?>
+DESCRIPTION:<?php echo $edescription . "\n"; ?>
 END:VEVENT
 <?php
 		} catch( Exception $datex ) {
 			continue; // ignore bad timestamps they shouldn't happen
 		}
 	endwhile;
+
+	// If external calendar providers should be syndicated then send them too
+	if ( '1' == _ecp1_get_option( 'ical_export_include_external' ) ) {
+
+		// Loop over this calendars external calendars
+		foreach( $ex_cals as $ex_cal ) {
+			$calprov = ecp1_get_calendar_provider_instance( $ex_cal['provider'], $my_id, urldecode( $ex_cal['url'] ) );
+			if ( null == $calprov )
+				continue; // failed to load
+			$continue = true;
+			if ( $calprov->cache_expired( _ecp1_get_option( 'ical_export_external_cache_life' ) ) )
+				$continue = $calprov->fetch( $start, $end, $dtz );
+
+			if ( $continue ) { // fetched or not but is ok
+				$evs = $calprov->get_events();
+				foreach( $evs as $eventid=>$event ) {
+
+					try {
+						$e  = $event['start'];
+						$es = new DateTime( "@$e" ); // requires PHP 5.2.0
+						$e  = $event['end'];
+						$ee = new DateTime( "@$e" ); // 5.2.0 again
+
+						// The start and end times are expecting YYYYMMDDTHHMMSSZ
+						$estart = $es->format( 'Ymd\THis\Z' );
+						$eend   = $ee->format( 'Ymd\THis\Z' );
+
+						// The summary and location can be verbatim
+						$etitle = $event['title'];
+						$elocation = $event['location'];
+
+						// Now for the tricky part: description needs to have URL and/or local
+						// description text depending on what was set in the admin and the sumary
+						// should be prefixed in either case
+						$edescription = '';
+						$ecp1_summary = is_null( $event['summary'] ) ? null : strip_tags( $event['summary'] );
+						$ecp1_desc = is_null( $event['description'] ) ? null : strip_tags( $event['description'] );
+						$ecp1_url = is_null( $event['url'] ) ? null : urldecode( $event['url'] );
+						if ( ! is_null( $ecp1_summary ) && ( ! is_null( $ecp1_desc ) || ! is_null( $ecp1_url ) ) )
+							$edescription .= sprintf( "%s\\n------------------", $ecp1_summary );
+						if ( ! is_null( $ecp1_desc ) )
+							$edescription .= sprintf( "\\n%s", $ecp1_desc );
+						if ( ! is_null( $ecp1_url ) )
+							$edescription .= sprintf( "\\n%s", $ecp1_url );
+						$edescription = str_replace( array( "\r\n", "\r", "\n" ), array( "\\n", "\\n", "\\n" ), $edescription );
+
+// Output the external cached calendars
+?>
+BEGIN:VEVENT
+DTSTART:<?php echo $estart . "\n"; ?>
+DTEND:<?php echo $eend . "\n"; ?>
+SUMMARY:<?php echo $etitle . "\n"; ?>
+LOCATION:<?php echo $elocation . "\n"; ?>
+DESCRIPTION:<?php echo $edescription . "\n"; ?>
+END:VEVENT
+<?php
+					} catch( Exception $datex ) {
+						continue; // ignore bad timestamps they shouldn't happen
+					}
+
+				} // foreach event
+			} // events found
+		} // foreach external calendar
+	} // include externals
 
 	// Reset the query now the loop is done
 	wp_reset_query();
