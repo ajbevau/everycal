@@ -4,7 +4,7 @@ Donate link: http://andrewbevitt.com/
 Tags: calendar, events
 Requires at least: 3.0
 Tested up to: 3.2.1
-Stable tag: 0.1-beta
+Stable tag: 0.1
 
 A WordPress plugin that integrates calendars, custom post types, maps, and offsite linking.
 
@@ -36,7 +36,7 @@ There is a planned development roadmap (grep -R ROADMAP *):
 
 == Installation ==
 
-This plugin requires PHP5 >= 5.3.0 that's over 2 years old now so upgrade if you haven't yet.
+This plugin requires PHP5 >= 5.2.0 that's over 2 years old now so upgrade if you haven't yet.
 
 The best way to install this plugin is through your WordPress Admin. Alternatively upload all of the plugins files to the '/wp-content/plugins/everycalplus1' directory.
 
