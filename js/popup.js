@@ -286,7 +286,10 @@ function ecp1_onclick( calEvent, jEvent, view ) {
 		pElement.animate( { top:'-25px' }, 150, 'swing', function() { pElement.removeClass( 'ecp1-popup-show' ); } );
 	} else { // show it
 		pElement.css( 'z-index', maxZ + 1 );
+		cVer = parseInt( jQuery( '#ecp1_calendar' ).offset().top ) + 100;
 		mVer = parseInt( jQuery( this ).offset().top ) - 20; // where to animate to
+		if ( cVer > mVer )
+			mVer = cVer;
 		mHor = parseInt( jQuery( this ).offset().left ) - 45;
 		if ( 'month' != view.name ) {
 			mVer += 70; // in week/day view move down a little further
