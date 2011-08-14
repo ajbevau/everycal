@@ -3,11 +3,11 @@
 .swp
 __MACOSX/
 
+# Ignore the WordPress svn repository
+.svn/
+
 # Ignore the Windows Thumbs.db
 Thumbs.db
-
-# Ignore vim .swp files
-.swp
 
 # TextMate files can be ignored too
 ._
