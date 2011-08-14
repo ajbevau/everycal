@@ -8,6 +8,12 @@
 // Make sure we're included from within the plugin
 require( ECP1_DIR . '/includes/check-ecp1-defined.php' );
 
+// Turn on debugging if requested
+if ( ECP1_DEBUG ) {
+	ini_set( 'display_errors', 1 );
+	error_reporting( E_ALL );
+}
+
 // Define the Custom Post Type
 require_once( ECP1_DIR . '/includes/custom-post-type.php' );
 

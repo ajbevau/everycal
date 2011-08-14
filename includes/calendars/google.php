@@ -50,6 +50,8 @@ class ECP1GoogleCalendar extends ECP1Calendar {
 		// Ensure the timezone is valid or error out
 		if ( ! $dtz instanceof DateTimeZone )
 			return false;
+		$start->setTimezone( $dtz );
+		$end->setTimezone( $dtz );
 
 		// Build a request object using the HTTP_Request2 class
 		$request = new HTTP_Request2( $url, HTTP_Request2::METHOD_GET );
@@ -66,8 +68,8 @@ class ECP1GoogleCalendar extends ECP1Calendar {
 			'ctz' => $dtz->getName(),
 			'singleevents' => 'true', // expand repeats must be word true
 			// Google asks for RFC3339 which is a ISO8601 profile
-			'start-min' => $start->setTimezone( $dtz )->format( 'c' ),
-			'start-max' => $end->setTimezone( $dtz )->format( 'c' ),
+			'start-min' => $start->format( 'c' ),
+			'start-max' => $end->format( 'c' ),
 			'max-results' => 500, // be nice to the server
 		) );
 

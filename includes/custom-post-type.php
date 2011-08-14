@@ -90,7 +90,7 @@ function ecp1_register_types() {
 
 // Now define a capbilities filter to allow editors of calendars
 // the ability to edit all events in that calendar (hopefully).
-add_filter( 'map_meta_cap', 'ecp1_map_calendar_cap_to_event', 100, 4 );
+//add_filter( 'map_meta_cap', 'ecp1_map_calendar_cap_to_event', 100, 4 );
 function ecp1_map_calendar_cap_to_event( $caps, $cap, $user_id, $args ) {
 	
 	// Only proceed if we have a post argument (i.e. the event)

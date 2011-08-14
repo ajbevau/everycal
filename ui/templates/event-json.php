@@ -113,13 +113,15 @@ if ( empty( $wp_query->query_vars['ecp1_start'] ) || empty( $wp_query->query_var
 				try {
 					$e  = _ecp1_event_meta( 'ecp1_start_ts', false );
 					$es = new DateTime( "@$e" ); // requires PHP 5.2.0
+					$es->setTimezone( $dtz );
 					$e  = _ecp1_event_meta( 'ecp1_end_ts', false );
 					$ee = new DateTime( "@$e" ); // 5.2.0 again
+					$ee->setTimezone( $dtz );
 
 					$events_json[$_e_index] = array(
 						'title'  => the_title( '', '', false ),
-						'start'  => $es->setTimezone( $dtz )->format( 'c' ), # ISO8601 automatically handling DST and
-						'end'    => $ee->setTimezone( $dtz )->format( 'c' ), # the other seasonal variations in offset
+						'start'  => $es->format( 'c' ), # ISO8601 automatically handling DST and
+						'end'    => $ee->format( 'c' ), # the other seasonal variations in offset
 						'allDay' => 'Y' == _ecp1_event_meta( 'ecp1_full_day', false ) ? true : false,
 					); 
 
@@ -133,8 +135,10 @@ if ( empty( $wp_query->query_vars['ecp1_start'] ) || empty( $wp_query->query_var
 						if ( '1' == _ecp1_get_option( 'base_featured_local_to_event' ) ) {
 							$tz = ecp1_get_calendar_timezone(); // updated on _ecp1_parse_event_custom()
 							$localdtz = new DateTimeZone( $tz );
-							$events_json[$_e_index]['start'] = $es->setTimezone( $localdtz )->format( 'c' );
-							$events_json[$_e_index]['end'] = $ee->setTimezone( $localdtz )->format( 'c' );
+							$es->setTimezone( $localdtz );
+							$ee->setTimezone( $localdtz );
+							$events_json[$_e_index]['start'] = $es->format( 'c' );
+							$events_json[$_e_index]['end'] = $ee->format( 'c' );
 						}
 					}
 

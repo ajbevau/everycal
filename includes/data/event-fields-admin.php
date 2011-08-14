@@ -75,14 +75,16 @@ function ecp1_event_custom_columns( $column ) {
 				if ( '' != $start && is_numeric( $start ) ) {
 					// Output the start date
 					$start = new DateTime( "@$start" );
+					$start->setTimezone( $tz );
 					$outstr = sprintf( '<strong>%s:</strong> %s<br/>', __( 'Start' ), 
-							$start->setTimezone( $tz )->format( $datef . ' ' . $timef ) );
+							$start->format( $datef . ' ' . $timef ) );
 				
 					// If an end date was supplied use it
 					if ( '' != $end && is_numeric( $end ) ) {
 						$end = new DateTime( "@$end" );
+						$end->setTimezone( $tz );
 						$outstr .= sprintf( '<strong>%s:</strong> %s', __( 'End' ), 
-								$end->setTimezone( $tz )->format( $datef . ' ' . $timef ) );
+								$end->format( $datef . ' ' . $timef ) );
 					} else {
 						$outstr .= __( 'No end date given.' );
 					}
@@ -173,7 +175,10 @@ function ecp1_event_meta_form() {
 			$d = new DateTime( '@' . $ecp1_event_fields['ecp1_start_ts'][0] );
 			$d->setTimezone( $tz );
 			$ecp1_start_date = $d->format( 'Y-m-d' );
-			$ecp1_start_time = $d->getTimestamp() + $d->getOffset(); // format( 'U' ) and timestamp are NOT offset by TZ
+			if ( ECP1_PHP5 < 3 ) // support 5.2.0
+				$ecp1_start_time = $d->format( 'U' ) + $d->getOffset();
+			else
+				$ecp1_start_time = $d->getTimestamp() + $d->getOffset(); // format( 'U' ) and timestamp are NOT offset by TZ
 		} catch( Exception $serror ) {
 			$ecp1_start_date = $ecp1_start_time = '';
 			printf( '<div class="ecp1_error">%s</div>', __( 'ERROR: Could not parse start date/time please re-enter.' ) );
@@ -187,7 +192,10 @@ function ecp1_event_meta_form() {
 			$d = new DateTime( '@' . $ecp1_event_fields['ecp1_end_ts'][0] );
 			$d->setTimezone( $tz );
 			$ecp1_end_date = $d->format( 'Y-m-d' );
-			$ecp1_end_time = $d->getTimestamp() + $d->getOffset(); // format( 'U' ) and timestamp are NOT offset by TZ
+			if ( ECP1_PHP5 < 3 ) // support 5.2.0
+				$ecp1_end_time = $d->format( 'U' ) + $d->getOffset();
+			else
+				$ecp1_end_time = $d->getTimestamp() + $d->getOffset(); // format( 'U' ) and timestamp are NOT offset by TZ
 		} catch( Exception $eerror ) {
 			$ecp1_end_date = $ecp1_end_time = '';
 			printf( '<div class="ecp1_error">%s</div>', __( 'ERROR: Could not parse end date/time please re-enter.' ) );
@@ -558,7 +566,10 @@ function ecp1_event_save() {
 		}
 		
 		// Save as a timestamp and reset the post values
-		$ecp1_start_ts = $ds->getTimestamp(); // UTC (i.e. without offset)
+		if ( ECP1_PHP5 < 3 ) // support 5.2.0
+			$ecp1_start_ts = $ds->format( 'U' );
+		else
+			$ecp1_start_ts = $ds->getTimestamp(); // UTC (i.e. without offset)
 		unset( $input['ecp1_start_date'] );
 		unset( $input['ecp1_start_time-hour'] );
 		unset( $input['ecp1_start_time-min'] );
@@ -585,7 +596,10 @@ function ecp1_event_save() {
 		}
 		
 		// Save as a timestamp and reset the post values
-		$ecp1_end_ts = $ds->getTimestamp(); // UTC (i.e. without offset)
+		if ( ECP1_PHP5 < 3 ) // support 5.2.0
+			$ecp1_end_ts = $ds->format( 'U' );
+		else
+			$ecp1_end_ts = $ds->getTimestamp(); // UTC (i.e. without offset)
 		unset( $input['ecp1_end_date'] );
 		unset( $input['ecp1_end_time-hour'] );
 		unset( $input['ecp1_end_time-min'] );

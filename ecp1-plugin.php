@@ -3,7 +3,7 @@
 Plugin Name: Every Calendar +1 for WordPress
 Plugin URI: http://andrewbevitt.com/code/everycalplus1
 Description: A WordPress Calendar plugin with custom types and maps support.
-Version: 0.1
+Version: 0.1.1
 Author: Andrew Bevitt
 Author URI: http://andrewbevitt.com
 License: GPL2
@@ -24,6 +24,10 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
+// For development purposes: set this to true and all errors will be printed to screen
+// Note this will turn on debugging for all of WordPress only use for testing.
+define( 'ECP1_DEBUG', false );
+
 // Allow plugin files to load by defining scope of plugin
 define( 'ECP1_PLUGIN', true );
 
@@ -33,6 +37,12 @@ define( 'ECP1_DIR', WP_PLUGIN_DIR . '/' . basename( dirname( __FILE__ ) ) );
 // The tag that the plugins custom template renders hook on
 define( 'ECP1_TEMPLATE_TAG', 'ecp1tpl' );
 define( 'ECP1_TEMPLATE_TEST_ARG', '_ecp1test' ); // for template renderer debug
+
+// Some of the functions require PHP 5.3 but can be backported to 5.2
+if ( version_compare( PHP_VERSION, '5.3.0' ) >= 0 )
+	define( 'ECP1_PHP5', 3 );
+else
+	define( 'ECP1_PHP5', 2 );
 
 // Initialise the plugin
 // Do this first so the rewrite rule flush includes custom types

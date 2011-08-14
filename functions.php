@@ -95,6 +95,7 @@ function _ecp1_timezone_select( $id, $pick='_', $extra_attrs=null ) {
 	$outstr = sprintf( '<select id="%s" name="%s" %s>', $id, $id, $extra_attrs );
 	$outstr .= sprintf( '<option value="_"%s>%s</option>', '_' == $pick ? ' selected="selected"' : '', __( 'WordPress Timezone' ) );
 	$timezone_identifiers = DateTimeZone::listIdentifiers();
+	$continent = '';
 	foreach( $timezone_identifiers as $value ) {
 		if ( preg_match( '/^(Africa|America|Antartica|Arctic|Asia|Atlantic|Australia|Europe|Indian|Pacific)\//', $value ) ){
 			$ex = explode( '/', $value ); //obtain continent and city
