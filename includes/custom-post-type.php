@@ -91,32 +91,33 @@ function ecp1_register_types() {
 	register_post_type( 'ecp1_calendar', $ecp1_cal_args );
 
 	// Add a permalink structure for events
-	global $wp_rewrite;
-	$wp_rewrite->add_rewrite_tag( '%ecp1_event%', '([^/]+)', 'ecp1_event=' );
-	$wp_rewrite->add_permastruct( 'ecp1_event', '/event/%year%/%monthnum%/%day%/%ecp1_event%', false );
-	//add_permastruct( 'ecp1_event', 'event/%ey%/%em%/%ed%/%ecp1_event%', false );
-	//add_permastruct( 'ecp1_event', 'event/%ecp1_event%', false );
+	add_rewrite_tag( '%ecp1_event%', '([^/]+)', 'ecp1_event=' );
+	add_rewrite_tag( '%ees_year%', '([0-9]{4})', 'ees_year=' );
+	add_rewrite_tag( '%ees_month%', '([0-9]{1,2})', 'ees_month=' );
+	add_rewrite_tag( '%ees_day%', '([0-9]{1,2})', 'ees_day=' );
+	add_permastruct( 'ecp1_event', '/event/%ees_year%/%ees_month%/%ees_day%/%ecp1_event%', false );
 }
 
 // Register a filter to replace %ey% %em% %ed% in the events permalink
-add_filter( 'post_type_link', ecp1_event_permalink_filter, 100, 3 );
-function ecp1_event_permalink_filter( $link, $id = 0, $leavename = false ) {
-	if ( false === strpos( $link, '%year%/%monthnum%/%day%' ) )
+add_filter( 'post_type_link', ecp1_event_permalink_filter, 100, 4 );
+function ecp1_event_permalink_filter( $link, $id = 0, $leavename = false, $sample = false ) {
+	if ( false === strpos( $link, '%ees_year%/%ees_month%/%ees_day%' ) )
 		return $link; // not ours to filter
 	$event = get_post( $id );
 	if ( ! is_object( $event ) || 'ecp1_event' != $event->post_type )
 		return $link; // not ours to filter
 
-	// adapted from get_permalink
-	if ( '' != $link && !in_array( $post->post_status, array( 'draft', 'pending', 'auto-draft' ) ) ) {
+	// adapted from get_post_permalink
+	$draft_or_pending = isset( $post->post_status ) && in_array( $post->post_status, array( 'draft', 'pending', 'auto-draft' ) );
+	if ( ! empty( $link ) && ( !$draft_or_pending || $sample ) ) {
 
-		// Setup formats and a current timestamp for later
-		$yformat = 'Y'; $mformat = 'm'; $dformat = 'd';
+		// Setup formats and a post date timestamp for later
+		$yformat = 'Y'; $mformat = 'n'; $dformat = 'j';
 		$start = new DateTime( "@" . strtotime( $event->post_date ) );
 
 		// Get the post meta (OUTSIDE OF HELPERS)
 		$custom = get_post_meta( $event->ID, 'ecp1_event_start', true );
-		if ( false && '' != $custom && is_numeric( $custom ) ) {
+		if ( '' != $custom && is_numeric( $custom ) ) {
 			// Meta has been saved before
 			try {
 				$d = new DateTime( "@" . $custom );
@@ -125,14 +126,42 @@ function ecp1_event_permalink_filter( $link, $id = 0, $leavename = false ) {
 		}
 
 		// Return the updated link
-		$link = str_replace( '%year%', $start->format( $yformat ), $link );
-		$link = str_replace( '%monthnum%', $start->format( $mformat ), $link );
-		$link = str_replace( '%day%', $start->format( $dformat ), $link );
+		$link = str_replace( '%ees_year%', $start->format( $yformat ), $link );
+		$link = str_replace( '%ees_month%', $start->format( $mformat ), $link );
+		$link = str_replace( '%ees_day%', $start->format( $dformat ), $link );
 
 	} else { } // not using the fancy permalink option
 
 	// Return the updated link
 	return $link;
+}
+
+// Define a custom join to lookup events by start date year/month/day
+add_filter( 'posts_join', 'ecp1_events_ymd_join' );
+function ecp1_events_ymd_join( $join ) {
+	global $wpdb, $wp_query;
+	if ( isset( $wp_query->query_vars['post_type'] ) && 'ecp1_event' == $wp_query->query_vars['post_type'] && is_singular() )
+		$join .= sprintf( ' JOIN %s AS ecp1_es ON %s.ID=ecp1_es.post_id AND ecp1_es.meta_key="ecp1_event_start" ', $wpdb->postmeta, $wpdb->posts );
+	return $join;
+}
+
+// Define a custom where condition on ecp1_events for start year/month/day
+add_filter( 'posts_where', 'ecp1_events_ymd_where' );
+function ecp1_events_ymd_where( $where ) {
+	global $wpdb, $wp_query;
+	if ( isset( $wp_query->query_vars['post_type'] ) && 'ecp1_event' == $wp_query->query_vars['post_type'] && is_singular() ) {
+		$y = $wp_query->query_vars['ees_year'];
+		$m = $wp_query->query_vars['ees_month'];
+		$d = $wp_query->query_vars['ees_day'];
+		$where .= sprintf( ' AND ( ' .
+			' %s = YEAR(FROM_UNIXTIME(ecp1_es.meta_value)) AND ' .
+			' %s = MONTH(FROM_UNIXTIME(ecp1_es.meta_value)) AND ' .
+			' %s = DAYOFMONTH(FROM_UNIXTIME(ecp1_es.meta_value)) ) ',
+			$wpdb->escape( $y ),
+			$wpdb->escape( $m ),
+			$wpdb->escape( $d ) );
+	}
+	return $where;
 }
 
 // Now define a capbilities filter to allow editors of calendars
