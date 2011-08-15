@@ -3,7 +3,7 @@
 Plugin Name: Every Calendar +1 for WordPress
 Plugin URI: http://andrewbevitt.com/code/everycalplus1
 Description: A WordPress Calendar plugin with custom types and maps support.
-Version: 0.1.2
+Version: 0.1.3
 Author: Andrew Bevitt
 Author URI: http://andrewbevitt.com
 License: GPL2

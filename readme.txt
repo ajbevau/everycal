@@ -4,7 +4,7 @@ Donate link: http://andrewbevitt.com/
 Tags: calendar, events
 Requires at least: 3.0
 Tested up to: 3.2.1
-Stable tag: 0.1.2
+Stable tag: 0.1.3
 
 A WordPress plugin that integrates calendars, custom post types, maps, and offsite linking.
 
@@ -25,14 +25,14 @@ Roles and Capbilities: If you can edit a calendar and have edit_others_posts for
 This plugin was written because I could not find a plugin that provided great events management, calendar integration and worked reliably.
 
 There is a planned development roadmap (grep -R ROADMAP *):
-- Add support for extra calendar providers
-- Perform better security checks on events and write a map_meta_cap function for calendar checks
-- Provide a syndication feed for events in a calendar: XML, JSON, ICS, etc... (priority)
-- Add repeating events (priority)
-- Add extra shortcodes for different types of calendars
-- Add widget support
-- Dynamic UI in admin when clicking checkboxes
-- Tags for events and calendars of tagged events
+* Add support for extra calendar providers
+* Perform better security checks on events and write a map_meta_cap function for calendar checks
+* Provide a syndication feed for events in a calendar: XML, JSON, ICS, etc... (priority)
+* Add repeating events (priority)
+* Add extra shortcodes for different types of calendars
+* Add widget support
+* Dynamic UI in admin when clicking checkboxes
+* Tags for events and calendars of tagged events
 
 == Installation ==
 
@@ -70,6 +70,9 @@ than anything else. The external calendar interface is pluggable so you can exte
 2. description corresponds to screenshot-2.(png|jpg|jpeg|gif) in same dir.
 
 == Changelog ==
+
+= 0.1.3 =
+* Client side CSS for popup links
 
 = 0.1.2 =
 * Added better permalinks for the event post type: /event/%year%/%month%/%day%/event-name
