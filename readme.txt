@@ -4,7 +4,7 @@ Donate link: http://andrewbevitt.com/
 Tags: calendar, events
 Requires at least: 3.0
 Tested up to: 3.2.1
-Stable tag: 0.1.1
+Stable tag: 0.1.2
 
 A WordPress plugin that integrates calendars, custom post types, maps, and offsite linking.
 
@@ -46,7 +46,7 @@ To put a calendar onto one of your pages use the provided shortcode in the 'Cale
 
 == Frequently Asked Questions ==
 
-= How do I allow contributors/authors to add events to a (someone elses) calendar? ==
+= How do I allow contributors/authors to add events to a (someone elses) calendar? =
 
 Use a capability manager to assign user as a contributor role to the post and set the calendar contributor role to allow editing of published posts.
 
@@ -70,6 +70,21 @@ than anything else. The external calendar interface is pluggable so you can exte
 2. description corresponds to screenshot-2.(png|jpg|jpeg|gif) in same dir.
 
 == Changelog ==
+
+= 0.1.2 =
+* Added better permalinks for the event post type: /event/%year%/%month%/%day%/event-name
+* First tagged stable release on the WordPress Plugin Directory
+* Added screenshots to the repository
+
+= 0.1.1 =
+* Fixed bugs where PHP 5.3 API changed from PHP 5.2 now compatible with PHP 5.2
+* Tidy up the readme file
+
+= 0.1 =
+* First major release with documented functionaility
+
+= 0.1-beta =
+* Functional support for event and calendar types but no maps or external feeds
 
 = 0.1-alpha =
 * Initial plugin creation

@@ -65,6 +65,7 @@ function ecp1_register_types() {
 		'supports' => array( 'title' ),
 		'rewrite' => array( 'slug' => 'calendar' ),
 		'show_in_nav_menus' => true,
+		'with_front' => false,
 	);
 	
 	// Custom event post type arguments
@@ -79,13 +80,59 @@ function ecp1_register_types() {
 		'capability_type' => ECP1_EVENT_CAP,
 		'map_meta_cap' => true, # make sure all meta capabilities are mapped
 		'supports' => array( 'title', 'thumbnail' ),
-		'rewrite' => array( 'slug' => 'event' ),
+		'query_var' => true,
+		'rewrite' => false, // so we can have event/%ey%/%em%/%ed%/name
 		'show_in_nav_menus' => false,
+		'with_front' => 'false',
 	);
 	
 	// Register the custom post type
 	register_post_type( 'ecp1_event', $ecp1_evt_args );
 	register_post_type( 'ecp1_calendar', $ecp1_cal_args );
+
+	// Add a permalink structure for events
+	global $wp_rewrite;
+	$wp_rewrite->add_rewrite_tag( '%ecp1_event%', '([^/]+)', 'ecp1_event=' );
+	$wp_rewrite->add_permastruct( 'ecp1_event', '/event/%year%/%monthnum%/%day%/%ecp1_event%', false );
+	//add_permastruct( 'ecp1_event', 'event/%ey%/%em%/%ed%/%ecp1_event%', false );
+	//add_permastruct( 'ecp1_event', 'event/%ecp1_event%', false );
+}
+
+// Register a filter to replace %ey% %em% %ed% in the events permalink
+add_filter( 'post_type_link', ecp1_event_permalink_filter, 100, 3 );
+function ecp1_event_permalink_filter( $link, $id = 0, $leavename = false ) {
+	if ( false === strpos( $link, '%year%/%monthnum%/%day%' ) )
+		return $link; // not ours to filter
+	$event = get_post( $id );
+	if ( ! is_object( $event ) || 'ecp1_event' != $event->post_type )
+		return $link; // not ours to filter
+
+	// adapted from get_permalink
+	if ( '' != $link && !in_array( $post->post_status, array( 'draft', 'pending', 'auto-draft' ) ) ) {
+
+		// Setup formats and a current timestamp for later
+		$yformat = 'Y'; $mformat = 'm'; $dformat = 'd';
+		$start = new DateTime( "@" . strtotime( $event->post_date ) );
+
+		// Get the post meta (OUTSIDE OF HELPERS)
+		$custom = get_post_meta( $event->ID, 'ecp1_event_start', true );
+		if ( false && '' != $custom && is_numeric( $custom ) ) {
+			// Meta has been saved before
+			try {
+				$d = new DateTime( "@" . $custom );
+				$start = $d; // 5.2 doesn't support setTimestamp
+			} catch( Exception $e ) { } // do nothing
+		}
+
+		// Return the updated link
+		$link = str_replace( '%year%', $start->format( $yformat ), $link );
+		$link = str_replace( '%monthnum%', $start->format( $mformat ), $link );
+		$link = str_replace( '%day%', $start->format( $dformat ), $link );
+
+	} else { } // not using the fancy permalink option
+
+	// Return the updated link
+	return $link;
 }
 
 // Now define a capbilities filter to allow editors of calendars

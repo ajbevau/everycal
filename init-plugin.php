@@ -37,7 +37,7 @@ function ecp1_register_query_tags() {
 		ECP1_TEMPLATE_TEST_ARG => '([^&]+)', # for template devs to enable debuging
 		'ecp1_start'      => '([0-9])+',   # unix timestamp for event start lookup
 		'ecp1_end'        => '([0-9]+)',   #  and the end lookup (neither validated)
-		'ecp1_cal'        => '([a-zA-Z0-9_\-]+)',  # the ecp1_calendar slug to lookup
+		'ecp1_cal'        => '([a-zA-Z0-9_\-]+)',  # the ecp1_calendar slug to lookup in json/ical
 	);
 
 	// Loop over the tags and add them to the query vars
