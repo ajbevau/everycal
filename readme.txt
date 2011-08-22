@@ -71,6 +71,9 @@ than anything else. The external calendar interface is pluggable so you can exte
 
 == Changelog ==
 
+= 0.1.4 =
+* Added MySQL support for GMT timezone conversion - fixes permalink bug where MySQL timezone is not GMT
+
 = 0.1.3 =
 * Client side CSS for popup links
 
@@ -93,6 +96,8 @@ than anything else. The external calendar interface is pluggable so you can exte
 * Initial plugin creation
 
 == Upgrade Notice ==
+
+All versions of Every Calendar +1 are backward compatible at present.
 
 = 0.1-alpha0 =
 This is the first alpha development release there is no reason to upgrade yet.
