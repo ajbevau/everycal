@@ -154,9 +154,9 @@ function ecp1_events_ymd_where( $where ) {
 		$m = $wp_query->query_vars['ees_month'];
 		$d = $wp_query->query_vars['ees_day'];
 		$where .= sprintf( ' AND ( ' .
-			' %s = YEAR(FROM_UNIXTIME(ecp1_es.meta_value)) AND ' .
-			' %s = MONTH(FROM_UNIXTIME(ecp1_es.meta_value)) AND ' .
-			' %s = DAYOFMONTH(FROM_UNIXTIME(ecp1_es.meta_value)) ) ',
+			' %s = YEAR(CONVERT_TZ(FROM_UNIXTIME(ecp1_es.meta_value), @@session.time_zone, "+00:00")) AND ' .
+			' %s = MONTH(CONVERT_TZ(FROM_UNIXTIME(ecp1_es.meta_value), @@session.time_zone, "+00:00")) AND ' .
+			' %s = DAYOFMONTH(CONVERT_TZ(FROM_UNIXTIME(ecp1_es.meta_value), @@session.time_zone, "+00:00")) ) ',
 			$wpdb->escape( $y ),
 			$wpdb->escape( $m ),
 			$wpdb->escape( $d ) );
