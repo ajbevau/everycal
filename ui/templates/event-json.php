@@ -30,7 +30,7 @@ require_once( ECP1_DIR . '/ui/templates/_querylist.php' );
 $cal = $wp_query->query_vars['ecp1_cal'];
 
 // Get and validate the input parameters
-if ( empty( $wp_query->query_vars['ecp1_start'] ) || empty( $wp_query->query_vars['ecp1_end'] ) ) {
+if ( ! isset( $wp_query->query_vars['ecp1_start'] ) || ! isset( $wp_query->query_vars['ecp1_end'] ) ) {
 	_ecp1_template_error( __( 'Please specify a start and end timestamp for the lookup range' ),
 						412, __( 'Missing Parameters' ) );
 } else {
