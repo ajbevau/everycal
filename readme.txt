@@ -4,7 +4,7 @@ Donate link: http://andrewbevitt.com/
 Tags: calendar, events
 Requires at least: 3.0
 Tested up to: 3.2.1
-Stable tag: 0.1.4
+Stable tag: 0.1.5
 
 A WordPress plugin that integrates calendars, custom post types, maps, and offsite linking.
 
@@ -70,6 +70,10 @@ than anything else. The external calendar interface is pluggable so you can exte
 2. description corresponds to screenshot-2.(png|jpg|jpeg|gif) in same dir.
 
 == Changelog ==
+
+= 0.1.5 =
+* Include comments on the events post
+* Clear the loop actions on the iCAL and JSON feeds (fix http://wordpress.org/support/topic/plugin-every-calendar-1-for-wordpress-events-dont-show-up-on-calendar)
 
 = 0.1.4 =
 * Added MySQL support for GMT timezone conversion - fixes permalink bug where MySQL timezone is not GMT
