@@ -59,6 +59,11 @@ if ( ! isset( $wp_query->query_vars['ecp1_start'] ) || ! isset( $wp_query->query
 		// Reset the default WordPress query just in case
 		wp_reset_query();
 
+		// Remove any actions on loop
+		remove_all_actions( 'loop_start' );
+		remove_all_actions( 'the_post' );
+		remove_all_actions( 'loop_end' );
+
 		// Lookup the calendar post
 		$cal = get_page_by_path( $cal, OBJECT, 'ecp1_calendar' );
 		if ( is_null( $cal ) ) {
