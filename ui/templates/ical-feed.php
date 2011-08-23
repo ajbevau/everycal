@@ -32,6 +32,11 @@ $cal = $wp_query->query_vars['ecp1_cal'];
 // Reset the default WordPress query just in case
 wp_reset_query();
 
+// Remove any actions on loop
+remove_all_actions( 'loop_start' );
+remove_all_actions( 'the_post' );
+remove_all_actions( 'loop_end' );
+
 if ( ! empty( $wp_query->query_vars[ECP1_TEMPLATE_TEST_ARG] ) &&
 		'1' == $wp_query->query_vars[ECP1_TEMPLATE_TEST_ARG] ) {
 	header( 'Content-Type: text/plain' );
