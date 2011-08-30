@@ -45,6 +45,35 @@ To put a calendar onto one of your pages use the provided shortcode in the 'Cale
 
 == Frequently Asked Questions ==
 
+= Does Every Calendar +1 Support Gravity Forms Custom Post Type Plugin? =
+
+Yes. But the start / end date functionality requires PHP 5.3.0.
+
+Use the Gravity Forms plugin to create the following custom fields for your event post:
+ * gravity_summary - The event summary
+ * gravity_description - The event description
+ * gravity_url - The event external URL (leave blank if using event post page)
+ * gravity_all_day - Does the event run all day? Y or N.
+ * gravity_calendar - Every Calendar +1 Calendar Post ID (leave blank if you want to manually assign)
+ * gravity_location - The address or location description: you will still need to do geocoding from the admin manually.
+ * gravity_start_date - The DATE the event starts
+ * gravity_start_date_format - Format string for the event start date see link below
+ * gravity_start_time - The TIME the event starts
+ * gravity_start_time_format - Format string for the event start time see link below
+ * gravity_end_date, gravity_end_date_format, gravity_end_time, gravity_end_time_format
+
+Once you have set ANY of these custom fields the Event admin screen will prompt you to import the values.
+
+You can set as many or as few as you like only the fields with values will be imported.
+
+Once again **start / end date importing requires PHP 5.3.0**.
+
+Note: Importing the values sets the plugin meta value: ecp1_ignore_gravity = Y. This means you will not be prompted again. If you want to be prompted to import again use the custom-fields at the bottom of the Event post edit screen to remove or set this meta value to N.
+
+
+See http://au.php.net/manual/en/datetime.createfromformat.php for valid format strings.
+
+
 = How do I allow contributors/authors to add events to a (someone elses) calendar? =
 
 Use a capability manager to assign user as a contributor role to the post and set the calendar contributor role to allow editing of published posts.
