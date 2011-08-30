@@ -381,7 +381,7 @@ ENDOFSCRIPT;
 		$ecp1_info = sprintf( '<div><a href="%s" target="_blank">%s</a></div>', $ecp1_url, __( 'Read more...' ) );
 	} // else: leave as empty string summary must be enough
 	
-	// If feature images are enabled by the them (aka Post Thumbnails) then show if there is on
+	// If feature images are enabled by the them (aka Post Thumbnails) then show if there is one
 	$feature_image = '';
 	if ( function_exists( 'add_theme_support' ) && function_exists( 'get_the_post_thumbnail' ) ) {
 		if ( has_post_thumbnail( $post->ID ) )

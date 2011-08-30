@@ -130,11 +130,22 @@ abstract class ECP1Calendar {
 	}
 
 	// Function that returns all events fetched or cached
-	public function get_events() {
+	// Can filter the array by specifying start and end parameters:
+	//   event start is less than END parameter AND
+	//   event end is greater than START parameter
+	public function get_events( $start=null, $end=null ) {
 		if ( ! is_array( $this->events ) )
 			return null;
 		$_events = $this->events;
 		unset( $_events['_meta'] );
+		if ( null !== $start && null !== $end ) {
+			foreach( $_events as $id=>$e ) {
+				if ( $e['start'] <= $end && $e['end'] >= $start )
+					continue;
+				else
+					unset( $_events[$id] );
+			}
+		}
 		return $_events;
 	}
 

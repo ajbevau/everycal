@@ -17,7 +17,8 @@ include_once( ECP1_DIR . '/ui/client-render.php' );
 include_once( ECP1_DIR . '/ui/calendar-post.php' );
 include_once( ECP1_DIR . '/ui/event-post.php' );
 
-// Register the shortcodes for a full-sized calendar
-include_once( ECP1_DIR . '/ui/full-size-calendar-shortcode.php' );
+// Register the shortcodes
+include_once( ECP1_DIR . '/ui/shortcode/full-size-calendar.php' );
+include_once( ECP1_DIR . '/ui/shortcode/event-list-calendar.php' );
 
 ?>

@@ -79,12 +79,12 @@ CALSCALE:GREGORIAN
 	// Note: Using query_posts is supported here as this is meant to be the main loop
 	// Note: The SQL has start comparission BEFORE end comparisson $end before $start
 	// ROADMAP: Repeating events - probably will need to abstract this
-	$event_ids = $wpdb->get_col( $wpdb->prepare( $$ECP1_QUERY['EVENTS'], $cal->ID, $end, $start ) );
+	$event_ids = $wpdb->get_col( $wpdb->prepare( _ecp1_tq( 'EVENTS' ), $cal->ID, $end, $start ) );
 			
 	// Now look to see if this calendar supports featured events and if so load ids
 	$feature_ids = array();
 	if ( _ecp1_calendar_show_featured( $cal->ID ) )
-		$feature_ids = $wpdb->get_col( $wpdb->prepare( $$ECP1_QUERY['FEATURED_EVENTS'], $end, $start ) );
+		$feature_ids = $wpdb->get_col( $wpdb->prepare( _ecp1_tq( 'FEATURED_EVENTS' ), $end, $start ) );
 	$event_ids = array_merge( $event_ids, $feature_ids );
 
 	// If any events were found load them into the loop
@@ -134,7 +134,7 @@ CALSCALE:GREGORIAN
 			// should be prefixed in either case
 			$edescription = sprintf( "%s", _ecp1_event_meta( 'ecp1_summary' ) );
 			$ecp1_desc = _ecp1_event_meta_is_default( 'ecp1_description' ) ? null : strip_tags( _ecp1_event_meta( 'ecp1_description' ) );
-			$ecp1_url = _ecp1_event_meta_is_default( 'ecp1_url' ) ? null : urldecode( _ecp1_event_meta( 'ecp1_url' ) );
+			$ecp1_url = _ecp1_event_meta_is_default( 'ecp1_url' ) ? get_permalink() : urldecode( _ecp1_event_meta( 'ecp1_url' ) );
 			if ( ! is_null( $ecp1_desc ) || ! is_null( $ecp1_url ) )
 				$edescription .= "\\n------------------";
 			if ( ! is_null( $ecp1_url ) )

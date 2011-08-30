@@ -102,7 +102,13 @@ function ecp1_calendar_meta_form() {
 <?php
 	if ( '' != $post->post_title ) {
 ?>
-		<div>You can display the calendar on any WordPress post/page by using the shortcode: [largecalendar name=&quot;<?php the_title(); ?>&quot;]</div>
+		<div>Valid shortcodes for displaying this calendar:
+			<ul style="padding-top:6px;list-style-type:disc;margin-left:1.5em;">
+				<li style="margin-bottom:2px;">FullCalendar: [largecalendar name=&quot;<?php the_title(); ?>&quot;]</li>
+				<li>Event List: [eventlist name=&quot;<?php the_title(); ?>&quot; starting=&quot;1st Jan 2011 2:00pm&quot; until=&quot;today&quot;] both the starting and until attributes are optional.</li>
+			</ul>
+			or you can link directly to this calendar post from your menu.
+		</div>
 <?php
 	}
 ?>

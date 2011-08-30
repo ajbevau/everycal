@@ -55,13 +55,13 @@ function _ecp1_parse_event_custom( $post_id=-1 ) {
 		return;
 	
 	// Load the basic meta for this event post
-	$custom = get_post_meta( $post->ID, 'ecp1_event', true ); // will be everything NOT in _meta['standalone']
+	$custom = get_post_meta( $post_id, 'ecp1_event', true ); // will be everything NOT in _meta['standalone']
 
 	// parse the custom meta fields into the value keys
 	if ( is_array( $custom ) ) {
 		// load the remaining meta fields from standalone into $custom
 		foreach( $ecp1_event_fields['_meta']['standalone'] as $field_key=>$table_key )
-			$custom[$field_key] = get_post_meta( $post->ID, $table_key, true );
+			$custom[$field_key] = get_post_meta( $post_id, $table_key, true );
 		
 		// look at all the non-meta keys and copy the database value in or use defaults
 		foreach( array_keys( $ecp1_event_fields ) as $key ) {

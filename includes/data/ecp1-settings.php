@@ -47,17 +47,43 @@ $_ecp1_settings = array(
 		'default' => __( 'Featured events occur at location local time.' ) ),
 
 	// The number of seconds in the past to look back when exporting
-	// iCal files of calendars; and the corresponding numberto look
-	// forward by when exporting iCal files.
-	'ical_export_start_offset' => array( 'default' => '86400' ), // one day
-	'ical_export_end_offset' => array( 'default' => '15811200' ), // 6 months
+	// feeds (iCal/RSS) of calendars; and the corresponding number to
+	// look forward by when exporting feeds.
+	'export_start_offset' => array( 'default' => '86400' ), // one day
+	'export_end_offset' => array( 'default' => '15811200' ), // 6 months
 
 	// The next two relate to if external calendars should be cached
 	// locally, and syndicated in the calendar feeds, or not. And if
 	// so how long the local cache should be considered valid for.
-	'ical_export_include_external' => array( 'default' => 1 ), // yes
-	'ical_export_external_cache_life' => array( 'default' => '604800' ), // one week 
+	'export_include_external' => array( 'default' => 1 ), // yes
+	'export_external_cache_life' => array( 'default' => '604800' ), // one week 
+
+	// Finally create synonyms effectively this is so we can create a
+	// setting that contains the value of another setting to maintain
+	// setting names going forward.
+	//	$key => $value
+	// $key is the old name of the setting
+	// $value is the new name of the setting
+	'_synonyms' => array(
+		'ical_export_start_offset' => 'export_start_offset',
+		'ical_export_end_offset' => 'export_end_offset',
+		'ical_export_include_external' => 'export_include_external',
+		'ical_export_external_cache_life' => 'export_external_cache_life',
+	),
 );
+
+// Helper function that returns the real key name for an option
+// will be the given name or out of _synonyms if exists in it
+function _ecp1_real_option_key( $option_key ) {
+	global $_ecp1_settings;
+
+	// If the requested key is a synonym then replace with real key
+	if ( ! is_null( $option_key ) && array_key_exists( $option_key, $_ecp1_settings['_synonyms'] ) )
+		$option_key = $_ecp1_settings['_synonyms'][$option_key];
+
+	return $option_key;
+}
+
 
 // Helper function that returns the whole options array or just the 
 // value if a key specified - where the key is not in the database
@@ -69,6 +95,16 @@ function _ecp1_get_options( $option_key=null, $reload_from_db=false ) {
 	// Read the database settings if they haven't been or are needed again
 	if ( ! $_ecp1_settings['_db'] || $reload_from_db ) {
 		$dbopts = get_option( ECP1_GLOBAL_OPTIONS );
+
+		// Loop over the database keys and rename any where the synonym is still used
+		if ( is_array( $dbopts ) ) {
+			foreach( $dbopts as $key=>$value ) {
+				if ( _ecp1_real_option_key( $key ) !== $key ) {
+					$dbopts[_ecp1_real_option_key( $key )] = $dbopts[$key];
+					unset( $dbopts[$key] );
+				}
+			}
+		}
 		
 		// Loop over the default settings and load values where appropriate
 		foreach( $_ecp1_settings as $key=>$defaults ) {
@@ -79,8 +115,11 @@ function _ecp1_get_options( $option_key=null, $reload_from_db=false ) {
 		// Mark as having been read from DB
 		$_ecp1_settings['_db'] = true;
 	}
+
+	// Handle synonyms
+	$option_key = _ecp1_real_option_key( $option_key );
 	
-	// Do they just want the value of the key option?
+	// Do they just want the value of the keyed option?
 	// This is done here for a minor efficiency boost
 	if ( ! is_null( $option_key ) ) {
 		if ( ! array_key_exists( $option_key, $_ecp1_settings ) )
@@ -102,6 +141,7 @@ function _ecp1_get_options( $option_key=null, $reload_from_db=false ) {
 // Tests if the option is at it's default value
 function _ecp1_option_is_default( $key ) {
 	global $_ecp1_settings;
+	$key = _ecp1_real_option_key( $key );
 	if ( ! array_key_exists( $key, $_ecp1_settings ) )
 		return false;	// Unknown key
 	if ( ! isset( $_ecp1_settings[$key]['value'] ) )
@@ -112,6 +152,7 @@ function _ecp1_option_is_default( $key ) {
 // Returns the default value for the given option
 function _ecp1_option_get_default( $key ) {
 	global $_ecp1_settings;
+	$key = _ecp1_real_option_key( $key );
 	if ( ! array_key_exists( $key, $_ecp1_settings ) )
 		return null;
 	return $_ecp1_settings[$key]['default'];

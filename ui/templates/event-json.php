@@ -79,7 +79,7 @@ if ( ! isset( $wp_query->query_vars['ecp1_start'] ) || ! isset( $wp_query->query
 			// Note: Using query_posts is supported here as this is meant to be the main loop
 			// Note: The SQL has start comparission BEFORE end comparisson $end before $start
 			// ROADMAP: Repeating events - probably will need to abstract this
-			$event_ids = $wpdb->get_col( $wpdb->prepare( $$ECP1_QUERY['EVENTS'], $cal->ID, $end, $start ) );
+			$event_ids = $wpdb->get_col( $wpdb->prepare( _ecp1_tq( 'EVENTS' ), $cal->ID, $end, $start ) );
 			
 			// Now look to see if this calendar supports featured events and if so load ids
 			// and the event colors: can't load later because the calendar meta is updated 
@@ -87,7 +87,7 @@ if ( ! isset( $wp_query->query_vars['ecp1_start'] ) || ! isset( $wp_query->query
 			$feature_ids = array();
 			$feature_color = $feature_textcolor = '#000000';
 			if ( _ecp1_calendar_show_featured( $cal->ID ) ) {
-				$feature_ids = $wpdb->get_col( $wpdb->prepare( $$ECP1_QUERY['FEATURED_EVENTS'], $end, $start ) );
+				$feature_ids = $wpdb->get_col( $wpdb->prepare( _ecp1_tq( 'FEATURED_EVENTS' ), $end, $start ) );
 				$feature_color = _ecp1_calendar_meta( 'ecp1_feature_event_color' );
 				$feature_textcolor = _ecp1_calendar_meta( 'ecp1_feature_event_textcolor' );
 			}

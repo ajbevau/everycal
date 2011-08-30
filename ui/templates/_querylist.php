@@ -8,6 +8,15 @@
 // Make sure we're included from within the plugin
 require( ECP1_DIR . '/includes/check-ecp1-defined.php' );
 
+// Shortcut function to return the query text: template_query
+function _ecp1_tq( $name ) {
+	global $ECP1_QUERY;
+	if ( ! array_key_exists( $name, $ECP1_QUERY ) )
+		return null;
+	global $$ECP1_QUERY[$name];
+	return $$ECP1_QUERY[$name];
+}
+
 // Make a lookup array of query variables
 $ECP1_QUERY = array(
 	'EVENTS'           => '_ecp1_query_events',

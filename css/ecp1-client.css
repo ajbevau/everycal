@@ -1,14 +1,17 @@
 /* Every Calendar +1 Client Styling */
-#ecp1_calendar, #ecp1_event {margin-bottom:1em;}
+#ecp1_calendar, #ecp1_event, li.ecp1_event {margin-bottom:1em;}
 #ecp1_calendar .fc table {border-bottom:none;margin-bottom:0;}
 #ecp1_calendar .fc-header td, #ecp1_calendar .fc-header th {border-top:none;}
 #ecp1_calendar .feeds {float:right;}
-#ecp1_event ul.ecp1_event-details {margin:0;}
-#ecp1_event ul.ecp1_event-details li {list-style-type:none;}
-#ecp1_event span.ecp1_event-title {vertical-align:top;width:90px;display:inline-block;}
-#ecp1_event span.ecp1_event-text {vertical-align:top;display:inline-block;}
-#ecp1_event span.ecp1_event-text_wide {vertical-align:top;display:block;padding-left:0.5em;}
-#ecp1_event span#ecp1_feature {float:right;margin:0 0 10px 10px;}
+#ecp1_calendar ol {margin:0;padding:0;}
+ul.ecp1_event-details {margin:0;}
+ul.ecp1_event-details li {list-style-type:none;}
+span.ecp1_event-title {vertical-align:top;width:90px;display:inline-block;}
+span.ecp1_event-text {vertical-align:top;display:inline-block;}
+span.ecp1_event-text_wide {vertical-align:top;display:block;padding-left:0.5em;}
+span#ecp1_feature, span.ecp1_feature {float:right;margin:0 0 10px 10px;}
+li.ecp1_event {list-style-type:none;border-bottom:2px solid #cccccc;padding-bottom:1em;}
+
 /* Full Calendar Modifications */
 .fc-event {cursor:pointer;}
 
