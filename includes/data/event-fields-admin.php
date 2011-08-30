@@ -204,6 +204,33 @@ function ecp1_event_meta_form() {
 	// If the calendar selected is not editable by the user then they're cheating
 	if ( ! _ecp1_event_meta_is_default( 'ecp1_calendar' ) && ! current_user_can( 'edit_' . ECP1_CALENDAR_CAP, $ecp1_calendar ) )
 		wp_die( __( 'You can not change event details on a calendar you are not allowed to edit.' ) );
+
+	// Does this event have any Gravity Forms meta?
+	// If so provide a method to import it - VERY BETA use with caution:
+	// please report bugs with this.
+	if ( _ecp1_event_gravity_meta_exists() && ! _ecp1_event_ignore_gravity_meta() ) {
+?>
+	<div class="ecp1_meta" style="margin-bottom:20px;">
+		<p><?php _e( 'Gravity Forms Custom Post Type data found for this event:' ); ?></p>
+		<ul>
+<?php
+		foreach( $ecp1_event_fields['_meta']['_gravity_fields'] as $field )
+			printf( '<li>%s = %s</li>', $field, htmlentities( get_post_meta( $post_ID, $field, true ) ) );
+?>
+		</ul>
+		<input type="checkbox" id="import_gravity" name="import_gravity" value="1" />
+		<label for="import_gravity"><?php _e( 'Tick this box and save event to import these values to the event (no other changes will be saved)' ); ?></label>
+		<input type="submit" class="button-primary" value="<?php _e( 'Save' ); ?>" /><br/>
+                <input type="checkbox" id="ignore_gravity" name="ignore_gravity" value="1" />
+                <label for="ignore_gravity"><?php _e( 'Tick this box to ignore gravity values for this event.' ); ?></label>
+		<p style="margin-top:20px;"><?php _e( 'You can edit these values using the custom fields below.' ); ?></p>
+<?php
+		if ( ECP1_PHP5 < 3 )
+			printf( '<p><em>%s</em></p>', __( 'Note: Start/End import will NOT work for you - upgrade to PHP 5.3.0 or later!' ) );
+?>
+	</div>
+<?php
+	}
 	
 	// Output the meta box with a custom nonce
 ?>
@@ -505,6 +532,17 @@ function ecp1_event_save() {
 	// Verify the user can actually edit posts
 	if ( ! current_user_can( 'edit_' . ECP1_EVENT_CAP, $post->ID ) )
 		return $post->ID;
+
+	// Check if importing Gravity Form fields if so do that and return
+	if ( isset( $_POST['import_gravity'] ) && '1' == $_POST['import_gravity'] ) {
+		_ecp1_parse_event_custom();
+		_ecp1_event_gravity2ecp1();
+		return $post->ID;
+	}
+
+	// Check if the user wants to ignore Gravity Form data
+	if ( isset( $_POST['ignore_gravity'] ) && '1' == $_POST['ignore_gravity'] )
+		$gravity_ignore = 'Y';
 
 	// Escape any nasty in the summary (it's meant to be HTML free)
 	$ecp1_summary = $ecp1_event_fields['ecp1_summary'][1];

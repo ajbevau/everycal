@@ -26,6 +26,9 @@ $ecp1_event_fields = array(
 	'ecp1_showmarker' => array( '', '' ),
 	'ecp1_showmap' => array( '', '' ),
 	'ecp1_featured' => array( '', '' ),
+
+	// support for gravity forms custom post type plugin
+	'gravity_ignore' => array( '', 'N' ),
 	
 	// meta fields that describe the database structure
 	'_meta' => array(
@@ -33,11 +36,22 @@ $ecp1_event_fields = array(
 			'ecp1_start_ts' => 'ecp1_event_start',
 			'ecp1_end_ts' => 'ecp1_event_end',
 			'ecp1_calendar' => 'ecp1_event_calendar',
-			'ecp1_featured' => 'ecp1_event_is_featured'
+			'ecp1_featured' => 'ecp1_event_is_featured',
+			'gravity_ignore' => 'ecp1_ignore_gravity',
 		),
 		'calendar_tz' => 'UTC', // the TZ of the parent calendar
 		'_loaded' => false, // custom fields not yet loaded
 		'_id' => null, // the event ID
+
+		// Names of custom fields to create with Gravity Forms
+		'_gravity_fields' => array(
+			'gravity_summary', 'gravity_description', 'gravity_url',
+			'gravity_all_day', 'gravity_calendar', 'gravity_location',
+			'gravity_start_date', 'gravity_start_date_format',
+			'gravity_start_time', 'gravity_start_time_format',
+			'gravity_end_date', 'gravity_end_date_format',
+			'gravity_end_time', 'gravity_end_time_format',
+		)
 	)
 );
 
@@ -129,6 +143,144 @@ function _ecp1_event_meta_id() {
 	if ( ! isset( $ecp1_event_fields['_meta'] ) || ! $ecp1_event_fields['_meta']['_loaded'] )
 		return -1; // not loaded
 	return $ecp1_event_fields['_meta']['_id'];
+}
+
+// Determines if any Gravity Forms data exists for this event
+function _ecp1_event_gravity_meta_exists() {
+	global $ecp1_event_fields;
+	$gfields = $ecp1_event_fields['_meta']['_gravity_fields'];
+	foreach( $gfields as $gfield ) {
+		$meta = get_post_meta( _ecp1_event_meta_id(), $gfield, true );
+		if ( '' !== $meta )
+			return true;
+	}
+	return false;
+}
+
+// Does this event want to ignore any Gravity Forms meta?
+function _ecp1_event_ignore_gravity_meta() {
+	return 'Y' == _ecp1_event_meta( 'gravity_ignore' );
+}
+
+// Converts the Gravity Forms fields to Every Calendar fields
+// tz can be a string name of a timezone for this event or null
+// if the calendar will be used for the timezone.
+function _ecp1_event_gravity2ecp1( $tz=null ) {
+	global $ecp1_event_fields;
+	$event_id = _ecp1_event_meta_id();
+
+	// Load all the Gravity meta values
+	$gfields = $ecp1_event_fields['_meta']['_gravity_fields'];
+	foreach( $gfields as $gfield )
+		$$gfield = get_post_meta( _ecp1_event_meta_id(), $gfield, true );
+
+	// If calendar tz is loaded (no calendar) and no tz parameter and no gravity
+	// calendar then we have to assume TZ=UTC so check for it now
+	if ( '' == $gravity_calendar && is_null( $tz ) )
+		$tz = new DateTimeZone( $ecp1_event_fields['_meta']['calendar_tz'] );
+	else if ( ! is_null( $tz ) )
+		$tz = new DateTimeZone( $tz );
+	else if ( '' != $gravity_calendar ) {
+		_ecp1_parse_calendar_custom( $gravity_calendar );
+		$tz = new DateTimeZone( ecp1_get_calendar_timezone() );
+	}
+
+	/*
+		gravity_summary		ecp1_summary
+		gravity_description	ecp1_description
+		gravity_url		ecp1_url
+		gravity_location	ecp1_location
+		gravity_all_day		ecp1_full_day
+
+		gravity_calendar	ecp1_event_calendar
+		
+		gravity_start_date	ecp1_event_start (using format)
+		gravity_start_time
+		gravity_end_date	ecp1_event_end (using format)
+		gravity_end_time
+	 */
+	$save_fields_group = array();
+	$save_fields_alone = array();
+
+	// Summary
+	$save_fields_group['ecp1_summary'] = _ecp1_event_meta( 'ecp1_summary' );
+	if ( '' != $gravity_summary )
+		$save_fields_group['ecp1_summary'] = $gravity_summary;
+
+	// Description
+	$save_fields_group['ecp1_description'] = _ecp1_event_meta( 'ecp1_description' );
+	if ( '' != $gravity_description )
+		$save_fields_group['ecp1_description'] = $gravity_description;
+
+	// Event URL
+	$save_fields_group['ecp1_url'] = _ecp1_event_meta( 'ecp1_url' );
+	if ( '' != $gravity_url )
+		$save_fields_group['ecp1_url'] = $gravity_url;
+
+	// Location
+	$save_fields_group['ecp1_location'] = _ecp1_event_meta( 'ecp1_location' );
+	if ( '' != $gravity_location )
+		$save_fields_group['ecp1_location'] = $gravity_location;
+
+	// Does the event run all day?
+	$save_fields_group['ecp1_full_day'] = _ecp1_event_meta( 'ecp1_full_day' );
+	if ( '' != $gravity_all_day )
+		$save_fields_group['ecp1_full_day'] = $gravity_all_day;
+
+
+	// Calendar - ALONE
+	$save_fields_alone['ecp1_event_calendar'] = _ecp1_event_meta( 'ecp1_calendar' );
+	if ( '' != $gravity_calendar )
+		$save_fields_alone['ecp1_event_calendar'] = $gravity_calendar;
+
+
+	// Parse the start date / time with the formats
+	// This requires PHP 5.3.0
+	$start = null;
+	if ( ECP1_PHP5 >= 3 ) {
+		if ( '' != $gravity_start_date && '' != $gravity_start_time &&
+				'' != $gravity_start_date_format && '' != $gravity_start_time_format ) {
+			$start = DateTime::createFromFormat( $gravity_start_date_format . ' ' . $gravity_start_time_format,
+					$gravity_start_date . ' ' . $gravity_start_time, $tz );
+		} else if ( '' != $gravity_start_date && '' != $gravity_start_date_format ) {
+			$start = DateTime::createFromFormat( $gravity_start_date_format, $gravity_start_date, $tz );
+			$start->setTime( 0, 0, 0 );
+		}
+
+		if ( ! is_null( $start ) )
+			$save_fields_alone['ecp1_event_start'] = $start->getTimestamp();
+	}
+
+	// Parse the end date / time with the formats
+	// This requires PHP 5.3.0
+	$end = null;
+	if ( ECP1_PHP5 >= 3 ) {
+		if ( '' != $gravity_end_date && '' != $gravity_end_time &&
+				'' != $gravity_end_date_format && '' != $gravity_end_time_format ) {
+			$end = DateTime::createFromFormat( $gravity_end_date_format . ' ' . $gravity_end_time_format,
+					$gravity_end_date . ' ' . $gravity_end_time, $tz );
+		} else if ( '' != $gravity_end_date && '' != $gravity_end_date_format ) {
+			$end = DateTime::createFromFormat( $gravity_end_date_format, $gravity_end_date, $tz );
+		}
+
+		if ( ! is_null( $end ) )
+			$save_fields_alone['ecp1_event_end'] = $end->getTimestamp();
+	}
+
+	// Ignore Gravity meta from now on
+	$save_fields_alone['ecp1_ignore_gravity'] = 'Y';
+
+	// Keep the remaining meta values as are set
+	foreach( array( 'ecp1_coord_lat', 'ecp1_coord_lng', 'ecp1_map_zoom',
+		'ecp1_map_placemarker', 'ecp1_showmarker', 'ecp1_showmap', 'ecp1_featured' ) as $key ) {
+		$save_fields_group[$key] = _ecp1_event_meta( $key );
+	}
+
+
+	// Save the post meta information
+	update_post_meta( $event_id, 'ecp1_event', $save_fields_group );
+	foreach( $save_fields_alone as $key=>$value )
+		update_post_meta( $event_id, $key, $value );
 }
 
 ?>
