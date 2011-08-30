@@ -4,7 +4,7 @@ Donate link: http://andrewbevitt.com/
 Tags: calendar, events
 Requires at least: 3.0
 Tested up to: 3.2.1
-Stable tag: 0.1.5
+Stable tag: 0.2.0
 
 A WordPress plugin that integrates calendars, custom post types, maps, and offsite linking.
 
@@ -25,13 +25,14 @@ Roles and Capbilities: If you can edit a calendar and have edit_others_posts for
 This plugin was written because I could not find a plugin that provided great events management, calendar integration and worked reliably.
 
 There is a planned development roadmap (grep -R ROADMAP *):
- * Add support for extra calendar providers
- * Perform better security checks on events and write a map_meta_cap function for calendar checks
- * Provide an RSS feed for events in a calendar (priority)
- * Add repeating events (priority)
- * Add widget support
- * Dynamic UI in admin when clicking checkboxes
- * Tags for events and calendars of tagged events
+
+* Add support for extra calendar providers
+* Perform better security checks on events and write a map_meta_cap function for calendar checks
+* Provide an RSS feed for events in a calendar (priority)
+* Add repeating events (priority)
+* Add widget support
+* Dynamic UI in admin when clicking checkboxes
+* Tags for events and calendars of tagged events
 
 == Installation ==
 
@@ -50,17 +51,18 @@ To put a calendar onto one of your pages use the provided shortcode in the 'Cale
 Yes. But the start / end date functionality requires PHP 5.3.0.
 
 Use the Gravity Forms plugin to create the following custom fields for your event post:
- * gravity_summary - The event summary
- * gravity_description - The event description
- * gravity_url - The event external URL (leave blank if using event post page)
- * gravity_all_day - Does the event run all day? Y or N.
- * gravity_calendar - Every Calendar +1 Calendar Post ID (leave blank if you want to manually assign)
- * gravity_location - The address or location description: you will still need to do geocoding from the admin manually.
- * gravity_start_date - The DATE the event starts
- * gravity_start_date_format - Format string for the event start date see link below
- * gravity_start_time - The TIME the event starts
- * gravity_start_time_format - Format string for the event start time see link below
- * gravity_end_date, gravity_end_date_format, gravity_end_time, gravity_end_time_format
+
+* gravity_summary - The event summary
+* gravity_description - The event description
+* gravity_url - The event external URL (leave blank if using event post page)
+* gravity_all_day - Does the event run all day? Y or N.
+* gravity_calendar - Every Calendar +1 Calendar Post ID (leave blank if you want to manually assign)
+* gravity_location - The address or location description: you will still need to do geocoding from the admin manually.
+* gravity_start_date - The DATE the event starts
+* gravity_start_date_format - Format string for the event start date see link below
+* gravity_start_time - The TIME the event starts
+* gravity_start_time_format - Format string for the event start time see link below
+* gravity_end_date, gravity_end_date_format, gravity_end_time, gravity_end_time_format
 
 Once you have set ANY of these custom fields the Event admin screen will prompt you to import the values.
 
@@ -98,6 +100,11 @@ than anything else. The external calendar interface is pluggable so you can exte
 2. description corresponds to screenshot-2.(png|jpg|jpeg|gif) in same dir.
 
 == Changelog ==
+
+= 0.2.0 =
+* Added [eventlist name="X" start="X" until="X"] shortcode (starting/until take human datetime strings and are optional)
+* The [eventlist] shortcode gives a blog like looking list of events for the calendar
+* Added **initial beta** support for Gravity Forms Custom Post Type plugin for Events (only for Events).
 
 = 0.1.5 =
 * Include comments on the events post
