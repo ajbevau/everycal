@@ -12,6 +12,19 @@ require( ECP1_DIR . '/includes/check-ecp1-defined.php' );
 if ( ECP1_DEBUG ) {
 	ini_set( 'display_errors', 1 );
 	error_reporting( E_ALL );
+
+	if ( is_admin() )
+		add_action( 'wp', 'ecp1_debug_query' );
+}
+
+function ecp1_debug_query() {
+?>
+	<div style="border:2px solid red;margin:1em;width:95%;height:200px;overflow:scroll;position:absolute;bottom:0;left:0;z-index:999;background:#fff;">
+		<pre>
+<?php global $wp_query; print_r( $wp_query ); ?>
+		</pre>
+	</div>
+<?php
 }
 
 // Define the Custom Post Type

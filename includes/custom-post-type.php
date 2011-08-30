@@ -99,7 +99,7 @@ function ecp1_register_types() {
 }
 
 // Register a filter to replace %ey% %em% %ed% in the events permalink
-add_filter( 'post_type_link', ecp1_event_permalink_filter, 100, 4 );
+add_filter( 'post_type_link', 'ecp1_event_permalink_filter', 100, 4 );
 function ecp1_event_permalink_filter( $link, $id = 0, $leavename = false, $sample = false ) {
 	if ( false === strpos( $link, '%ees_year%/%ees_month%/%ees_day%' ) )
 		return $link; // not ours to filter

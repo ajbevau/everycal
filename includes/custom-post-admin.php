@@ -217,12 +217,12 @@ function ecp1_filter_event_posts_requests( $query, $object ) {
 		foreach( $cals as $cal )
 			$q = '' == $q ? $cal->ID : $q.','.$cal->ID;
 		
-		// If the use cannot edit calendars then no events either
+		// If the user cannot edit calendars then no events either
 		if ( '' == $q )
 			return preg_replace( '/WHERE/', 'WHERE 1=2 AND ', $query_replace, 1 ); // only once
 
 		// We will need to JOIN the post meta table
-		$ecp1_join_meta = " JOIN $wpdb->postmeta AS ecp1_meta ON ($wpdb->posts.ID = ecp1_meta.post_id AND ecp1_meta.meta_key='ecp1_event_calendar') WHERE ";
+		$ecp1_join_meta = " LEFT JOIN $wpdb->postmeta AS ecp1_meta ON ($wpdb->posts.ID = ecp1_meta.post_id AND ecp1_meta.meta_key='ecp1_event_calendar') WHERE ";
 		$query_replace = preg_replace( '/WHERE/', $ecp1_join_meta, $query_replace, 1 ); // only first WHERE
 
 		// If the user needs elevation grant it in the query
@@ -241,7 +241,7 @@ function ecp1_filter_event_posts_requests( $query, $object ) {
 			// asserting that only list ones in calendars user
 			// has edit capability for
 			$match = '/WHERE/';
-			$rep = 'WHERE ecp1_meta.meta_value IN (' . $q . ') AND ';
+			$rep = 'WHERE ( ecp1_meta.meta_value IN (' . $q . ') OR ecp1_meta.meta_key IS NULL ) AND ';
 			$query_replace = preg_replace( $match, $rep, $query_replace, 1 ); // only first WHERE
 			//printf( '<pre>REPLACEMENT: %s</pre>', $query_replace );
 			$query = $query_replace;

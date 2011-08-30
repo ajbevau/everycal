@@ -28,7 +28,6 @@ function _ecp1_event_render_admin_init_js() {
 	if ( 'ecp1_event' != $post_type )
 		return;
 
-printf('<!-- XYS -->');
 	if ( '' != $_ecp1_event_admin_init_js ) {
 		printf( '%s<!-- Every Calendar +1 Init -->%s<script type="text/javascript">/* <![CDATA[ */%s%s%s/* ]]> */</script>%s', "\n", "\n", "\n", $_ecp1_event_admin_init_js, "\n", "\n" );
 	}
