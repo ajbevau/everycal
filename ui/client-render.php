@@ -49,7 +49,7 @@ function ecp1_render_calendar( $calendar ) {
 	
 	$default_view = 'month';	// How the calendar displays by default
 	if ( ! _ecp1_calendar_meta_is_default( 'ecp1_default_view' ) &&
-			in_array( $calendar['ecp1_default_view'][0], array( 'month', 'week', 'day' ) ) ) {
+			in_array( $calendar['ecp1_default_view'][0], array( 'month', 'week' ) ) ) {
 		$default_view = $calendar['ecp1_default_view'][0];
 	}
 
