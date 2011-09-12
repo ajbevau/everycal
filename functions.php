@@ -177,11 +177,14 @@ function ecp1_formatted_date_range( $stimestamp, $etimestamp, $allday, $tzstring
 	if ( $datee instanceof DateTime )
 		$datee = $datee->format( $datef );
 
+	// Do we need an (all day) message?
+	$all_day = _ecp1_get_option( 'show_all_day_message' ) ? __( '(all day)' ) : '';
+
 	// If the dates are the same and full day just say that
 	if ( 'Y' == $allday && $sameday )
-		$ecp1_time = sprintf( '%s %s', $dates, __( '(all day)' ) );
+		$ecp1_time = sprintf( '%s %s', $dates, $all_day );
 	else // else give a range 
-		$ecp1_time = sprintf( '%s - %s %s', $dates, $datee, 'Y' == $allday ? __( '(all day)' ) : '' );
+		$ecp1_time = sprintf( '%s - %s %s', $dates, $datee, 'Y' == $allday ? $all_day : '' );
 
 	return $ecp1_time;
 }

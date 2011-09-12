@@ -10,6 +10,10 @@ require( ECP1_DIR . '/includes/check-ecp1-defined.php' );
 define( 'ECP1_OPTIONS_GROUP', 'ecp1_options' );
 define( 'ECP1_GLOBAL_OPTIONS', 'ecp1_global' );
 
+// Define some templates
+define( 'ECP1_DEFAULT_CALENDAR_TEMPLATE', file_get_contents( ECP1_DIR . '/includes/templates/calendar.html.tpl' ) );
+define( 'ECP1_DEFAULT_EVENT_TEMPLATE', file_get_contents( ECP1_DIR . '/includes/templates/event.html.tpl' ) );
+
 // The defaults array of settings
 $_ecp1_settings = array(
 
@@ -57,6 +61,17 @@ $_ecp1_settings = array(
 	// so how long the local cache should be considered valid for.
 	'export_include_external' => array( 'default' => 1 ), // yes
 	'export_external_cache_life' => array( 'default' => '604800' ), // one week 
+
+	// Settings related to template and layout
+	'export_icon' => array( 'default' => 'date.png' ), // FAMFAMFAM: date.png
+	'show_export_icon' => array( 'default' => 1 ), // yes
+	'calendar_template' => array( 'default' => ECP1_DEFAULT_CALENDAR_TEMPLATE ),
+	'event_template' => array( 'default' => ECP1_DEFAULT_EVENT_TEMPLATE ),
+	'show_time_on_all_day' => array( 'default' => 0 ), // don't show time on all day events
+	'show_all_day_message' => array( 'default' => 0 ), // don't show the all day message
+	'popup_on_click' => array( 'default' => 1 ), // show a popup or go to page on click 
+	'week_time_format' => array( 'default' => 'h:mmtt( - h:mmtt )' ), // Time format for agenda
+	'month_time_format' => array( 'default' => 'h(:mm)tt' ), // Time format for month/other
 
 	// Finally create synonyms effectively this is so we can create a
 	// setting that contains the value of another setting to maintain

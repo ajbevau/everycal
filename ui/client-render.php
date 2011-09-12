@@ -51,6 +51,8 @@ function ecp1_render_calendar( $calendar ) {
 	if ( ! _ecp1_calendar_meta_is_default( 'ecp1_default_view' ) &&
 			in_array( $calendar['ecp1_default_view'][0], array( 'month', 'week' ) ) ) {
 		$default_view = $calendar['ecp1_default_view'][0];
+		if ( 'week' == $default_view )
+			$default_view = 'agendaWeek'; // change to the Full Calendar string
 	}
 
 	// Default parameters for event sources
@@ -126,6 +128,7 @@ function ecp1_render_calendar( $calendar ) {
 	$_map_markers_func = 'false';
 	$_map_addmarker_func = 'false';
 	$_map_getzoom_func = 'false';
+	$_show_time_on_all_day = '1' == _ecp1_get_option( 'show_time_on_all_day' ) ? 'true' : 'false';
 	$_init_maps_func = '';
 
 	if ( _ecp1_get_option( 'use_maps' ) ) {
@@ -150,18 +153,27 @@ function ecp1_render_calendar( $calendar ) {
 		}
 	}
 
+	// Show popups or go to event pages?
+	$event_click = '';
+	if ( '1' == _ecp1_get_option( 'popup_on_click' ) )
+		$event_click = 'eventClick: ecp1_onclick,';
+
+	// Get the time formats for the calendar
+	$agenda_format = _ecp1_get_option( 'week_time_format' );
+	$month_format = _ecp1_get_option( 'month_time_format' );
+
 	// Now build the actual JS that will be loaded
 	$_ecp1_dynamic_calendar_script = <<<ENDOFSCRIPT
 jQuery(document).ready(function($) {
 	// $() will work as an alias for jQuery() inside of this function
 	$('#ecp1_calendar div.fullcal').empty().fullCalendar({
 		header: { left: 'prev,next today', center: 'title', right: 'month,agendaWeek' },
-		timeFormat: { agenda: 'h:mmtt( - h:mmtt )', '': 'h(:mm)tt' },
+		timeFormat: { agenda: '$agenda_format', '': '$month_format' },
 		firstDay: $first_day,
 		weekends: true,
 		defaultView: '$default_view',
 		eventSources: $event_sources,
-		eventClick: ecp1_onclick,
+		$event_click
 		eventRender: ecp1_onrender
 	});
 
@@ -179,6 +191,7 @@ jQuery(document).ready(function($) {
 	_mapMarkersFunction = $_map_markers_func;
 	_mapAddMarkerFunction = $_map_addmarker_func;
 	_mapGetZoomFunction = $_map_getzoom_func;
+	_showTimeOnAllDay = $_show_time_on_all_day;
 	$_init_maps_func;
 });
 
@@ -186,9 +199,6 @@ ENDOFSCRIPT;
 	
 	// Now return HTML that the above script will use
 	$ical_addr = get_site_url() . '/ecp1/' . urlencode( $calendar['slug'] ) . '/events.ics';
-	$icalfeed = sprintf( '<a href="%s" title="%s"><img src="%s" alt="ICAL" /></a>',
-				$ical_addr, __( 'Subscribe to Calendar Feed' ),
-				plugins_url( '/img/famfamfam/date.png', dirname( __FILE__ ) ) );
 	$_close_feed_popup = htmlspecialchars( __( 'Back to Calendar' ) ); // strings for i18n
 	$_feed_addrs = array(
 		__( 'iCal / ICS' ) => $ical_addr,
@@ -203,7 +213,7 @@ ENDOFSCRIPT;
 var _feedLinks = $_feed_addrs_js;
 jQuery(document).ready(function($) {
 	// $() will work as an alias for jQuery() inside of this function
-	$('#ecp1_calendar div.feeds a').click(function() {
+	$('#ecp1_show_feeds').click(function() {
 		var popup = $( '<div></div>' )
 				.attr( { id:'_ecp1-feed-popup' } ).css( { display:'none', 'z-index':9999 } );
 		var pw = $( window ).width();
@@ -243,22 +253,31 @@ jQuery(document).ready(function($) {
 } );
 
 ENDOFSCRIPT;
-	$feeds = '<div class="feeds">' . $icalfeed . '</div>';
-	$description = '' != $description ? '<p><strong>' . $description . '</strong></p>' : '';
-	$feature_msg = '';
-	if ( _ecp1_calendar_show_featured( _ecp1_calendar_meta_id() ) && 
-			'1' == _ecp1_get_option( 'base_featured_local_to_event' ) ) {
-		// calendar shows feature events and feature events are shown in their
-		// location local timezone -> show the note so people know different
-		$feature_msg = sprintf( '<div style="padding:0 5px;color:%s;background-color:%s"><em>%s</em></div>',
-				_ecp1_calendar_meta( 'ecp1_feature_event_textcolor' ),
-				_ecp1_calendar_meta( 'ecp1_feature_event_color' ),
-				htmlspecialchars( _ecp1_get_option( 'base_featured_local_note' ) ) );
+
+	// Load the template and replace the placeholders
+	$outstr = _ecp1_get_option( 'calendar_template' );
+
+	// Is the export icon enabled?
+	if ( '1' == _ecp1_get_option( 'show_export_icon' ) ) {
+		$outstr = str_replace( array( '+FEEDS+', '+ENDFEEDS+' ), '', $outstr );
+		$outstr = str_replace( array( '+FEED_LINK+', '+FEED_ICON+' ),
+			array( $ical_addr, plugins_url( '/img/famfamfam/' . _ecp1_get_option( 'export_icon' ), dirname( __FILE__ ) ) ), $outstr );
+	} else {
+		$start = strpos( $outstr, '+FEEDS+' );
+		$finish = strpos( $outstr, '+ENDFEEDS+' );
+		$outstr = substr( $outstr, 0, $start ) . substr( $outstr, $finish + 12 );
 	}
 
-	$timezone = sprintf( '<div><div style="padding:0 5px;"><em>%s</em></div>%s</div>',
-			sprintf( __( 'Events occur at %s local time.' ), $timezone ), $feature_msg );
-	return sprintf( '<div id="ecp1_calendar">%s%s<div class="fullcal">%s</div>%s</div>', $feeds, $description, __( 'Loading...' ), $timezone );
+	// Do simple string replacements for placeholders
+	$outstr = str_replace(
+		array( '+DESCRIPTION_TEXT+', '+CALENDAR_LOADING+', '+TIMEZONE_DISCLAIMER+',
+			'+FEATURE_TEXT_COLOR+', '+FEATURE_BACKGROUND+', '+FEATURE_EVENT_NOTICE+' ),
+		array( $description, __( 'Loading...' ), sprintf( 'Events occur at %s local time.', $timezone ),
+			_ecp1_calendar_meta( 'ecp1_feature_event_textcolor' ),
+			_ecp1_calendar_meta( 'ecp1_feature_event_color' ),
+			htmlspecialchars( _ecp1_get_option( 'base_featured_local_note' ) ) ),
+		$outstr );
+	return $outstr;
 }
 
 // Function to print the dynamic calendar load script 
@@ -285,7 +304,7 @@ function ecp1_render_event( $event ) {
 	// $p variables are placeholders for the i18n titles
 	$pwhen = __( 'When' );
 	$pwhere = __( 'Where' );
-	$psummary = __( 'Quick Info' );
+	$psummary = __( 'Summary' );
 	$pdetails = __( 'Details' );
 	
 	// String placeholder for the time period this event runs over
@@ -387,26 +406,15 @@ ENDOFSCRIPT;
 		if ( has_post_thumbnail( $post->ID ) )
 			$feature_image = get_the_post_thumbnail( $post->ID, 'thumbnail' );
 	}
-	
-	$outstr = <<<ENDOFHTML
-<div id="ecp1_event">
-	<span id="ecp1_feature">$feature_image</span>
-	<ul class="ecp1_event-details">
-		<li><span class="ecp1_event-title"><strong>$pwhen:</strong></span>
-				<span class="ecp1_event-text">$ecp1_time</span></li>
-		<li><span class="ecp1_event-title"><strong>$pwhere:</strong></span>
-				<span class="ecp1_event-text">
-					<span id="ecp1_event_location">$ecp1_location</span><br/>
-					$ecp1_map_placeholder
-				</span></li>
-		<li><span class="ecp1_event-title"><strong>$psummary:</strong></span>
-				<span class="ecp1_event-text_wide">$ecp1_summary</span></li>
-		<li><span class="ecp1_event-title"><strong>$pdetails:</strong></span>
-				<span class="ecp1_event-text_wide">$ecp1_info</span></li>
-	</ul>
-</div>
-ENDOFHTML;
 
+	$outstr = _ecp1_get_option( 'event_template' );
+	$outstr = str_replace(
+		array( '+FEATURE_IMAGE+', '+TITLE_TIME+', '+TITLE_LOCATION+', '+TITLE_SUMMARY+',
+			'+TITLE_DETAILS+', '+EVENT_TIME+', '+EVENT_LOCATION+', '+EVENT_SUMMARY+',
+			'+EVENT_DETAILS+', '+MAP_CONTAINER+' ),
+		array( $feature_image, $pwhen, $pwhere, $psummary, $pdetails, $ecp1_time, $ecp1_location,
+			$ecp1_summary, $ecp1_info, $ecp1_map_placeholder ),
+		$outstr );
 	return $outstr;
 }
 

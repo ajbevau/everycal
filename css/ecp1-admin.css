@@ -27,3 +27,8 @@ div.color_selector > span {vertical-align:top;}
 div.color_selector > div {display:inline-block;position:relative;width:36px;height:36px;background:url(../colorpicker/images/select.png);}
 div.color_selector > div > div {position:absolute;top:3px;left:3px;width:30px;height:30px;background:url(../colorpicker/images/select.png) center;}
 span.ecp1_ical_q {display:inline-block;width:100px;}
+div.ecp1_meta .ecp1submeta {padding-bottom:1em;}
+.ecp1subsettings strong {display:block;margin-top:10px;cursor:pointer;}
+.ecp1subsettings div:first-child strong {margin-top:0;}
+.ecp1subsettings textarea {width:100%;}
+.ecp1subsettings .expandtarget {display:none;}

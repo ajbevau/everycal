@@ -32,10 +32,25 @@ function ecp1_add_options_page() {
 	// Add the settings / options menu item
 	$page = add_options_page( __( 'Every Calendar +1 Options' ), __( 'EveryCal+1' ), 'manage_options', ECP1_GLOBAL_OPTIONS, 'ecp1_render_options_page' );
 	add_action( 'admin_print_styles-' . $page, 'ecp1_enqueue_admin_css' );
+	add_action( 'admin_print_scripts-' . $page, 'ecp1_enqueue_admin_js' );
+	add_action( 'admin_print_footer_scripts', 'ecp1_settings_js' );
+}
+
+// Define a global variable for printing JS from
+$_ecp1_settings_footer_script = null;
+
+// Function that prints the above footer script if set
+function ecp1_settings_js() {
+	global $_ecp1_settings_footer_script;
+	if ( null != $_ecp1_settings_footer_script ) {
+		printf( '%s<!-- Every Calendar +1 Init -->%s<script type="text/javascript">/* <![CDATA[ */%s%s%s/* ]]> */</script>%s', "\n", "\n", "\n", $_ecp1_settings_footer_script, "\n", "\n" );
+	}
 }
 
 // Draw the option page
 function ecp1_render_options_page() {
+	global $_ecp1_settings_footer_script;
+
 ?>
 	<div class="wrap">
 		<h2><?php _e( 'Every Calendar +1 Options' ); ?></h2>
@@ -179,6 +194,195 @@ function ecp1_render_options_page() {
 ?>
 					</td>
 				</tr>
+				<tr>
+					<th scope="row"><?php _e( 'Template and Layout' ); ?></th>
+					<td>
+	<div class="ecp1subsettings">
+		<div>
+		<strong><?php _e( 'Export Icon' ); ?></strong>
+<?php
+	printf( '
+		<input id="_export_icon" name="%s[export_icon]" type="hidden" value="%s" />
+		<img id="_export_icon_preview" src="%s" alt="%s" />
+		<a id="ecp1changeicon" href="#" title="%s">%s</a><br/>',
+			ECP1_GLOBAL_OPTIONS, _ecp1_get_option( 'export_icon' ), 
+			plugins_url( '/img/famfamfam/' . _ecp1_get_option( 'export_icon' ), dirname( __FILE__ ) ),
+			__( 'Icon' ), __( 'Change Export Icon' ), __( 'Change picture to use for export icon' ) );
+
+	// Render a script to choose an icon from famfamfam
+	$export_icons = glob( ECP1_DIR . '/img/famfamfam/*.png' );
+	$export_icons_str = '[';
+	foreach( $export_icons as $icon )
+		$export_icons_str .= sprintf( '"%s",', basename( $icon ) );
+	$export_icons_str = trim( $export_icons_str, ',' ) . ']';
+	$export_icons_path = plugins_url( '/img/famfamfam', dirname( __FILE__ ) );
+	$close_link_text = __( 'Close' );
+
+	$_ecp1_settings_footer_script .= <<<ENDOFSCRIPT
+var _closeLink = '$close_link_text';
+var _iconsPath = '$export_icons_path';
+var _iconsArray = $export_icons_str;
+jQuery(document).ready(function($){
+	$('#ecp1changeicon').click(function(){
+		var lm = $( '#_ecp1-export-icon' );
+		if ( lm.length == 0 ) {
+			$( 'body' ).append( $( '<div></div>' )
+						.attr( { id:'_ecp1-export-icon' } ).css( { display:'none', 'z-index':99999 } ) );
+			lm = $( '#_ecp1-export-icon' );
+		}
+
+		var pw = $( window ).width();
+		var ph = $( document ).height();
+		var ps = $( document ).scrollTop(); ps = ( ps+20 ) + 'px auto 0 auto';
+		lm.css( { width:pw, height:ph, position:'absolute', top:0, left:0,
+				display:'block', textAlign:'center', background:'rgba(0,0,0,0.7)' } )
+			.append( $( '<div></div>' )
+				.css( { background:'#ffffff', opacity:1, padding:'1em', width:800, margin:ps } )
+				.append( $( '<div></div>' )
+					.css( { textAlign:'right' } )
+					.append( $( '<a></a>' )
+						.css( { cursor:'pointer' } )
+						.text( _closeLink )
+						.click( function() {
+							$( '#_ecp1-export-icon' ).remove();
+						} ) ) )
+					.append( $( '<div></div>' )
+						.attr( { id:'_ecp1-icontainer' } )
+						.css( { textAlign:'left', width:800 } ) ) );
+
+		var ic = $( '#_ecp1-icontainer' );
+		for ( var i=0; i < _iconsArray.length; i++ )
+			ic.append( $( '<span></span>' )
+				.css( { display:'inline-block', margin:'2px' } )
+				.append( $( '<img>' )
+					.attr( { alt:_iconsArray[i].split('.')[0], src:( _iconsPath + '/' + _iconsArray[i] ), id:_iconsArray[i] } )
+					.css( { cursor:'pointer' } )
+					.click( function() {
+						var part = $( this ).attr( 'id' );
+						$( '#_export_icon' ).val( part );
+						$( '#_export_icon_preview' ).attr( { src: $(this).attr('src') } );
+						lm.find( 'div div a' ).first().click();
+					} ) ) );
+	} );
+
+	$('div.expandable > strong').click(function() {
+		$(this).parent().children('.expandtarget').toggle();
+	});
+} );
+ENDOFSCRIPT;
+
+	// Should the icon be shown at all?
+	printf( '
+		<input id="%s[show_export_icon]" name="%s[show_export_icon]" type="checkbox" value="1"%s />
+		<label for="%s[show_export_icon]">%s</label><br/>',
+			ECP1_GLOBAL_OPTIONS, ECP1_GLOBAL_OPTIONS,
+			'1' == _ecp1_get_option( 'show_export_icon' ) ? ' checked="checked"' : '',
+			ECP1_GLOBAL_OPTIONS, __( 'Show export icon on calendar posts?' ) );
+
+?>
+		</div>
+
+		<div>
+		<strong><?php _e( 'Actions and Display Options' ); ?></strong>
+		<input id="<?php echo ECP1_GLOBAL_OPTIONS; ?>[show_time_on_all_day]" name="<?php echo ECP1_GLOBAL_OPTIONS; ?>[show_time_on_all_day]" type="checkbox" value="1" <?php echo '1' == _ecp1_get_option( 'show_time_on_all_day' ) ? 'checked="checked"' : ''; ?> />
+		<label for="<?php echo ECP1_GLOBAL_OPTIONS; ?>[show_time_on_all_day]"><?php _e( 'Show time on all day events?' ); ?></label><br/>
+		<input id="<?php echo ECP1_GLOBAL_OPTIONS; ?>[show_all_day_message]" name="<?php echo ECP1_GLOBAL_OPTIONS; ?>[show_all_day_message]" type="checkbox" value="1" <?php echo '1' == _ecp1_get_option( 'show_all_day_message' ) ? 'checked="checked"' : ''; ?> />
+		<label for="<?php echo ECP1_GLOBAL_OPTIONS; ?>[show_all_day_message]"><?php _e( 'Show (all day) on all day events?' ); ?></label><br/>
+		<input id="<?php echo ECP1_GLOBAL_OPTIONS; ?>[popup_on_click]" name="<?php echo ECP1_GLOBAL_OPTIONS; ?>[popup_on_click]" type="checkbox" value="1" <?php echo '1' == _ecp1_get_option( 'popup_on_click' ) ? 'checked="checked"' : ''; ?> />
+		<label for="<?php echo ECP1_GLOBAL_OPTIONS; ?>[popup_on_click]"><?php _e( 'Show popup on click?' ); ?></label><br/>
+		</div>
+
+		<div class="expandable">
+		<strong><?php _e( 'Calendar Template - Click to Show Help' ); ?></strong>
+		<label for="<?php echo ECP1_GLOBAL_OPTIONS; ?>[week_time_format]"><?php _e( 'Time Format Week:' ); ?></label>
+		<input type="text" id="<?php echo ECP1_GLOBAL_OPTIONS; ?>[week_time_format]" name="<?php echo ECP1_GLOBAL_OPTIONS; ?>[week_time_format]" value="<?php echo _ecp1_get_option( 'week_time_format' ); ?>" />
+		<label for="<?php echo ECP1_GLOBAL_OPTIONS; ?>[month_time_format]"><?php _e( ' Month:' ); ?></label>
+		<input type="text" id="<?php echo ECP1_GLOBAL_OPTIONS; ?>[month_time_format]" name="<?php echo ECP1_GLOBAL_OPTIONS; ?>[month_time_format]" value="<?php echo _ecp1_get_option( 'month_time_format' ); ?>" /><br/>
+		<p><a href="http://arshaw.com/fullcalendar/docs/utilities/formatDate/"><?php _e( 'See FullCalendar documentation for format options.' ); ?></a></p>
+		<textarea id="<?php echo ECP1_GLOBAL_OPTIONS; ?>[calendar_template]" name="<?php echo ECP1_GLOBAL_OPTIONS; ?>[calendar_template]">
+<?php echo _ecp1_get_option( 'calendar_template' ); ?>
+		</textarea>
+		<ul>
+			<li><?php _e( 'You must use id="ecp1_calendar" on the main container element' ); ?></li>
+			<li><?php _e( 'You must use class="fullcal" on the calendar container element' ); ?></li>
+		</ul>
+		<div class="expandtarget">
+		<em><?php _e( 'Placeholders' ); ?></em>
+		<ul>
+			<li>+FEEDS+ +ENDFEEDS+<br/><?php _e( 'How to layout feeds icon; must have id="ecp1_show_feeds" as clickable' ); ?></li>
+			<li>+DESCRIPTION_TEXT+<br/><?php _e( 'Event description text' ); ?></li>
+			<li>+TIMEZONE_DISCLAIMER+<br/><?php _e( 'Which timezone the calendar is in' ); ?></li>
+			<li>+FEATURE_EVENT_NOTICE+<br/><?php _e( 'The Featured Calendar Note text from above' ); ?></li>
+			<li>+FEATURE_TEXT_COLOR+ / +FEATURE_BACKGROUND+<br/><?php _e( 'Replaced with calendar settings; if these are missing your users will not be able to pick their own colors' ); ?></li>
+			<li>+CALENDAR_LOADING+<br/><?php _e( 'Where to put the calendar loading message' ); ?></li>
+			<li>+FEED_LINK+<br/><?php _e( 'Replaced with the plugin generated feed link' ); ?></li>
+			<li>+FEED_ICON+<br/><?php _e( 'URL for the Export Icon above' ); ?></li>
+		</ul>
+		<em><?php _e( 'An Example' ); ?></em>
+		<pre>
+<?php echo htmlentities( '<div id="ecp1_calendar">
+	+FEEDS+<div class="feeds">
+		<a id="ecp1_show_feeds" href="+FEED_LINK+">
+			<img src="+FEED_ICON+" alt="iCAL" /></a>
+	</div>+ENDFEEDS+
+	<p><strong>+DESCRIPTION_TEXT+
+	<div class="fullcal">+CALENDAR_LOADING+</div>
+	<div>
+		<div style="padding:0 5px;">
+			<em>+TIMEZONE_DISCLAIMER+</em>
+		</div>
+		<div style="padding:0 5px;color:FEATURE_TEXT_COLOR;background-color:FEATURE_BACKGROUND">
+			<em>+FEATURE_EVENT_NOTICE+</em>
+		</div>
+	</div>
+</div>' ); ?>
+		</pre>
+		</div><!-- expandtarget -->
+		</div><!-- expandable -->
+
+		<div class="expandable">
+		<strong><?php _e( 'Event Template - Click to Show Help' ); ?></strong>
+		<textarea id="<?php echo ECP1_GLOBAL_OPTIONS; ?>[event_template]" name="<?php echo ECP1_GLOBAL_OPTIONS; ?>[event_template]">
+<?php echo _ecp1_get_option( 'event_template' ); ?>
+		</textarea>
+		<ul>
+			<li><?php _e( 'You must use id="ecp1_event" on the main container element' ); ?></li>
+		</ul>
+		<div class="expandtarget">
+		<em><?php _e( 'Placeholders' ); ?></em>
+		<ul>
+			<li>+TITLE_TIME+, +TITLE_LOCATION+,  +TITLE_SUMMARY+, +TITLE_DETAILS+<br/><?php _e( 'Replaced with titles as appropriate' ); ?></li>
+			<li>+FEATURE_IMAGE+<br/><?php _e( 'Replaced with an image element of the post thumbnail if theme supports it' ); ?></li>
+			<li>+EVENT_TIME+<br/><?php _e( 'Replaced with a formatted string of the event start and end time' ); ?></li>
+			<li>+EVENT_LOCATION+<br/><?php _e( 'Replaced with the event location' ); ?></li>
+			<li>+EVENT_SUMMARY+<br/><?php _e( 'Replaced with the event summary' ); ?></li>
+			<li>+EVENT_DETAILS+<br/><?php _e( 'Replaced with the event details and an offsite link if available' ); ?></li>
+			<li>+MAP_CONTAINER+<br/><?php _e( 'Replaced with a div element that will have the map loaded into it' ); ?></li>
+		</ul>
+		<em><?php _e( 'An Example' ); ?></em>
+		<pre>
+<?php echo htmlentities( '<div id="ecp1_event">
+	<span id="ecp1_feature">+FEATURE_IMAGE+</span>
+	<ul class="ecp1_event-details">
+		<li><span class="ecp1_event-title"><strong>+TITLE_TIME+:</strong></span>
+				<span class="ecp1_event-text">+EVENT_TIME+</span></li>
+		<li><span class="ecp1_event-title"><strong>+TITLE_LOCATION+:</strong></span>
+				<span class="ecp1_event-text">
+					<span id="ecp1_event_location">+EVENT_LOCATION+</span><br/>
+					+MAP_CONTAINER+
+				</span></li>
+		<li><span class="ecp1_event-title"><strong>+TITLE_SUMMARY+:</strong></span>
+				<span class="ecp1_event-text_wide">+EVENT_SUMMARY+</span></li>
+		<li><span class="ecp1_event-title"><strong>+TITLE_DETAILS+:</strong></span>
+				<span class="ecp1_event-text_wide">+EVENT_DETAILS+</span></li>
+	</ul>
+</div>' ); ?>
+		</pre>
+		</div><!-- expandtarget -->
+		</div><!-- expandable -->
+	</div><!-- subsettings -->
+					</td>
+				</tr>
 			</table>
 			<p class="submit">
 				<input type="submit" class="button-primary" value="<?php _e('Save Changes') ?>" />
@@ -207,7 +411,11 @@ function ecp1_validate_options_page( $input ) {
 		'use_maps'=>'use_maps',
 		'tz_change'=>'tz_change',
 		'feature_tz_local'=>'base_featured_local_to_event',
-		'export_external'=>'export_include_external' );
+		'export_external'=>'export_include_external',
+		'show_export_icon'=>'show_export_icon',
+		'show_time_on_all_day' => 'show_time_on_all_day',
+		'show_all_day_message' => 'show_all_day_message',
+		'popup_on_click' => 'popup_on_click' );
 	foreach( $boolean_options as $postkey=>$optkey ) {
 		if ( isset( $input[$postkey] ) && '1' == $input[$postkey] ) {
 			$input[$optkey] = 1;
@@ -276,6 +484,33 @@ function ecp1_validate_options_page( $input ) {
 
 			if ( is_numeric( $fixed ) && $fixed >= 0 )
 				$input[$setting] = $fixed;
+		}
+	}
+
+	// Validate the given icon file exists
+	// otherwise let it go through as is
+	if ( isset( $input['export_icon'] ) && 
+		! file_exists( ECP1_DIR . '/img/famfamfam/' . $input['export_icon'] ) )
+		unset( $input['export_icon'] );
+
+	// WordPress doesn't allow id attributes on <div> for some reason
+	global $allowedposttags;
+	$allowedposttags['div']['id'] = array();
+	$allowedposttags['span']['id'] = array();
+
+	// Filter out any nastiness in the template strings
+	if ( isset( $input['calendar_template'] ) ) {
+		if ( ! empty( $input['calendar_template'] ) ) {
+			$input['calendar_template'] = wp_kses_post( $input['calendar_template'] );
+		} else {
+			unset( $input['calendar_template'] ); // set to blank to reset
+		}
+	}
+	if ( isset( $input['event_template'] ) ) {
+		if ( ! empty( $input['event_template'] ) ) {
+			$input['event_template'] = wp_kses_post( $input['event_template'] );
+		} else {
+			unset( $input['event_template'] );
 		}
 	}
 

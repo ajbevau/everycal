@@ -15,6 +15,7 @@ var _mapDeleteFunction = false;
 var _mapCenterFunction = false;
 var _mapMarkersFunction = false;
 var _mapAddMarkerFunction = false;
+var _showTimeOnAllDay = false;
 var _ecp1Counter = 0;
 
 // Called when FullCalendar renders an event
@@ -60,11 +61,13 @@ function ecp1_onrender( calEvent, element, view ) {
 		popup.find( '.pfloater' ).last().append( jQuery( '<ul></ul>' ).addClass( listClasses ) );
 		popup.find( '.nodeco' ).append( jQuery( '<li><strong>' + calEvent.title + '</strong></li>' ) );
 
-		var ds = jQuery.fullCalendar.formatDates(
+		if ( _showTimeOnAllDay || ! calEvent.allDay ) {
+			var ds = jQuery.fullCalendar.formatDates(
 				jQuery.fullCalendar.parseDate( calEvent.start ),
 				jQuery.fullCalendar.parseDate( calEvent.end ),
 				'h:mmtt( - h:mmtt )' );
-		popup.find( '.nodeco' ).append( jQuery( '<li></li>' ).text( ds ) );
+			popup.find( '.nodeco' ).append( jQuery( '<li></li>' ).text( ds ) );
+		}
 
 		if ( calEvent.location ) {
 			popup.find( '.nodeco' )
