@@ -53,17 +53,7 @@ class ECP1GoogleCalendar extends ECP1Calendar {
 		$start->setTimezone( $dtz );
 		$end->setTimezone( $dtz );
 
-		// Build a request object using the HTTP_Request2 class
-		$request = new HTTP_Request2( $url, HTTP_Request2::METHOD_GET );
-		$request->setHeader( 'If-Modified-Since', $cached_at->format( 'D, j M Y H:i:s') . ' GMT' );
-		$request->setConfig( array(
-			'follow_redirects' => true,
-			'max_redirects' => 2, // Google occasionally sets a session
-		) );
-
-		// Add parameters to the URL (by reference so don't have to re-set)
-		$url = & $request->getUrl();
-		$url->setQueryVariables( array(
+		$query_params = array(
 			'alt' => 'jsonc', // we want JSON-C data
 			'ctz' => $dtz->getName(),
 			'singleevents' => 'true', // expand repeats must be word true
@@ -71,21 +61,31 @@ class ECP1GoogleCalendar extends ECP1Calendar {
 			'start-min' => $start->format( 'c' ),
 			'start-max' => $end->format( 'c' ),
 			'max-results' => 500, // be nice to the server
+		);
+
+		// Update the URL parameters to get what we want
+		foreach( $query_params as $n=>$v )
+			$url = $this->url_param( $url, $n, $v );
+
+		// Use the WordPress HTTP_API to make the request
+		$response = wp_remote_get( $url, array(
+			'redirection' => 2,
+			'headers' => array( 'If-Modified-Since' => $cached_at->format( 'D, j M Y H:i:s') . ' GMT' ),
 		) );
 
 		// Caching result
 		$result = true;
 
-		// Send the request and process it
-		try {
-			$response = $request->send();
-			$status = $response->getStatus();
+		// Check the response is valid
+		if ( ! is_wp_error( $response ) ) {
+
+			$status = $response['response']['code'];
 			$cached_at = time();
-			if ( 304 == $status ) {         // HTTP NOT MODIFED
+			if ( 304 == $status ) {	 // HTTP NOT MODIFED
 				$this->add_meta( 'req_ts', $cached_at ); // cache still valid
 			} else if ( 200 == $status ) {  // HTTP OK
 				$this->add_meta( 'req_ts', $cached_at ); // new cache time
-				$json = $this->parse_json( $response->getBody(), $dtz );	
+				$json = $this->parse_json( $response['body'], $dtz );
 				if ( null == $json ) {
 					$result = false;
 				} else {
@@ -96,10 +96,11 @@ class ECP1GoogleCalendar extends ECP1Calendar {
 					}
 					$this->save_to_cache(); // store the cache
 				}
-			} else {                        // HTTP 201? AND 400+
+			} else {			// HTTP 201? AND 400+
 				$result = false;
 			}
-		} catch( HTTP_Request2_Exception $_he ) {
+
+		} else {
 			$result = false;
 		}
 

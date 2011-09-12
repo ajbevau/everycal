@@ -10,12 +10,6 @@
 // Make sure we're included from within the plugin
 require( ECP1_DIR . '/includes/check-ecp1-defined.php' );
 
-// The plugin bundles PEAR HTTP_Request2 for making requests
-// But if it is installed locally we will use that instead
-$_localPear = ECP1_DIR . '/pear';
-set_include_path( get_include_path() . PATH_SEPARATOR . $_localPear );
-require_once( ECP1_DIR . '/pear/HTTP/Request2.php' );
-
 // The abstract maps class
 abstract class ECP1Calendar {
 
@@ -64,6 +58,29 @@ abstract class ECP1Calendar {
 	// Function that HASHES the URL
 	private function url_hash() {
 		return sha1( 'ecp1-' . $this->postid . '/' . urlencode( $this->calendar_url ) );
+	}
+
+	// Function that adds the given parameter to a URL and returns the URL
+	protected function url_param( $url, $name, $value ) {
+		$qmark = strpos( $url, '?' );
+		$query_string = '';
+		if ( FALSE !== $qmark ) {
+			$query_string = substr( $url, $qmark+1 );
+			$url = substr( $url, 0, $qmark+1 );
+		} else {
+			$url .= '?';
+		}
+
+		// Does the parameter already exist in the URL?
+		if ( preg_match( "/$name\=[^\&]+/", $query_string ) ) {
+			$query_string = preg_replace( "/$name\=[^&]+/", "$name=" . urlencode( $value ), $query_string, 1 );
+		} else {
+			$query_string .= "&$name=" . urlencode( $value );
+		}
+
+		// Join the Query String back onto the URL
+		$url .= trim( $query_string, '&' );
+		return $url;
 	}
 
 	// Function that clears the set of events and any meta.
