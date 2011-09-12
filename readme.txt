@@ -4,7 +4,7 @@ Donate link: http://andrewbevitt.com/
 Tags: calendar, events
 Requires at least: 3.0
 Tested up to: 3.2.1
-Stable tag: 0.2.0
+Stable tag: 0.3.0
 
 A WordPress plugin that integrates calendars, custom post types, maps, and offsite linking.
 
@@ -100,6 +100,13 @@ than anything else. The external calendar interface is pluggable so you can exte
 2. description corresponds to screenshot-2.(png|jpg|jpeg|gif) in same dir.
 
 == Changelog ==
+
+= 0.3.0 =
+* Added many more configuration options: calendar and event posts are now controlled by templates
+* Fixed bug so calendar renders as week on load (if chosen)
+* Removed PEAR HTTP libaries in preference for WP HTTP_API
+* Can now choose Icon for Calendar Export links
+* Upgraded to FullCalendar 1.5.2
 
 = 0.2.0 =
 * Added [eventlist name="X" start="X" until="X"] shortcode (starting/until take human datetime strings and are optional)
