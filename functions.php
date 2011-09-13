@@ -167,7 +167,9 @@ function ecp1_formatted_date_range( $stimestamp, $etimestamp, $allday, $tzstring
 		
 		// If this is an all day event and the time is start=00:00 and end=23:59
 		// then there is no useful information in the time fields so don't display them
-		if ( 'Y' == $allday && '0000' == $dates->format( 'Hi' ) && '2359' == $datee->format( 'Hi' ) )
+		if ( 'Y' == $allday && 
+			( ( '0000' == $dates->format( 'Hi' ) && '2359' == $datee->format( 'Hi' ) ) ||
+			  ! _ecp1_get_option( 'show_time_on_all_day' ) ) )
 			$datef = get_option( 'date_format' );
 	}
 

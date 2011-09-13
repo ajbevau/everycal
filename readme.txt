@@ -4,7 +4,7 @@ Donate link: http://andrewbevitt.com/
 Tags: calendar, events
 Requires at least: 3.0
 Tested up to: 3.2.1
-Stable tag: 0.3.0
+Stable tag: 0.3.1
 
 A WordPress plugin that integrates calendars, custom post types, maps, and offsite linking.
 
@@ -100,6 +100,9 @@ than anything else. The external calendar interface is pluggable so you can exte
 2. description corresponds to screenshot-2.(png|jpg|jpeg|gif) in same dir.
 
 == Changelog ==
+
+= 0.3.1 =
+* Fixed show_time_on_all_day parameter so it works when events span multiple days
 
 = 0.3.0 =
 * Added many more configuration options: calendar and event posts are now controlled by templates
