@@ -296,7 +296,7 @@ function ecp1_event_meta_form() {
 					<?php echo _ecp1_time_select_trio( 'ecp1_start_time', $ecp1_start_time ); ?>
 					<label for="ecp1_full_day"><?php _e( 'Full day event?' ); ?></label>
 						<input id="ecp1_full_day" name="ecp1_full_day" type="checkbox" value="1" <?php checked( 'Y', $ecp1_full_day ); ?>/><br/>
-					<em>Please enter date as YYYY-MM-DD or use the date picker</em>
+					<em><?php _e( 'Please enter date as YYYY-MM-DD or use the date picker' ); ?></em>
 				</td>
 			</tr>
 			<tr valign="top">
@@ -304,7 +304,7 @@ function ecp1_event_meta_form() {
 				<td>
 					<input id="ecp1_end_date" name="ecp1_end_date" type="text" class="ecp1_datepick" value="<?php echo $ecp1_end_date; ?>" />
 					<?php echo _ecp1_time_select_trio( 'ecp1_end_time', $ecp1_end_time ); ?><br/>
-					<em>Please enter date as YYYY-MM-DD or use the date picker</em>
+					<em><?php _e( 'Please enter date as YYYY-MM-DD or use the date picker' ); ?></em>
 				</td>
 			</tr>
 			<tr valign="top">
@@ -463,7 +463,7 @@ ENDOFSCRIPT;
 		<ul>
 			<li>
 				<input type="checkbox" id="ecp1_showmarker" name="ecp1_showmarker" value="1" <?php checked( 'Y', $ecp1_showmarker ); ?>/>
-				<label for="ecp1_showmarker">Show Placemarker?</label>
+				<label for="ecp1_showmarker"><?php _e( 'Show Placemarker?' ); ?></label>
 				<span>
 					<strong><?php _e( 'Marker:' ); ?></strong>
 					<span id="ecp1_marker_preview"><?php echo $marker_preview; ?></span>
@@ -473,7 +473,7 @@ ENDOFSCRIPT;
 			</li>
 			<li>
 				<input type="checkbox" id="ecp1_showmap" name="ecp1_showmap" value="1" <?php checked( 'Y', $ecp1_showmap ); ?>/>
-				<label for="ecp1_showmap">Show Map on Event Page?</label>
+				<label for="ecp1_showmap"><?php _e( 'Show Map on Event Page?' ); ?></label>
 				<span><?php _e( 'Remember to save your changes.' ); ?></span>
 			</li>
 		</ul>
@@ -597,7 +597,7 @@ function ecp1_event_save() {
 				isset( $_POST['ecp1_start_time-ante'] ) && ( '' != $_POST['ecp1_start_time-hour'] || '' != $_POST['ecp1_start_time-min'] ) ) {
 			$meridiem = isset( $_POST['ecp1_start_time-ante'] ) ? $_POST['ecp1_start_time-ante'] : 'AM';
 			$hours = isset( $_POST['ecp1_start_time-hour'] ) ? $_POST['ecp1_start_time-hour'] : 0;
-			$hours = 'AM' == $meridiem ? (12 == $hours ? 0 : $hours) : 12 + $hours; // convert to 24hr for setting time
+			$hours = 'AM' == $meridiem ? (12 == $hours ? 0 : $hours) : (12 == $hours ? $hours : 12 + $hours); // convert to 24hr for setting time
 			$mins = isset( $_POST['ecp1_start_time-min'] ) ? $_POST['ecp1_start_time-min'] : 0;
 			$ds->setTime( $hours, $mins, 0 ); // 0 to undo the 1s above
 		}
@@ -627,7 +627,7 @@ function ecp1_event_save() {
 				isset( $_POST['ecp1_end_time-ante'] ) && ( '' != $_POST['ecp1_end_time-hour'] || '' != $_POST['ecp1_end_time-min'] ) ) {
 			$meridiem = isset( $_POST['ecp1_end_time-ante'] ) ? $_POST['ecp1_end_time-ante'] : 'AM';
 			$hours = isset( $_POST['ecp1_end_time-hour'] ) ? $_POST['ecp1_end_time-hour'] : 0;
-			$hours = 'AM' == $meridiem ? (12 == $hours ? 0 : $hours) : 12 + $hours; // convert to 24hr time
+			$hours = 'AM' == $meridiem ? (12 == $hours ? 0 : $hours) : (12 == $hours ? $hours : 12 + $hours); // convert to 24hr time
 			$mins = isset( $_POST['ecp1_end_time-min'] ) ? $_POST['ecp1_end_time-min'] : 0;
 			$ds->setTime( $hours, $mins, 0 ); // 0 to undo the 59s above
 		}

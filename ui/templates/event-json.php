@@ -97,7 +97,7 @@ if ( ! isset( $wp_query->query_vars['ecp1_start'] ) || ! isset( $wp_query->query
 
 			// If any events were found load them into the loop
 			if ( count( $event_ids ) > 0 )
-				query_posts( array( 'post__in' => $event_ids, 'post_type'=>'ecp1_event' ) );
+				query_posts( array( 'post__in' => $event_ids, 'post_type'=>'ecp1_event', 'nopaging'=>true ) );
 
 			// An array of JSON parameters for the event
 			$events_json = array();
