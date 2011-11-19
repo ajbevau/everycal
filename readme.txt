@@ -4,7 +4,7 @@ Donate link: http://andrewbevitt.com/
 Tags: calendar, events
 Requires at least: 3.0
 Tested up to: 3.2.1
-Stable tag: 0.3.2
+Stable tag: 0.3.3
 
 A WordPress plugin that integrates calendars, custom post types, maps, and offsite linking.
 
@@ -102,6 +102,10 @@ than anything else. The external calendar interface is pluggable so you can exte
 2. description corresponds to screenshot-2.(png|jpg|jpeg|gif) in same dir.
 
 == Changelog ==
+
+= 0.3.3 =
+* Added support for event specific colors (NOTE: Feature Event colors still take precendence)
+* Added support for users to specify other calendars the event can appear on (extra to featured)
 
 = 0.3.2 =
 * Fixed bug when event time was 12 midday would be converted to 12 midnight
