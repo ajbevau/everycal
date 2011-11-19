@@ -43,6 +43,13 @@ function ecp1_event_edit_libs() {
 	wp_enqueue_script( 'ecp1_jquery_ui_datepicker_script' );
 	wp_enqueue_script( 'ecp1_event_datepicker_script' );
 
+	wp_register_style( 'ecp1_colorpicker_style', plugins_url( '/colorpicker/css/colorpicker.css', dirname( __FILE__ ) ) );
+	wp_register_script( 'ecp1_colorpicker_script', plugins_url( '/colorpicker/js/colorpicker.js', dirname( __FILE__ ) ), array( 'jquery' ) );
+	wp_register_script( 'ecp1_colorpicker_init_script', plugins_url( '/js/colorpicker.js', dirname( __FILE__ ) ), array( 'ecp1_colorpicker_script' ) );
+	wp_enqueue_style( 'ecp1_colorpicker_style' );
+	wp_enqueue_script( 'ecp1_colorpicker_script' );
+	wp_enqueue_script( 'ecp1_colorpicker_init_script' );
+
 	// Include the TinyMCE editor - this requires use of the_editor($content, 'element_id')
 	// inplace of the <textarea></textarea> tags on the event meta box - and naturally will
 	// obey user preferences on richtext editors etc...

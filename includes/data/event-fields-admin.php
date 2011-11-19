@@ -201,6 +201,12 @@ function ecp1_event_meta_form() {
 		}
 	}
 
+	// Get the list of secondary calendars this event can appear on
+	$ecp1_extra_cals = _ecp1_event_meta_is_default( 'ecp1_extra_cals' ) ? array() : $ecp1_event_fields['ecp1_extra_cals'][0];
+	$ecp1_overwrite_color = _ecp1_event_meta_is_default( 'ecp1_overwrite_color' ) ? 0 : $ecp1_event_fields['ecp1_overwrite_color'][0];
+	$ecp1_local_textcolor = _ecp1_event_meta_is_default( 'ecp1_local_textcolor' ) ? '' : $ecp1_event_fields['ecp1_local_textcolor'][0]; 
+	$ecp1_local_color = _ecp1_event_meta_is_default( 'ecp1_local_color' ) ? '' : $ecp1_event_fields['ecp1_local_color'][0];
+
 	// If the calendar selected is not editable by the user then they're cheating
 	if ( ! _ecp1_event_meta_is_default( 'ecp1_calendar' ) && ! current_user_can( 'edit_' . ECP1_CALENDAR_CAP, $ecp1_calendar ) )
 		wp_die( __( 'You can not change event details on a calendar you are not allowed to edit.' ) );
@@ -221,8 +227,8 @@ function ecp1_event_meta_form() {
 		<input type="checkbox" id="import_gravity" name="import_gravity" value="1" />
 		<label for="import_gravity"><?php _e( 'Tick this box and save event to import these values to the event (no other changes will be saved)' ); ?></label>
 		<input type="submit" class="button-primary" value="<?php _e( 'Save' ); ?>" /><br/>
-                <input type="checkbox" id="ignore_gravity" name="ignore_gravity" value="1" />
-                <label for="ignore_gravity"><?php _e( 'Tick this box to ignore gravity values for this event.' ); ?></label>
+		<input type="checkbox" id="ignore_gravity" name="ignore_gravity" value="1" />
+		<label for="ignore_gravity"><?php _e( 'Tick this box to ignore gravity values for this event.' ); ?></label>
 		<p style="margin-top:20px;"><?php _e( 'You can edit these values using the custom fields below.' ); ?></p>
 <?php
 		if ( ECP1_PHP5 < 3 )
@@ -256,6 +262,31 @@ function ecp1_event_meta_form() {
 					</span>
 				</td>
 			</tr>
+<?php
+	// If there are more than one calendar for this user
+	if ( count( $calendars ) > 1 ) {
+?>
+			<tr valign="top">
+				<th scope="row"><label for="ecp1_extra_clas"><?php _e( 'Also show on' ); ?></label></th>
+				<td>
+<?php
+	// Iterate over the calendar list and print checkboxes
+	$counter = 0;
+	foreach( $calendars as $cal ) {
+		if ( 0 == $counter ) 
+			printf( '<div style="clear:both;">' );
+		printf( '<span class="ecp1_checkbox_block"><input type="checkbox" id="ecp1_extra_cal_%s" name="ecp1_extra_cal[%s]" value="1"%s /> <label for="ecp1_extra_cal_%s">%s</label></span>',
+			$cal->ID, $cal->ID, in_array( $cal->ID, $ecp1_extra_cals ) ? ' checked="checked"' : '', $cal->ID, $cal->post_title );
+		$counter += 1;
+		if ( 2 == $counter )
+			printf( '</div>' );
+	}
+?>
+				</td>
+			</tr>
+<?php
+	} // more than one calendar
+?>
 			<tr valign="top">
 				<th scope="row"><label for="ecp1_summary"><?php _e( 'Summary' ); ?></label></th>
 				<td><textarea id="ecp1_summary" name="ecp1_summary" class="ecp1_med"><?php echo $ecp1_summary; ?></textarea></td>
@@ -485,6 +516,22 @@ ENDOFSCRIPT;
 ?>
 				</td>
 			</tr>
+			<tr>
+				<th scope="row"><label for="ecp1_event_colours"><?php _e( 'Event colours' ); ?></label></th>
+				<td>
+					<div>
+						<input type="checkbox" id="ecp1_overwrite_color" name="ecp1_overwrite_color" value="1"<?php if ( 'Y' == $ecp1_overwrite_color ) printf( ' checked="checked"' ); ?> />
+						<label for="ecp1_overwrite_color"><?php _e( 'Overwrite calendar colors?' ); ?></label></div>
+					<div class="color_selector">
+						<span><?php _e( 'Text' ); ?>:</span>
+						<input type="hidden" id="ecp1_local_text" name="ecp1_local_text" value="<?php echo $ecp1_local_textcolor; ?>" />
+						<div><div class="_eCS" style="background-color:<?php echo $ecp1_local_textcolor; ?>"></div></div></div>
+					<div class="color_selector">
+						<span><?php _e( 'Background' ); ?>:</span>
+						<input type="hidden" id="ecp1_local_color" name="ecp1_local_color" value="<?php echo $ecp1_local_color; ?>" />
+						<div><div class="_eCS" style="background-color:<?php echo $ecp1_local_color; ?>"></div></div></div>
+				</td>
+			</tr>
 		</table>
 	</div>
 <?php
@@ -583,6 +630,15 @@ function ecp1_event_save() {
 	_ecp1_parse_calendar_custom( $ecp1_calendar );
 	$calendar_tz = new DateTimeZone( ecp1_get_calendar_timezone() ); // UTC if error
 	
+	// Which extra calendars should the event be displayed on
+	$ecp1_extra_cals = $ecp1_event_fields['ecp1_extra_cals'][1];
+	if ( isset( $_POST['ecp1_extra_cal'] ) && is_array( $_POST['ecp1_extra_cal'] ) ) {
+		foreach( $_POST['ecp1_extra_cal'] as $cid=>$val ) {
+			if ( current_user_can( 'edit_' . ECP1_CALENDAR_CAP, $cid ) )
+				$ecp1_extra_cals[] = $cid;
+		}
+	}
+	
 	// Convert the Start Date + Time into a single UNIX time
 	$ecp1_start_ts = $ecp1_event_fields['ecp1_start_ts'][1];
 	if ( isset( $_POST['ecp1_start_date'] ) ) {
@@ -677,27 +733,51 @@ function ecp1_event_save() {
 	if ( isset( $_POST['ecp1_marker'] ) && file_exists( ECP1_DIR . '/img/mapicons/' . $_POST['ecp1_placemarker'] ) )
 		$ecp1_map_placemarker = $_POST['ecp1_marker'];
 	
+	// Are we overwriting the calendar colors
+	$ecp1_overwrite_color = $ecp1_event_fields['ecp1_overwrite_color'][1];
+	$ecp1_local_textcolor = $ecp1_event_fields['ecp1_local_textcolor'][1];
+	$ecp1_local_color = $ecp1_event_fields['ecp1_local_color'][1];
+	if ( isset( $_POST['ecp1_overwrite_color'] ) && 1 == $_POST['ecp1_overwrite_color'] ) {
+		$ecp1_overwrite_color = 'Y';
+		if ( isset( $_POST['ecp1_local_text'] ) && preg_match( '/#[0-9A-Fa-f]{6}/', $_POST['ecp1_local_text'] ) )
+			$ecp1_local_textcolor = $_POST['ecp1_local_text'];
+		if ( isset( $_POST['ecp1_local_color'] ) && preg_match( '/#[0-9A-Fa-f]{6}/', $_POST['ecp1_local_color'] ) )
+			$ecp1_local_color = $_POST['ecp1_local_color'];
+	}
+	
 	// Create an array to save as post meta (automatically serialized)
 	$save_fields_group = array();
 	$save_fields_alone = array();
+	$save_fields_multi = array();
 	foreach( array_keys( $ecp1_event_fields ) as $key ) {
 		if ( $$key != $ecp1_event_fields[$key][1] ) { // only where the value is NOT default
-			if ( ! array_key_exists( $key, $ecp1_event_fields['_meta']['standalone'] ) ) {
-				// for all fields NOT in _meta['standalone'] save as a serialized array
-				$save_fields_group[$key] = $$key;
-			} else {
+			if ( array_key_exists( $key, $ecp1_event_fields['_meta']['standalone'] ) ) {
 				// for fields in _meta['standalone'] store to be saved separately
 				// remember _meta['standalone'] = array( $ecp1_event_fields key => postmeta table key )
 				// basically rename the fields key to the database key and write value for saving
 				$save_fields_alone[$ecp1_event_fields['_meta']['standalone'][$key]] = $$key;
+			} else {
+				// for all other keys
+				$save_fields_group[$key] = $$key;
 			}
 		}
+		// For multiple key values MUST set even if is default
+		if ( array_key_exists( $key, $ecp1_event_fields['_meta']['multiple_keys'] ) ) {
+			// for all fields that need to be exploded
+			// for array values where want one value per row in post meta
+			$save_fields_multi[$ecp1_event_fields['_meta']['multiple_keys'][$key]] = $$key;
+		} 
 	}
 	
 	// Save the post meta information
 	update_post_meta( $post->ID, 'ecp1_event', $save_fields_group );
 	foreach( $save_fields_alone as $key=>$value )
 		update_post_meta( $post->ID, $key, $value );
+	foreach( $save_fields_multi as $key=>$values ) {
+		delete_post_meta( $post->ID, $key ); // clear existing meta values
+		foreach( $values as $value )
+			add_post_meta( $post->ID, $key, $value );
+	}
 }
 
 // Returns true if NO time given on start and finish date

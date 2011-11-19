@@ -74,6 +74,12 @@ function ecp1_event_list_calendar( $atts ) {
 		// Featured events have their UTC times modified to be local to calendar TZ
 		$ewhen = ecp1_formatted_date_range( $event['start'], $event['end'], $event['allday'],
 				( $event['feature'] ? 'UTC' : $raw_timezone ) );
+		
+		$stylestring = '';
+		if ( $event['feature'] )
+			$stylestring = ' style="display:block;background:' . $feature_back . ';color:' . $feature_text . ';"';
+		else if ( $event['custom_colors'] )
+			$stylestring = ' style="display:block;background:' . $event['bg_color'] . ';color:' . $event['text_color'] . ';"';
 
 		$outstring .= sprintf('
 <li class="ecp1_event">
@@ -90,7 +96,7 @@ function ecp1_event_list_calendar( $atts ) {
 				<span class="ecp1_event-text_wide">%s</span></li>
 	</ul>
 </li>',
-				$event['image'], ( $event['feature'] ? ' style="display:block;background:' . $feature_back . ';color:' . $feature_text . ';"' : '' ),
+				$event['image'], $stylestring,
 				urldecode( $event['url'] ), htmlentities( $event['title'] ),
 				__( 'When' ), $ewhen,
 				__( 'Where' ), $event['location'],
@@ -262,11 +268,21 @@ function _ecp1_event_list_get( $cal, $starting, $until ) {
 				if ( has_post_thumbnail( $epost->ID ) )
 					$feature_image = get_the_post_thumbnail( $epost->ID, 'thumbnail' );
 			}
+			
+			// Are we overwriting the calendar colors with this event?
+			$bg_color = '';
+			$text_color = '';
+			$overwrite_colors = 'Y' == _ecp1_event_meta( 'ecp1_overwrite_color' );
+			if ( $overwrite_colors ) {
+				$bg_color = _ecp1_event_meta( 'ecp1_local_color' );
+				$text_color = _ecp1_event_meta( 'ecp1_local_textcolor' );
+			}
 
 			// Setup the event cache
 			$event_cache[] = array(
 				'start' => $estart, 'end' => $eend, 'allday' => $eallday,
 				'feature' => $efeature, 'image' => $feature_image,
+				'custom_colors' => $overwrite_colors, 'bg_color' => $bg_color, 'text_color' => $text_color,
 				'title' => $epost->post_title, 'location' => _ecp1_event_meta( 'ecp1_location' ),
 				'summary' => _ecp1_event_meta( 'ecp1_summary' ), 'description' => $ecp1_desc, 'url' => $ecp1_url );
 		} catch( Exception $e ) {
@@ -315,7 +331,7 @@ function _ecp1_event_list_get( $cal, $starting, $until ) {
 function _ecp1_event_list_compare( $a, $b ) {
 	if ( ! array_key_exists( 'start', $a ) ) return 1;
 	if ( ! array_key_exists( 'start', $b ) ) return -1;
-	return ( $a['start'] < $b['start'] ) ? -1 : 1;
+	return ( $a['start'] < $b['start'] || ( $a['start'] == $b['start'] && $a['end'] < $b['end'] ) ) ? -1 : 1;
 }
 
 // Function to print the dynamic calendar load script

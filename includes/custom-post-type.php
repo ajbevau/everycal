@@ -62,7 +62,7 @@ function ecp1_register_types() {
 		# capabilities meta which will need a role manager if not default
 		'capability_type' => ECP1_CALENDAR_CAP,
 		'map_meta_cap' => true, # make sure all meta capabilities are mapped
-		'supports' => array( 'title' ),
+		'supports' => array( 'title', 'author' ),
 		'rewrite' => array( 'slug' => 'calendar' ),
 		'show_in_nav_menus' => true,
 		'with_front' => false,
@@ -79,7 +79,7 @@ function ecp1_register_types() {
 		# capabilities meta which will need a role manage if not default
 		'capability_type' => ECP1_EVENT_CAP,
 		'map_meta_cap' => true, # make sure all meta capabilities are mapped
-		'supports' => array( 'title', 'thumbnail', 'comments', 'custom-fields' ),
+		'supports' => array( 'title', 'thumbnail', 'comments', 'custom-fields', 'author' ),
 		'query_var' => true,
 		'rewrite' => false, // so we can have event/%ey%/%em%/%ed%/name
 		'show_in_nav_menus' => false,

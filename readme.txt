@@ -12,6 +12,8 @@ A WordPress plugin that integrates calendars, custom post types, maps, and offsi
 
 Every Calendar +1 is a pluggable interface for displaying locally entered events (as a custom post type) and displaying syndicated calendar feeds. You can use any calendar feed that is supported by the FullCalendar jQuery library (at time of writing this was only Google Calendar). The event colours are customisable for each event source and the plugin supports a pluggable maps interface for event locations (initially the plugin only provides a Google Maps implementation but many more can be added).
 
+See https://docs.google.com/document/pub?id=1QwmBusfl0gfRVkIt_PomAI3reG3B8Ae45-xCt1Q0uFw for annotated documentation.
+
 The plugin creates two custom post types:
 1) Events
 2) Calendars

@@ -27,7 +27,7 @@ $ECP1_QUERY = array(
 $_ecp1_query_events = <<<ENDOFQUERY
 SELECT  p.ID
 FROM    $wpdb->posts p
-	INNER JOIN $wpdb->postmeta c ON c.post_id=p.ID AND c.meta_key='ecp1_event_calendar'
+	INNER JOIN $wpdb->postmeta c ON c.post_id=p.ID AND (c.meta_key='ecp1_event_calendar' OR c.meta_key='ecp1_extra_calendar')
 	INNER JOIN $wpdb->postmeta s ON s.post_id=p.ID AND s.meta_key='ecp1_event_start'
 	INNER JOIN $wpdb->postmeta e ON e.post_id=p.ID AND e.meta_key='ecp1_event_end'
 WHERE   p.post_status='publish' AND

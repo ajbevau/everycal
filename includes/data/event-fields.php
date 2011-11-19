@@ -26,6 +26,10 @@ $ecp1_event_fields = array(
 	'ecp1_showmarker' => array( '', '' ),
 	'ecp1_showmap' => array( '', '' ),
 	'ecp1_featured' => array( '', '' ),
+	'ecp1_extra_cals' => array( array(), array() ),
+	'ecp1_overwrite_color' => array( '', 'N' ),
+	'ecp1_local_textcolor' => array( '', '' ),
+	'ecp1_local_color' => array( '', '' ),
 
 	// support for gravity forms custom post type plugin
 	'gravity_ignore' => array( '', 'N' ),
@@ -38,6 +42,9 @@ $ecp1_event_fields = array(
 			'ecp1_calendar' => 'ecp1_event_calendar',
 			'ecp1_featured' => 'ecp1_event_is_featured',
 			'gravity_ignore' => 'ecp1_ignore_gravity',
+		),
+		'multiple_keys' => array( // $ecp1_event_fields key => postmeta table key which repeats for each value
+			'ecp1_extra_cals' => 'ecp1_extra_calendar',
 		),
 		'calendar_tz' => 'UTC', // the TZ of the parent calendar
 		'_loaded' => false, // custom fields not yet loaded
@@ -69,13 +76,20 @@ function _ecp1_parse_event_custom( $post_id=-1 ) {
 		return;
 	
 	// Load the basic meta for this event post
-	$custom = get_post_meta( $post_id, 'ecp1_event', true ); // will be everything NOT in _meta['standalone']
+	$custom = get_post_meta( $post_id, 'ecp1_event', true ); // all except standalone / multiple keys
 
 	// parse the custom meta fields into the value keys
 	if ( is_array( $custom ) ) {
 		// load the remaining meta fields from standalone into $custom
 		foreach( $ecp1_event_fields['_meta']['standalone'] as $field_key=>$table_key )
 			$custom[$field_key] = get_post_meta( $post_id, $table_key, true );
+	
+		// load the multiple key values from their standalone keys
+		foreach( $ecp1_event_fields['_meta']['multiple_keys'] as $field_key=>$table_key ) {
+			$t = get_post_meta( $post_id, $table_key, false); // get all in an array
+			if ( is_array( $t ) )
+				$custom[$field_key] = $t;
+		}
 		
 		// look at all the non-meta keys and copy the database value in or use defaults
 		foreach( array_keys( $ecp1_event_fields ) as $key ) {

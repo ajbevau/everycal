@@ -130,6 +130,15 @@ if ( ! isset( $wp_query->query_vars['ecp1_start'] ) || ! isset( $wp_query->query
 						'allDay' => 'Y' == _ecp1_event_meta( 'ecp1_full_day', false ) ? true : false,
 					); 
 
+					// If custom colors were specified for this event show them
+					// NOTE: feature event colors will overwrite these if they're set
+					if ( 'Y' == _ecp1_event_meta( 'ecp1_overwrite_color' ) ) {
+						if ( ! _ecp1_event_meta_is_default( 'ecp1_local_textcolor' ) )
+							$events_json[$_e_index]['textColor'] = _ecp1_event_meta( 'ecp1_local_textcolor' );
+						if ( ! _ecp1_event_meta_is_default( 'ecp1_local_color' ) )
+							$events_json[$_e_index]['color'] = _ecp1_event_meta( 'ecp1_local_color' );
+					}
+
 					// If this is a feature event (not from this calendar) then give it the feature colors
 					// and optionally also change the start/end times to be event local not calendar local
 					if ( _ecp1_event_meta( 'ecp1_calendar' ) != $cal->ID && in_array( get_the_ID(), $feature_ids ) ) {
