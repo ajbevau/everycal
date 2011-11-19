@@ -203,7 +203,7 @@ function ecp1_event_meta_form() {
 
 	// Get the list of secondary calendars this event can appear on
 	$ecp1_extra_cals = _ecp1_event_meta_is_default( 'ecp1_extra_cals' ) ? array() : $ecp1_event_fields['ecp1_extra_cals'][0];
-	$ecp1_overwrite_color = _ecp1_event_meta_is_default( 'ecp1_overwrite_color' ) ? 0 : $ecp1_event_fields['ecp1_overwrite_color'][0];
+	$ecp1_overwrite_color = _ecp1_event_meta_is_default( 'ecp1_overwrite_color' ) ? 'N' : $ecp1_event_fields['ecp1_overwrite_color'][0];
 	$ecp1_local_textcolor = _ecp1_event_meta_is_default( 'ecp1_local_textcolor' ) ? '' : $ecp1_event_fields['ecp1_local_textcolor'][0]; 
 	$ecp1_local_color = _ecp1_event_meta_is_default( 'ecp1_local_color' ) ? '' : $ecp1_event_fields['ecp1_local_color'][0];
 
