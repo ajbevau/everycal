@@ -23,16 +23,53 @@ function ecp1_add_rewrite_rules() {
 }
 
 // Function that activates plugin rewrite rules and flushes them to cache
-function _ecp1_activate_rewrite() {
+function ecp1_activate_rewrite() {
 	ecp1_register_types();     # register the custom cal/event types
 	ecp1_add_rewrite_rules();  # setup custom template urls (e.g. json events)
 	flush_rewrite_rules();     # flush the rules to the database and .htaccess
 }
 
 // Function that deactivates plugin rewrite rules and flushes them to cache
-function _ecp1_deactivate_rewrite() {
+function ecp1_deactivate_rewrite() {
 	// They aren't added so flushing will flush all but ours
 	flush_rewrite_rules();
 }
+
+
+// Function that creates the event repeat and exception cache table
+// the cache allows for "exceptions" to be made for particular repeats
+// by over-riding the event details.
+function ecp1_add_cache_tables() {
+	global $wpdb;
+	$tablename = $wpdb->prefix . "ecp1_cache";
+	$currentversion = get_option( "ecp1_db_version", -1 );
+
+	// If the the database schema is out-of-date update it
+	if ( ECP1_DB_VERSION != $currentversion ) {
+		
+		// dbDelta requires specific format so read before changing
+		// http://codex.wordpress.org/Creating_Tables_with_Plugins
+		$sql = "CREATE TABLE $tablename (
+			cache_id bigint(20) NOT NULL AUTO_INCREMENT,
+			post_id bigint(20) NOT NULL DEFAULT 0,
+			start date NULL DEFAULT NULL,
+			changes longtext NULL DEFAULT NULL,
+			is_exception bool NOT NULL DEFAULT 0,
+			PRIMARY KEY  cache_id (cache_id),
+			KEY  post_id (post_id),
+			KEY  start (start),
+			KEY  exception (is_exception)
+		);";
+		
+		// Load the dbDelta functions
+		require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
+		dbDelta( $sql );
+		
+		// Store the current version of the database as an option
+		update_option( "ecp1_db_version", ECP1_DB_VERSION );
+
+	}
+}
+
 
 ?>

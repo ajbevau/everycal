@@ -3,7 +3,7 @@
 Plugin Name: Every Calendar +1 for WordPress
 Plugin URI: http://andrewbevitt.com/code/everycalplus1
 Description: A WordPress Calendar plugin with custom types and maps support.
-Version: 0.3.3
+Version: 1.0
 Author: Andrew Bevitt
 Author URI: http://andrewbevitt.com
 License: GPL2
@@ -34,6 +34,9 @@ define( 'ECP1_PLUGIN', true );
 // The plugin directory of Every Calendar +1
 define( 'ECP1_DIR', WP_PLUGIN_DIR . '/' . basename( dirname( __FILE__ ) ) );
 
+// The version of the repeats and exceptions cache tables
+define( 'ECP1_DB_VERSION', 1.0 ); // change to plugin version
+
 // The tag that the plugins custom template renders hook on
 define( 'ECP1_TEMPLATE_TAG', 'ecp1tpl' );
 define( 'ECP1_TEMPLATE_TEST_ARG', '_ecp1test' ); // for template renderer debug
@@ -54,13 +57,14 @@ require_once( ECP1_DIR . '/install-activate.php' );
 // Register a function on the activation hook to setup the plugin
 register_activation_hook( __FILE__, 'ecp1_plugin_activation' );
 function ecp1_plugin_activation() {
-	_ecp1_activate_rewrite();
+	ecp1_activate_rewrite();
+	ecp1_add_cache_tables();
 }
  
 // Register a function on the deactivation hook for locking down data
 register_deactivation_hook( __FILE__, 'ecp1_plugin_deactivation' );
 function ecp1_plugin_deactivation() {
-    _ecp1_deactivate_rewrite();
+    ecp1_deactivate_rewrite();
 }
 
 // If displaying the administration dashboard load admin UI

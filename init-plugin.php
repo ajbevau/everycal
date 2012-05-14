@@ -58,4 +58,10 @@ function ecp1_register_query_tags() {
 		add_rewrite_tag( "%$name%", $regex );
 }
 
+// Add a hook to create the event repeat and exception cache
+// when the plugin is loaded by automatic upgrade because the
+// activation hook doesn't run in those cases (apparently)
+// NOTE: this is forward declared (see install-activate.php)
+add_action( 'plugins_loaded', 'ecp1_add_cache_tables' );
+
 ?>
