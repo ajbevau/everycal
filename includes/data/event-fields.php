@@ -33,6 +33,15 @@ $ecp1_event_fields = array(
 
 	// support for gravity forms custom post type plugin
 	'gravity_ignore' => array( '', 'N' ),
+
+	// repeating events support - uses a separate cache table
+	'ecp1_repeating' => array( '', '' ),
+	'ecp1_repeat_pattern' => array( '', '' ), // EveryCal_RepeatExpression::$TYPES
+	'ecp1_repeat_custom_expression' => array( '', ''),
+	'ecp1_repeat_pattern_parameters' => array( array(), array() ),
+	'ecp1_repeat_termination' => array( '', '' ), // 4EVA | XTIMES | UNTIL
+	'ecp1_repeat_terminate_at' => array( '', '' ), // X or UTC time for UNTIL
+	'ecp1_repeat_cache_start_point' => array( '', ''), // start last time cache built
 	
 	// meta fields that describe the database structure
 	'_meta' => array(
@@ -42,6 +51,7 @@ $ecp1_event_fields = array(
 			'ecp1_calendar' => 'ecp1_event_calendar',
 			'ecp1_featured' => 'ecp1_event_is_featured',
 			'gravity_ignore' => 'ecp1_ignore_gravity',
+			'ecp1_repeating' => 'ecp1_event_repeats',
 		),
 		'multiple_keys' => array( // $ecp1_event_fields key => postmeta table key which repeats for each value
 			'ecp1_extra_cals' => 'ecp1_extra_calendar',

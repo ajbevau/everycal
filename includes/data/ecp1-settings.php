@@ -73,6 +73,11 @@ $_ecp1_settings = array(
 	'week_time_format' => array( 'default' => 'h:mmtt( - h:mmtt )' ), // Time format for agenda
 	'month_time_format' => array( 'default' => 'h(:mm)tt' ), // Time format for month/other
 
+	// Repeating cache size and built-in expressions
+	'max_repeat_cache_block' => array( 'default' => '15811200' ), // 6 months
+	'allow_custom_repeats' => array( 'default' => 0 ), // can't write own cron expression
+	'_disable_builtin_repeats' => array( 'default' > '' ), // keys from EveryCal_Expression::TYPES
+
 	// Finally create synonyms effectively this is so we can create a
 	// setting that contains the value of another setting to maintain
 	// setting names going forward.
@@ -188,6 +193,12 @@ function _ecp1_calendar_provider_enabled( $provider ) {
 function _ecp1_calendar_show_featured( $post_id ) {
 	$cals = explode( ',', _ecp1_get_option( '_show_featured_on' ) );
 	return is_array( $cals ) && in_array( $post_id, $cals );
+}
+
+// Returns true or false if the given expression key is disabled
+function _ecp1_scheduler_expression_is_disabled( $expr_key ) {
+	$set = explode( ',', _ecp1_get_option( '_disable_builtin_repeats' ) );
+	return is_array( $set ) && in_array( $expr_key, $set );
 }
 
 ?>

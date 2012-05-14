@@ -11,6 +11,9 @@ require_once( ECP1_DIR . '/includes/data/ecp1-settings.php' );
 require_once( ECP1_DIR . '/includes/data/event-fields.php' );
 require_once( ECP1_DIR . '/includes/map-providers.php' );
 
+// Load the scheduler
+require_once( ECP1_DIR . '/includes/scheduler.php' );
+
 // Add filters and hooks to add columns and display them
 add_filter( 'manage_edit-ecp1_event_columns', 'ecp1_event_edit_columns' );
 add_action( 'manage_posts_custom_column', 'ecp1_event_custom_columns' );
@@ -207,6 +210,14 @@ function ecp1_event_meta_form() {
 	$ecp1_local_textcolor = _ecp1_event_meta_is_default( 'ecp1_local_textcolor' ) ? '' : $ecp1_event_fields['ecp1_local_textcolor'][0]; 
 	$ecp1_local_color = _ecp1_event_meta_is_default( 'ecp1_local_color' ) ? '' : $ecp1_event_fields['ecp1_local_color'][0];
 
+	// Repeating event details
+	$ecp1_repeating = _ecp1_event_meta_is_default( 'ecp1_repeating' ) ? 'N' : $ecp1_event_fields['ecp1_repeating'][0];
+	$ecp1_repeat_pattern = _ecp1_event_meta_is_default( 'ecp1_repeat_pattern' ) ? '' : $ecp1_event_fields['ecp1_repeat_pattern'][0];
+	$ecp1_repeat_custom = _ecp1_event_meta_is_default( 'ecp1_repeat_custom_expression' ) ? '' : $ecp1_event_fields['ecp1_repeat_custom_expression'][0];
+	$ecp1_repeat_parameters = _ecp1_event_meta_is_default( 'ecp1_repeat_pattern_parameters' ) ? array() : $ecp1_event_fields['ecp1_repeat_pattern_parameters'][0];
+	$ecp1_repeat_end_type = _ecp1_event_meta_is_default( 'ecp1_repeat_termination' ) ? '' : $ecp1_event_fields['ecp1_repeat_termination'][0];
+	$ecp1_repeat_end_param = _ecp1_event_meta_is_default( 'ecp1_repeat_terminate_at' ) ? '' : $ecp1_event_fields['ecp1_repeat_terminate_at'][0];
+
 	// If the calendar selected is not editable by the user then they're cheating
 	if ( ! _ecp1_event_meta_is_default( 'ecp1_calendar' ) && ! current_user_can( 'edit_' . ECP1_CALENDAR_CAP, $ecp1_calendar ) )
 		wp_die( __( 'You can not change event details on a calendar you are not allowed to edit.' ) );
@@ -338,6 +349,113 @@ function ecp1_event_meta_form() {
 					<em><?php _e( 'Please enter date as YYYY-MM-DD or use the date picker' ); ?></em>
 				</td>
 			</tr>
+			<tr valign="top">
+				<th scope="row"><?php _e( 'Repeats' ); ?></th>
+				<td>
+					<ul style="margin:0;">
+<?php
+	if ( 'Y' == $ecp1_repeating ) {
+		$cachecount = EveryCal_Scheduler::CountCache( $post_ID );
+		printf( '<li><em>This event currently has %s cached future repeat%s</em></li>', $cachecount, $cachecount == 1 ? '' : 's' );
+	}
+?>
+					<li>
+						<input type="checkbox" id="ecp1_repeating" name="ecp1_repeating" value="1" <?php checked( 'Y', $ecp1_repeating ); ?> />
+						<label for="ecp1_repeating"><?php _e( 'This event repeats' ); ?></label>
+					</li>
+					<li>
+						<select id="ecp1_repeat_pattern" name="ecp1_repeat_pattern">
+<?php
+	if ( _ecp1_get_option( 'allow_custom_repeats' ) ) {
+		printf( '<option value="-1"%s>%s</option>',
+			'-1' == $ecp1_repeat_pattern ? ' selected="selected"' : '',
+			__( 'Custom' ));
+	}
+	
+	$repeat_params = array();
+	foreach( EveryCal_RepeatExpression::$TYPES as $key=>$dtl ) {
+		printf( '<option value="%s"%s>%s</option>', $key, $key == $ecp1_repeat_pattern ? ' selected="selected"' : '', $dtl['desc'] );
+		if ( is_array( $dtl['params'] ) )
+			$repeat_params[$key] = $dtl['params'];
+	}
+	printf( '</select>' );
+
+	if ( _ecp1_get_option( 'allow_custom_repeats' ) ) {
+		_e( 'or' );
+?>
+		<input type="text" id="ecp1_repeat_custom" name="ecp1_repeat_custom" value="<?php if ( '-1' == $ecp1_repeat_pattern ) print $ecp1_repeat_custom; ?>" />
+		<label for="ecp1_repeat_custom"><?php _e( 'custom expression' ); ?></label>
+<?php
+	}
+?>
+	<div id="ecp1_repeat_pattern_parameters">
+<?php
+	foreach( $repeat_params as $k=>$rp ) {
+		$s = sprintf( '<div id="ecp1_rpp_%s">', $k );
+		foreach( $rp as $name=>$data ) {
+			$pval = array_key_exists( $name, $ecp1_repeat_parameters ) ? $ecp1_repeat_parameters[$name] : null;
+			$s .= __( $data['desc'] ) . ': ';
+			if ( array_key_exists( 'choices', $data ) ) { // render choices as select box
+				$s .= sprintf( '<select name="ecp1_rpp_%s[%s]">', $k, $name );
+				if ( ! $data['required'] ) $s .= '<option value=""></option>';
+				foreach( $data['choices'] as $val=>$choice ) {
+					$s .= sprintf( '<option value="%s"%s>%s</option>',
+						$val, $pval == $val ? ' selected="selected"' : '', __( $choice ) );
+				}
+				$s .= '</select>';
+			} else { // not choices so must be text box
+				$s .= sprintf( '<input type="text" name="ecp1_rpp_%s[%s]" value="%s" />', $k, $name, $pval);
+			}
+			if ( $data['required'] ) {
+				$s .= __( ' (required)' );
+			} else if ( array_key_exists( 'default', $data ) ) {
+				$s .= sprintf( __( ' (default: %s)' ), $data['default'] );
+			}
+			$s .= '<br/>';
+		}
+		printf( '%s</div>', $s );
+	}
+?>
+	</div>
+					</li>
+					<li>
+	<input type="radio" id="ecp1_repeat_forever" name="ecp1_repeat_until" value="4EVA" <?php checked( '4EVA', $ecp1_repeat_end_type ); ?> />
+	<label for="ecp1_repeat_forever"><?php _e( 'Repeats forever' ); ?></label><br/>
+	
+	<input type="radio" id="ecp1_repeat_ntimes" name="ecp1_repeat_until" value="XTIMES" <?php checked( 'XTIMES', $ecp1_repeat_end_type ); ?> />
+	<label for="ecp1_repeat_ntimes"><?php _e( 'Repeats' ); ?></label>
+	<input type="text" size="4" id="ecp1_repeat_ntimes_value" name="ecp1_repeat_ntimes_value" value="<?php if ( $ecp1_repeat_end_type == 'XTIMES' ) print $ecp1_repeat_end_param; ?>" />
+	<label for="ecp1_repeat_ntimes_value"><?php _e( 'times' ); ?></label><br/>
+
+	<input type="radio" id="ecp1_repeat_to_date" name="ecp1_repeat_until" value="UNTIL" <?php checked( 'UNTIL', $ecp1_repeat_end_type ); ?> />
+	<label for="ecp1_repeat_to_date"><?php _e( 'Repeats until' ); ?></label>
+	<input id="ecp1_repeat_to_date_value" name="ecp1_repeat_to_date_value" type="text" class="ecp1_datepick" value="<?php if ( 'UNTIL' == $ecp1_repeat_end_type ) print $ecp1_repeat_end_param; ?>" /><br/>
+	<em><?php _e( 'Please enter date as YYYY-MM-DD or use the date picker' ); ?></em>
+					</li>
+					</ul>
+					<em><?php _e( 'Note: you can add exceptions and make changes to specific repeats below' ); ?></em>
+				</td>
+			</tr>
+<?php
+	// Create some javascript for repeat events
+	$_ecp1_event_admin_init_js .= <<<ENDOFSCRIPT
+// Setup on focus handlers for the repeat until patterns
+jQuery(document).ready(function($) {
+	$('#ecp1_repeat_pattern_parameters > div').hide();
+	$('#ecp1_rpp_' + $('#ecp1_repeat_pattern').val()).slideDown();
+	$('#ecp1_repeat_ntimes').change(function() { if ($(this).is(':checked')) { $('#ecp1_repeat_ntimes_value').focus(); } });
+	$('#ecp1_repeat_ntimes_value').focus(function() { if (! $('#ecp1_repeat_ntimes').is(':checked') ) { $('#ecp1_repeat_ntimes').attr('checked', 'checked'); } });
+	$('#ecp1_repeat_to_date').change(function() { if ($(this).is(':checked')) { $('#ecp1_repeat_to_date_value').focus(); } });
+	$('#ecp1_repeat_to_date_value').focus(function() { if (! $('#ecp1_repeat_to_date').is(':checked') ) { $('#ecp1_repeat_to_date').attr('checked', 'checked'); } });
+
+	$('#ecp1_repeat_pattern').change(function() {
+		$('#ecp1_repeat_pattern_parameters > div').hide();
+		var j = $('#ecp1_rpp_' + $(this).val());
+		if (j.length > 0) { j.slideDown(); }
+	});
+});
+ENDOFSCRIPT;
+?>
 			<tr valign="top">
 				<th scope="row"><label for="ecp1_location"><?php _e( 'Location' ); ?></label></th>
 				<td>
@@ -532,6 +650,154 @@ ENDOFSCRIPT;
 						<div><div class="_eCS" style="background-color:<?php echo $ecp1_local_color; ?>"></div></div></div>
 				</td>
 			</tr>
+<?php
+	if ( 'Y' == $ecp1_repeating ) {
+		$futureExceptions =  EveryCal_Exception::Count( $post_ID );
+?>
+			<tr>
+				<th scope="row"><?php _e( 'Repeat Exceptions' ); ?></th>
+				<td>
+	<div>
+		<p><?php _e ( 'You can create exceptions for the repeated events these allow you to update certain fields of the event for a particular repeat. <em>Note: you must enter the correct start date of the repeat for this to work.</em>' ); ?></p>
+		<p><button id="add_new_exception" type="button"><?php _e( 'Add Exception' ); ?></button></p>
+		<div id="new_exceptions_container">
+			<input type="hidden" value="0" id="ecp1_exrpt_counter" name="ecp1_exrpt_counter" />
+		</div>
+	</div>
+	<div>
+		<strong><?php printf( __( 'There are %s future exceptions' ), $futureExceptions ); ?></strong>
+		<?php if ( $futureExceptions > 0 ) printf( '<a id="show_hide_ecp1_exceptions" href="#toggle">%s</a>', __( '(show me)' ) ); ?>
+		<ul id="ecp1_repeat_exceptions_existing">
+<?php
+	$exHTML = sprintf( '<ul style="margin:0;"><li><label style="width:75px;display:inline-block;">%s</label>', __( 'Change the: ' ) );
+	foreach( EveryCal_Exception::$FIELDS as $key=>$dtl )
+		$exHTML .= sprintf( '<span style="padding-right:10px;"><input type="checkbox" value="1" class="ecp1_extog" id="ecp1_extog_{{INDEX}}_%s" name="ecp1_exdata[{{INDEX}}][toggle][%s]" {{CHECKED_%s}}/> <label for="ecp1_extog_{{INDEX}}_%s">%s</label></span>', $key, $key, $key, $key, __( $dtl['label'] ) );
+	$exHTML .= sprintf( '{{DELETE_BUTTON}}</li><li><label for="ecp1_exdata{{INDEX}}_repeat" style="width:75px;display:inline-block;">%s</label> <input type="text" value="{{START_DATE}}" class="ecp1_datepick" id="ecp1_exdata{{INDEX}}_repeat" name="ecp1_exdata[{{INDEX}}][repeat]" /> <label for="ecp1_exdata{{INDEX}}_desc">%s</label> <input type="text" value="{{DESCRIPTION}}" class="ecp1_w50" id="ecp1_exdata{{INDEX}}_desc" name="ecp1_exdata[{{INDEX}}][desc]" /></li><li><label style="width:75px;display:inline-block;">&nbsp;</label> <input type="checkbox" value="1" id="ecp1_exdata{{INDEX}}_cancel" name="ecp1_exdata[{{INDEX}}][cancel]" {{CHECKED_cancel}} /> <label for="ecp1_exdata{{INDEX}}_cancel">%s</label></li>{{CHANGES}}</ul>', __( 'Repeat start:' ), __( 'Description' ), __( 'Cancel event starting on this date' ) );
+	$listtemplate = '<li>' . $exHTML . '</li>';
+	// Construct a template change set for the above - bit repetitive but oh well
+	$mychanges = '';
+	foreach( EveryCal_Exception::$FIELDS as $key=>$dtl ) {
+		$exHTML = str_replace( "{{CHECKED_$key}}", '', $exHTML ); // not checked
+		$mychanges .= sprintf( '<li class="ecp1_exrow_%s" id="ecp1_exrow_{{INDEX}}_%s">', $key, $key );
+		$mychanges .= sprintf( '<label for="ecp1_exdata{{INDEX}}_%s" style="width:75px;display:inline-block;">%s:</label> ', $key, __( $dtl['label'] ) );
+		$mychanges .= EveryCal_Exception::Render( $key, "ecp1_exdata{{INDEX}}_$key", "ecp1_exdata[{{INDEX}}][$key]" );
+		$mychanges .= array_key_exists( 'notes', $dtl ) ? '<br/><em>' . __( $dtl['notes'] ) . '</em>' : '';
+		$mychanges .= '</li>';
+	}
+	$exHTML = str_replace(
+		array( '{{DESCRIPTION}}', '{{CHANGES}}', '{{START_DATE}}', '{{CHECKED_cancel}}', '{{DELETE_BUTTON}}' ),
+		array( __( 'Describe your changes' ), $mychanges, '', '', '' ),
+		$exHTML
+	);
+
+	if ( $futureExceptions > 0 ) {
+		$exceptions = EveryCal_Exception::Find( $post_ID, null, null ); // all future exceptions
+		foreach( $exceptions as $exid=>$exception ) {
+			// Calculate a string of all the changes in this exception
+			$myout = $listtemplate;
+			$mybaseid = 'ecp1_exdata' . $exid . '_';
+			$mybasename = 'ecp1_exdata[' . $exid . ']';
+			$mychanges = '';
+			foreach( EveryCal_Exception::$FIELDS as $key=>$dtl ) {
+				$mychanges .= sprintf( '<li class="ecp1_exrow_%s" id="ecp1_exrow_%s_%s">', $key, $exid, $key );
+				$value = null;
+				if ( array_key_exists( $key, $exception['changes'] ) ) {
+					$value = $exception['changes'][$key];
+					$myout = str_replace( "{{CHECKED_$key}}", 'checked="checked"', $myout );
+				} else // if no value then not checked
+					$myout = str_replace( "{{CHECKED_$key}}", '', $myout );
+				$mychanges .= sprintf( '<label for="%s" style="width:75px;display:inline-block;">%s:</label> ', $mybaseid . $key, __( $dtl['label'] ) );
+				$mychanges .= EveryCal_Exception::Render( $key, "$mybaseid$key", $mybasename . "[$key]", $value );
+				if ( array_key_exists( 'notes', $dtl ) )
+					$mychanges .= '<br/><em>' . __( $dtl['notes'] ). '</em>';
+				$mychanges .= '</li>';
+			}
+
+			// Replace the placeholders
+			$delbutton = sprintf( '<button type="button" id="ecp1_exdel_%s" class="ecp1_exdel">%s</button><input type="hidden" id="ecp1_exdata_%s_delete" name="ecp1_exdata[%s][delete]" value="0" />', $exid, __( 'Delete' ), $exid, $exid );
+			printf( str_replace(
+				array( '{{INDEX}}', '{{DESCRIPTION}}', '{{CHANGES}}', '{{START_DATE}}', '{{CHECKED_cancel}}', '{{DELETE_BUTTON}}' ),
+				array( $exid, $exception['desc'], $mychanges, $exception['start'], $exception['is_cancelled'] ? ' checked="checked"' : '', $delbutton ),
+				$myout
+			) );
+		}
+
+	} else { printf( '<li><em>%s</em></li>', __( 'There are none to show' ) ); }
+?>
+		</ul>
+	</div>
+				</td>
+			</tr>
+<?php
+		// Add some javascript for exception management
+		$showMe = __( '(show me)' );
+		$hideThem = __( '(hide them)' );
+		$removeLine = __( 'cancel' );
+		$_ecp1_event_admin_init_js .= <<<ENDOFSCRIPT
+// Manage exception control buttons / links
+jQuery(document).ready(function($) {
+	$('#ecp1_repeat_exceptions_existing').hide();
+	$('#show_hide_ecp1_exceptions').click(function() {
+		var l = $('#ecp1_repeat_exceptions_existing');
+		if (l.is(':visible')) { l.hide(); $(this).text('$showMe'); }
+		else { l.slideDown(); $(this).text('$hideThem'); }
+		return false;
+	});
+
+	// remove a row that already exists by hiding and setting delete field
+	$('button.ecp1_exdel').click(function() {
+		var splits = $(this).attr('id').split('_');
+		$('#ecp1_exdata_' + splits[2] + '_delete').val('1');
+		$(this).parent().parent().parent().hide();
+		return false;
+	});
+
+	// hide / show rows in existing fields based on checkboxes
+	$('input[type="checkbox"].ecp1_extog').each(function() {
+		if ( ! $(this).is(':checked') ) {
+			var splits = $(this).attr('id').split('_');
+			$('#ecp1_exrow_' + splits[2] + '_' + splits[3]).hide();
+		}
+	});
+
+	// Create some dynamic actions based on changing checkboxes
+	function exComponentsToggle() {
+		var splits = $(this).attr('id').split('_');
+		if ( ! $(this).is(':checked') ) {
+			$('#ecp1_exrow_' + splits[2] + '_' + splits[3]).hide();
+		} else {
+			$('#ecp1_exrow_' + splits[2] + '_' + splits[3]).slideDown();
+		}
+	}
+	$('input[type="checkbox"].ecp1_extog').change(exComponentsToggle);
+	
+	// create new exception lines
+	var exHTML = '$exHTML';
+	$('#add_new_exception').click(function() {
+		var count = parseInt( $('#ecp1_exrpt_counter').val() );
+		var iHTML = exHTML.replace(/{{INDEX}}/g, 'n' + count);
+		var line = $('<div></div>').css( {'display':'block' } )
+			.append( $('<div></div>').css( {'float':'left'} ).html(iHTML) )
+			.append( $('<div></div>').css( {'float':'left'} )
+				.append( $('<button></button>').text('$removeLine').click(function() {
+					$(this).parent().parent().remove();
+				}) ) )
+			.append( $('<hr/>').css( {'clear':'both', 'border':'none'} ) );
+		$('#new_exceptions_container').append(line);
+		$('#ecp1_exrpt_counter').val(count + 1);
+		$('input[type="checkbox"].ecp1_extog').change(exComponentsToggle).each(exComponentsToggle);
+		$('#new_exceptions_container .ecp1_datepick').datepicker( {
+			dateFormat: 'yy-mm-dd',
+			showOn: 'focus',
+			numberOfMonths: 3
+		} );
+		return false;
+	});
+});
+ENDOFSCRIPT;
+
+	}
+?>
 		</table>
 	</div>
 <?php
@@ -703,6 +969,69 @@ function ecp1_event_save() {
 	if ( _ecp1_event_no_time_given() )
 		$ecp1_full_day = 'Y';
 	
+	// Repeating event details
+	$ecp1_repeating = 'N';
+	if ( isset( $_POST['ecp1_repeating'] ) && '1' == $_POST['ecp1_repeating'] )
+		$ecp1_repeating = 'Y';
+	
+	// The repeat pattern / expression
+	$ecp1_repeat_pattern = $ecp1_event_fields['ecp1_repeat_pattern'][1];
+	$ecp1_repeat_custom_expression = $ecp1_event_fields['ecp1_repeat_custom'][1];
+	if ( isset( $_POST['ecp1_repeat_pattern'] ) )
+		$ecp1_repeat_pattern = $_POST['ecp1_repeat_pattern'];
+	if ( isset( $_POST['ecp1_repeat_custom'] ) ) {
+		$ecp1_repeat_custom_expression = $_POST['ecp1_repeat_custom'];
+		unset( $input['ecp1_repeat_custom'] );
+	}
+
+	// Parameters for the repeated pattern
+	$ecp1_repeat_pattern_parameters = $ecp1_event_fields['ecp1_repeat_pattern_parameters'][1];
+	if ( array_key_exists( $ecp1_repeat_pattern, EveryCal_RepeatExpression::$TYPES ) ) {
+		$posted = isset( $_POST['ecp1_rpp_' . $ecp1_repeat_pattern] ) ? $_POST['ecp1_rpp_' . $ecp1_repeat_pattern] : null;
+		if ( is_array( $posted ) ) {
+			foreach( EveryCal_RepeatExpression::$TYPES[$ecp1_repeat_pattern]['params'] as $name=>$options ) {
+				$myval = isset( $posted[$name] ) ? $posted[$name] : ( !$options['required'] ? $options['default'] : null );
+				if ( $myval != null )
+					$ecp1_repeat_pattern_parameters[$name] = $myval;
+			}
+		}
+	}
+	// Cleanup the input array
+	foreach( EveryCal_RepeatExpression::$TYPES as $k=>$rp ) {
+		if ( is_array( $rp['params'] ) ) {
+			unset( $input['ecp1_rpp_' + $k] ); // whole array in one
+		}
+	}
+	
+	// When the even repeats until
+	$ecp1_repeat_termination = $ecp1_event_fields['ecp1_repeat_termination'][1];
+	$ecp1_repeat_terminate_at = $ecp1_event_fields['ecp1_repeat_terminate_at'][1];
+	if ( isset( $_POST['ecp1_repeat_until'] ) ) {
+		$until = $_POST['ecp1_repeat_until'];
+		if ( '4EVA' == $until ) {
+			$ecp1_repeat_termination = $until;
+		} else if ( 'XTIMES' == $until ) {
+			$at = isset( $_POST['ecp1_repeat_ntimes_value'] ) ? $_POST['ecp1_repeat_ntimes_value'] : null;
+			if ( is_numeric( $at ) ) {
+				$ecp1_repeat_termination = $until;
+				$ecp1_repeat_terminate_at = $at;
+			}
+		} else if ( 'UNTIL' == $until ) {
+			$ds = date_create( $_POST['ecp1_repeat_to_date_value'], $calendar_tz );
+			if ( FALSE !== $ds ) {
+				$ecp1_repeat_termination = $until;
+				if ( ECP1_PHP5 < 3 ) // support 5.2.0
+					$ecp1_repeat_terminate_at = $ds->format( 'U' );
+				else
+					$ecp1_repeat_terminate_at = $ds->getTimestamp(); // UTC
+			}
+		}
+	}
+	// Cleanup the input array
+	unset( $input['ecp1_repeat_until'] );
+	unset( $input['ecp1_repeat_ntimes_value'] );
+	unset( $input['ecp1_repeat_to_date_value'] );
+	
 	// The location as human address and lat/long coords
 	$ecp1_location = $ecp1_event_fields['ecp1_location'][1];
 	if ( isset( $_POST['ecp1_location'] ) )
@@ -777,6 +1106,68 @@ function ecp1_event_save() {
 		delete_post_meta( $post->ID, $key ); // clear existing meta values
 		foreach( $values as $value )
 			add_post_meta( $post->ID, $key, $value );
+	}
+
+	// Finally process all of the repeat exceptions (if necessary)
+	if ( 'Y' == $ecp1_repeating ) {
+
+		/* The exceptions are POSTED using subarrays in POST
+		 * ecp1_exdata[nX][ABC] - new exception X field ABC
+		 * ecp1_exdata[X][ABC]  - existing exception db key X field ABC
+		 * ecp1_exrpt_counter   - JS counter for repeat ID (not a counter)
+		 *
+		 * The field keys are based on EveryCal_Exception::$FIELDS
+		 *
+		 * All we do here is call the process function with each of the
+		 * constructed base names (ecp1_exdata[X]) and the input array.
+		 *
+		 * It is possible for saved exceptions to be deleted by setting
+		 * the field ecp1_exdata[X][delete] == 'Y' in those cases we use
+		 * the delete function.
+		 */
+		
+		$expost = array_key_exists( 'ecp1_exdata', $_POST ) ? $_POST['ecp1_exdata'] : null;
+		if ( is_array( $expost ) ) {
+			// Deal with each exception in order of the array
+			foreach( $expost as $key=>$fields ) {
+				// Is this a delete field request
+				$to_delete = array_key_exists( 'delete', $fields ) && '1' == $fields['delete'] ? true : false;
+				if ( $to_delete ) {
+					EveryCal_Exception::Delete( $post->ID, $key );
+					continue; // don't resave the fields
+				}
+
+				// Get the top level fields for the exception
+				$description = array_key_exists( 'desc', $fields ) ? $fields['desc'] : '';
+				$start_date = array_key_exists( 'repeat', $fields ) ? $fields['repeat'] : null;
+				$is_cancelled = array_key_exists( 'cancel', $fields ) && $fields['cancel'] == 1 ? true : false;
+				// Can't be saved without a start date so check
+				if ( $start_date == null )
+					continue; // skip to next exception
+
+				// Setup the array to write to the database
+				$changeset = array(
+					'desc' => $description,
+					'event_id' => $post->ID,
+					'start' => $start_date,
+					'is_exception' => true, // always true cause this is an exception
+					'is_cancelled' => $is_cancelled,
+					'changes' => array()
+				);
+
+				// Lookup the toggles for this exception
+				$toggles = array_key_exists( 'toggle', $fields ) ? $fields['toggle'] : array();
+
+				// For all the field types process the values into changes
+				foreach( array_keys( EveryCal_Exception::$FIELDS ) as $field_type ) {
+					if ( array_key_exists( $field_type, $toggles ) && '1' == $toggles[$field_type] )
+						$changeset['changes'][$field_type] = EveryCal_Exception::Process( $field_type, $field_type, $fields );
+				}
+
+				// Store the new or update exception into the database
+				EveryCal_Exception::Store( $post->ID, $changeset, $key );
+			}
+		}
 	}
 }
 
