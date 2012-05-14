@@ -15,6 +15,9 @@ require_once( ECP1_DIR . '/includes/map-providers.php' );
 // Load the external calendars interface so we know which ones exist
 require_once( ECP1_DIR . '/includes/external-calendar-providers.php' );
 
+// Load the repeat expression manager class
+require_once( ECP1_DIR . '/includes/repeat-expression.php' );
+
 // Load the plugin settings and helper functions
 require_once( ECP1_DIR . '/includes/data/ecp1-settings.php' );
 
@@ -107,6 +110,41 @@ function ecp1_render_options_page() {
 		printf( '</div>' ); // close the div if not already done
 	}
 ?>
+					</td>
+				</tr>
+				<tr>
+					<th scope="row"><?php _e( 'Repeating Events' ); ?></th>
+					<td>
+<?php
+	// Cache block size templates
+	$times = array( '2592000'=>__( '1 Month' ), '15811200'=>__( '6 Months' ), '31536000'=>__( '1 Year' ), '63072000'=>__( '2 Years' ) );
+	printf( '<span class="ecp1_ical_q">%s</span>', __( 'Max cache size:' ) );
+	printf( '<select id="%s[repeat_cache_size]" name="%s[repeat_cache_size]"><option value="-1">%s</option>', ECP1_GLOBAL_OPTIONS, ECP1_GLOBAL_OPTIONS, __( 'Custom' ) );
+	$coffsetcustom = false;
+	foreach( $times as $val=>$time ) {
+		$coffsetcustom = $coffsetcustom || $val == _ecp1_get_option( 'max_repeat_cache_block' ) ? true : false;
+		printf( '<option value="%s"%s>%s</option>', $val, $val == _ecp1_get_option( 'max_repeat_cache_block' ) ? ' selected="selected"' : '', $time);
+	}
+	printf( '</select> or <input id="%s[repeat_cache_size_custom]" name="%s[repeat_cache_size_custom]" type="text" value="%s" /> %s<br/>',
+			ECP1_GLOBAL_OPTIONS, ECP1_GLOBAL_OPTIONS,
+			! $coffsetcustom ? _ecp1_get_option( 'max_repeat_cache_block' ) : '', __( 'seconds' ) );
+	
+	// Enable / disable custom scheduler expressions
+?>
+		<div class="ecp1_meta">
+			<input id="<?php printf( '%s[custom_repeats]', ECP1_GLOBAL_OPTIONS ); ?>" name="<?php printf( '%s[custom_repeats]', ECP1_GLOBAL_OPTIONS ); ?>" type="checkbox" value="1"<?php echo '1' == _ecp1_get_option( 'allow_custom_repeats' ) ? ' checked="checked"' : '' ?> />
+			<label for="<?php printf( '%s[custom_repeats]', ECP1_GLOBAL_OPTIONS ); ?>"><?php _e( 'Enable custom repeat expressions?' ); ?></label><br/>
+
+			<strong><?php _e( 'Disable the following repeat templates:' ); ?></strong><br/>
+<?php
+	foreach( EveryCal_RepeatExpression::$TYPES as $key=>$dtl ) {
+		printf( '<input id="%s[disable_expressions][%s]" name="%s[disable_expressions][%s]" type="checkbox" value="1"%s /> ',
+				ECP1_GLOBAL_OPTIONS, $key, ECP1_GLOBAL_OPTIONS, $key,
+				_ecp1_scheduler_expression_is_disabled( $key ) ? ' checked="checked"' : '');
+		printf( '<label for="%s[disable_expressions][%s]">%s</label><br/>', ECP1_GLOBAL_OPTIONS, $key, __( $dtl['desc'] ) );
+	}
+?>
+		</div>
 					</td>
 				</tr>
 				<tr>
@@ -411,6 +449,7 @@ function ecp1_validate_options_page( $input ) {
 		'use_maps'=>'use_maps',
 		'tz_change'=>'tz_change',
 		'feature_tz_local'=>'base_featured_local_to_event',
+		'custom_repeats'=>'allow_custom_repeats',
 		'export_external'=>'export_include_external',
 		'show_export_icon'=>'show_export_icon',
 		'show_time_on_all_day' => 'show_time_on_all_day',
@@ -468,8 +507,20 @@ function ecp1_validate_options_page( $input ) {
 		unset( $input['feature_tz_note'] );
 	}
 
+	// Repeat expression settings for disabling expressions
+	$disabledexpr = array();
+	foreach( EveryCal_RepeatExpression::$TYPES as $key=>$dtl ) {
+		if ( isset( $input['disable_expressions'][$key] ) && '1' == $input['disable_expressions'][$key] )
+			$disabledexpr[] = $key;
+	}
+	$input['_disable_builtin_repeats'] = implode( ',', $disabledexpr );
+	unset( $input['disable_expressions'] );
+
+
 	// Validate and verify iCal export start and end offsets and cache life
-	$offsetnames = array( 'export_start_offset'=>'ical_start',
+	$offsetnames = array(
+				'max_repeat_cache_block'=>'repeat_cache_size',
+				'export_start_offset'=>'ical_start',
 				'export_end_offset'=>'ical_end',
 				'export_external_cache_life'=>'cache_expire' );
 	foreach( $offsetnames as $setting=>$postkey ) {

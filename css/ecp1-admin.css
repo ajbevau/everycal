@@ -32,3 +32,6 @@ div.ecp1_meta .ecp1submeta {padding-bottom:1em;}
 .ecp1subsettings div:first-child strong {margin-top:0;}
 .ecp1subsettings textarea {width:100%;}
 .ecp1subsettings .expandtarget {display:none;}
+.ecp1_exrow_summary label{vertical-align:top;}
+#ecp1_repeat_exceptions_existing > li, #new_exceptions_container > div {padding-bottom:1em;border-bottom:1px solid #ccc;margin-bottom:1em;}
+#ecp1_repeat_exceptions_existing > li:last-child, #new_exceptions_container > div:last-child {border-bottom:none;}
