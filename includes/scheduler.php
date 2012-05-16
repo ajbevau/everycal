@@ -36,7 +36,8 @@ class EveryCal_Scheduler
 	public static function CountCache( $event_id )
 	{
 		global $wpdb;
-		$count = $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM $wpdb->ecp1_cache WHERE post_id = %s", $event_id ) );
+		$table_name = $wpdb->prefix . 'ecp1_cache';
+		$count = $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM $table_name WHERE start >= CURDATE() AND post_id = %s", $event_id ) );
 		if ( ! $count ) $count = 0;
 		return $count;
 	}

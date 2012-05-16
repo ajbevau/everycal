@@ -1,12 +1,12 @@
 === Every Calendar +1 for WordPress ===
 Contributors: andrewbevitt
-Donate link: http://andrewbevitt.com/
+Donate link: http://andrewbevitt.com/code/everycalplus1/
 Tags: calendar, events
 Requires at least: 3.0
-Tested up to: 3.2.1
-Stable tag: 0.3.3
+Tested up to: 3.3.2
+Stable tag: 1.0
 
-A WordPress plugin that integrates calendars, custom post types, maps, and offsite linking.
+A WordPress plugin that integrates calendars, custom post types, maps, and offsite linking and now repeating events.
 
 == Description ==
 
@@ -20,21 +20,17 @@ The plugin creates two custom post types:
 
 A Calendar Post can contain as many event posts as you like and can also syndicate as many external calendars as you like.
 
-Events can be labeled as feature events: feature events will be displayed on any calendar the administratos configure as a Featured Calendar. This is a great way to have local site calendars (for say a regional office) and a global calendar which shows feature events from the local sites.
+Events can be labeled as feature events: feature events will be displayed on any calendar the administratos configure as a Featured Calendar. This is a great way to have local site calendars (for say a regional office) and a global calendar which shows feature events from the local sites. Events can be scheduled to repeat (see below for details).
 
 Roles and Capbilities: If you can edit a calendar and have edit_others_posts for events then you can edit any event in that calendar. Otherwise you can only edit your own as per normal.
 
 This plugin was written because I could not find a plugin that provided great events management, calendar integration and worked reliably.
 
-There is a planned development roadmap (grep -R ROADMAP *):
+There is a planned development roadmap:
 
 * Add support for extra calendar providers
-* Perform better security checks on events and write a map_meta_cap function for calendar checks
-* Provide an RSS feed for events in a calendar (priority)
-* Add repeating events (priority)
-* Add widget support
-* Dynamic UI in admin when clicking checkboxes
-* Tags for events and calendars of tagged events
+* Provide an RSS feed for events in a calendar
+* Add support for different calendar layouts / widgets
 
 == Installation ==
 
@@ -47,6 +43,46 @@ Once the plugin has been installed/uploaded you need to Activate this plugin in 
 To put a calendar onto one of your pages use the provided shortcode in the 'Calendar' admin panel (created by plugin).
 
 == Frequently Asked Questions ==
+
+= Repeating Events =
+
+As of version 1.0 Every Calendar +1 supports repeating events for local post events.
+
+The repeating model works similar to the crontab model but only on days, months and days of week. You can choose from several predefined repeating patterns when creating your event post; or (if the setting is enabled) specify your own repeating expression for the event. Note that writing your own expression could do weird things with your event repeat dates so make sure you check it carefully.
+
+= What format do I use for repeat expressions =
+
+These are the example expressions that were planned for built-in support.
+
+* DoM - Day of the Month: 1 means 1st of month
+* MoY - Month of the Year: 1 means January
+* DoW - Day of the Week: 1 means Sunday
+* WsE - Weeks since Epoch (the event start date)
+
+    Simple examples:
+     DoM  MoY  DoW  WsE
+      *    *    1    *    Every Sunday
+      1   */2   *    *    First day every 2nd month
+      1   3/2   *    *    First day every 2nd month when month is March
+     -1    *    *    *    Last day of the month
+      *    *    6   1,-1  First after epoch and last Friday before 1 year repeat
+      *    *    1   1/3   Every 3rd Sunday (1st in group)
+      *    *    4   2/4   Every 4th Wednesday (2nd in group)
+      *    *   1/3   *    The 3rd Sunday of every month
+      *    *   2/-1  *    Last Monday every month
+      *   */3  1/-2  *    2nd last Sunday every 3rd month
+     -2   */6  4,5/5 *    2nd last day of every 6 month where it is the 5th Wed|Thur of the month
+	
+    Some more complicated expression examples:
+     DoM    MoY            DoW      WoY
+     *      *              2/1,-1   *         First and last Monday of every month
+     10-20  *              2        *         Mondays between 10th and 20th
+     *      2,3,4,5,12     2/-1     *         Last Monday of Feb|Mar|Apr|May|Dec
+     5-25   3,4,5,9,10,11  6/1,4    *         1st|4th Friday of the month where day is 5th-25th in Autumn/Spring
+     *      */3            1/-1--3  *         Last, 2nd and 3rd Last Sundays of every 3rd month
+     2-8    2,5,9,10/2,5   3,4/1,2  *         1st/2nd Tue|Wed where is 2nd-8th in Feb|May|Sep|Oct and is 2nd or 5th Month cycle since start
+     *      1,2,12         2,3      1,2/5,7   Mon|Tue of 1st|2nd weeks in a 5|7 week rolling cycle since epoch in Summer month
+
 
 = Does Every Calendar +1 Support Gravity Forms Custom Post Type Plugin? =
 
@@ -102,6 +138,11 @@ than anything else. The external calendar interface is pluggable so you can exte
 2. description corresponds to screenshot-2.(png|jpg|jpeg|gif) in same dir.
 
 == Changelog ==
+
+= 1.0 =
+* Repeating events! This was the most requested feature...
+* Updated FullCalendar javascript (1.5.3)
+* Remove old reference to qtip
 
 = 0.3.3 =
 * Added support for event specific colors (NOTE: Feature Event colors still take precendence)
