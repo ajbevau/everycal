@@ -258,6 +258,9 @@ function ecp1_calendar_save() {
 	if ( 'ecp1_calendar' != $post->post_type )
 		return; // don't update non calendars
 	
+	// If there is no nonce this is a inline update so ignore
+	if ( ! isset( $_POST['ecp1_calendar_nonce'] ) )
+		return $post->ID;
 	// Verify the nonce just incase
 	if ( ! wp_verify_nonce( $_POST['ecp1_calendar_nonce'], 'ecp1_calendar_nonce' ) )
 		return $post->ID;
@@ -362,13 +365,15 @@ function ecp1_calendar_save() {
 			$txt = $ecp1_calendar_fields['ecp1_local_event_textcolor'][1];
 
 		if ( null != $prv && null != $url )
-			$ecp1_external_cals[] = array( 'color'=>$col, 'text'=>$txt, 'url'=>urlencode( $url ), 'provider'=>$prv );
+			$ecp1_external_cals[] = array( 'color'=>$col, 'text'=>$txt, 'url'=>urlencode( trim( $url ) ), 'provider'=>$prv );
 	}
 
 	
 	// Create an array to save as post meta (automatically serialized)
 	$save_fields = array();
 	foreach( array_keys( $ecp1_calendar_fields ) as $key ) {
+		if ( ! isset( $$key ) || ! isset( $ecp1_calendar_fields[$key][1] ) )
+			continue; // don't store values that don't exist
 		if ( $$key != $ecp1_calendar_fields[$key][1] ) // i.e. not default
 			$save_fields[$key] = $$key;
 	}
