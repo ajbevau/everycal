@@ -12,8 +12,10 @@ require( ECP1_DIR . '/includes/check-ecp1-defined.php' );
 function ecp1_add_rewrite_rules() {
 	// Rewrite rules as target => destination
 	$rewrites = array(
+		'ecp1/([a-zA-Z0-9_\-]+)/_xtest.txt$' => 'index.php?ecp1tpl=test&ecp1_cal=$matches[1]', // Testing script
 		'ecp1/([a-zA-Z0-9_\-]+)/events.json$' => 'index.php?ecp1tpl=event-json&ecp1_cal=$matches[1]', // Events as JSON
 		'ecp1/([a-zA-Z0-9_\-]+)/events.ics$' => 'index.php?ecp1tpl=ical-feed&ecp1_cal=$matches[1]', // Events iCalendar Feed
+		'ecp1/([a-zA-Z0-9_\-]+)/events.rss$' => 'index.php?ecp1tpl=rss-feed&ecp1_cal=$matches[1]', // Events RSS Feed
 	);
 
 	// Loop over the rules and add them to the top then

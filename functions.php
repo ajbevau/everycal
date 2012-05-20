@@ -116,14 +116,14 @@ function _ecp1_timezone_select( $id, $pick='_', $extra_attrs=null ) {
 
 // Function that returns the timezone string for a calendar
 // by looking at the calendar and WordPress settings
-function ecp1_get_calendar_timezone() {
+function _ecp1_get_calendar_timezone($v) {
 	$raw_timezone = 'UTC';
 	$timezone = get_option( 'timezone_string' );    // Use the WordPress default if available
 	$gmt_offset = get_option( 'gmt_offset' );       // or can use the GMT Offset and map (approximately)
 	
-	if ( ! _ecp1_calendar_meta_is_default( 'ecp1_timezone' ) // Calendar TZ Set
+	if ( $v != '_' && $v != '' //! _ecp1_calendar_meta_is_default( 'ecp1_timezone' ) // Calendar TZ Set
 			&& _ecp1_get_option( 'tz_change' ) )     //   and changes are allowed
-		$raw_timezone = _ecp1_calendar_meta( 'ecp1_timezone', false );
+		$raw_timezone = $v; //_ecp1_calendar_meta( 'ecp1_timezone', false );
 	elseif ( ! empty( $timezone ) )   // Using WordPress city based timezone
 		$raw_timezone = $timezone;
 	elseif ( ! empty( $gmt_offset ) ) // Using WordPress GMT Offset
@@ -133,6 +133,11 @@ function ecp1_get_calendar_timezone() {
 	if ( is_null( $raw_timezone) )
 		$raw_timezone = 'UTC';
 	return $raw_timezone;
+}
+
+// Wrapper around the above function
+function ecp1_get_calendar_timezone() {
+	return _ecp1_get_calendar_timezone( _ecp1_calendar_meta( 'ecp1_timezone', false ) );
 }
 
 // Return a formatted date range string based on some event details

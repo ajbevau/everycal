@@ -60,14 +60,14 @@ function ecp1_event_list_calendar( $atts ) {
 	// Lookup the Post ID for the calendar with that name
 	// Note: Pages are just Posts with post_type=page so the built in function works
 	$cal_post = get_page_by_title( $name, OBJECT, 'ecp1_calendar' );
-        _ecp1_parse_calendar_custom( $cal_post->ID );
-        $raw_timezone = ecp1_get_calendar_timezone();
-        $timezone = ecp1_timezone_display( $raw_timezone );
+	_ecp1_parse_calendar_custom( $cal_post->ID );
+	$raw_timezone = ecp1_get_calendar_timezone();
+	$timezone = ecp1_timezone_display( $raw_timezone );
 
 	// Lookup the events for the calendar and then render in a nice template
 	$outstring = '<ol>';
 	$events = _ecp1_event_list_get( $cal_post->ID, $starting, $until );
-        _ecp1_parse_calendar_custom( $cal_post->ID );
+	_ecp1_parse_calendar_custom( $cal_post->ID );
 	$feature_text = _ecp1_calendar_meta( 'ecp1_feature_event_textcolor' );
 	$feature_back = _ecp1_calendar_meta( 'ecp1_feature_event_color' );
 	foreach( $events as $event ) {
@@ -78,7 +78,7 @@ function ecp1_event_list_calendar( $atts ) {
 		$stylestring = '';
 		if ( $event['feature'] )
 			$stylestring = ' style="display:block;background:' . $feature_back . ';color:' . $feature_text . ';"';
-		else if ( $event['custom_colors'] )
+		if ( $event['custom_colors'] )
 			$stylestring = ' style="display:block;background:' . $event['bg_color'] . ';color:' . $event['text_color'] . ';"';
 
 		$outstring .= sprintf('
@@ -105,6 +105,7 @@ function ecp1_event_list_calendar( $atts ) {
 	$outstring .= '</ol>';
 
 	// Now return HTML
+	$rss_addr = 'TODO:RSS ADDR'; // TODO
 	$ical_addr = get_site_url() . '/ecp1/' . urlencode( $cal_post->post_name ) . '/events.ics';
 	$icalfeed = sprintf( '<a href="%s" title="%s"><img src="%s" alt="ICAL" /></a>',
 				$ical_addr, __( 'Subscribe to Calendar Feed' ),
@@ -113,6 +114,7 @@ function ecp1_event_list_calendar( $atts ) {
 	$_feed_addrs = array(
 		__( 'iCal / ICS' ) => $ical_addr,
 		__( 'Outlook WebCal' ) => preg_replace( '/http[s]?:\/\//', 'webcal://', $ical_addr ),
+		__( 'RSS' ) => $rss_addr,
 	);
 	$_feed_addrs_js = '{';
 	foreach( $_feed_addrs as $title=>$link )
@@ -123,7 +125,7 @@ function ecp1_event_list_calendar( $atts ) {
 var _feedLinks = $_feed_addrs_js;
 jQuery(document).ready(function($) {
 	// $() will work as an alias for jQuery() inside of this function
-	$('#ecp1_calendar div.feeds a').click(function() {
+	$('#ecp1_calendar_list div.feeds a').click(function() {
 		var popup = $( '<div></div>' )
 				.attr( { id:'_ecp1-feed-popup' } ).css( { display:'none', 'z-index':9999 } );
 		var pw = $( window ).width();
@@ -182,7 +184,7 @@ ENDOFSCRIPT;
 
 	$timezone = sprintf( '<div><div style="padding:0 5px;"><em>%s</em></div>%s</div>',
 			sprintf( __( 'Events occur at %s local time.' ), $timezone ), $feature_msg );
-	return sprintf( '<div id="ecp1_calendar">%s%s<div class="fullcal">%s</div>%s</div>', $feeds, $description, $outstring, $timezone );
+	return sprintf( '<div id="ecp1_calendar_list">%s%s<div class="fullcal">%s</div>%s</div>', $feeds, $description, $outstring, $timezone );
 }
 
 

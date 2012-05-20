@@ -1,9 +1,9 @@
 /* Every Calendar +1 Client Styling */
-#ecp1_calendar, #ecp1_event, li.ecp1_event {margin-bottom:1em;}
-#ecp1_calendar .fc table {border-bottom:none;margin-bottom:0;}
-#ecp1_calendar .fc-header td, #ecp1_calendar .fc-header th {border-top:none;}
-#ecp1_calendar .feeds {float:right;}
-#ecp1_calendar ol {margin:0;padding:0;}
+#ecp1_calendar, #ecp1_calendar_list, #ecp1_event, li.ecp1_event {margin-bottom:1em;}
+#ecp1_calendar .fc table, #ecp1_calendar_list .fc table {border-bottom:none;margin-bottom:0;}
+#ecp1_calendar .fc-header td, #ecp1_calendar .fc-header th, #ecp1_calendar_list .fc-header td, #ecp1_calendar_list .fc-header th {border-top:none;}
+#ecp1_calendar .feeds, #ecp1_calendar_list .feeds {float:right;}
+#ecp1_calendar ol, #ecp1_calendar_list ol {margin:0;padding:0;}
 ul.ecp1_event-details {margin:0;}
 ul.ecp1_event-details li {list-style-type:none;}
 span.ecp1_event-title {vertical-align:top;width:90px;display:inline-block;}
