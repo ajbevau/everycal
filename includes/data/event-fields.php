@@ -35,13 +35,13 @@ $ecp1_event_fields = array(
 	'gravity_ignore' => array( '', 'N' ),
 
 	// repeating events support - uses a separate cache table
-	'ecp1_repeating' => array( '', '' ),
+	'ecp1_repeating' => array( '', 'N' ),
 	'ecp1_repeat_pattern' => array( '', '' ), // EveryCal_RepeatExpression::$TYPES
 	'ecp1_repeat_custom_expression' => array( '', ''),
 	'ecp1_repeat_pattern_parameters' => array( array(), array() ),
 	'ecp1_repeat_termination' => array( '', '' ), // 4EVA | XTIMES | UNTIL
 	'ecp1_repeat_terminate_at' => array( '', '' ), // X or UTC time for UNTIL
-	'ecp1_repeat_cache_start_point' => array( '', ''), // start last time cache built
+	'ecp1_repeat_last_changed' => array( '', 0 ), // TS when last changed
 	
 	// meta fields that describe the database structure
 	'_meta' => array(
@@ -142,6 +142,14 @@ function _ecp1_event_meta_is_default( $meta ) {
 		return true; // if not loaded then treat as default
 	
 	return $ecp1_event_fields[$meta][1] == $ecp1_event_fields[$meta][0];
+}
+
+// Returns the events calendar timezone
+function _ecp1_event_calendar_timezone() {
+	global $ecp1_event_fields;
+	if ( ! $ecp1_event_fields['_meta']['_loaded'] )
+		return null;
+	return $ecp1_event_fields['_meta']['calendar_tz'];
 }
 
 // Function that gets the meta value the get_default parameter

@@ -838,6 +838,9 @@ function ecp1_event_save() {
 	if ( 'ecp1_event' != $post->post_type )
 		return; // don't update non-events
 	
+	// No nonce means auto-save which we're not supporting
+	if ( ! isset( $_POST['ecp1_event_nonce'] ) )
+		return $post->ID;
 	// Verify the nonce just incase
 	if ( ! wp_verify_nonce( $_POST['ecp1_event_nonce'], 'ecp1_event_nonce' ) )
 		return $post->ID;
@@ -854,6 +857,7 @@ function ecp1_event_save() {
 	}
 
 	// Check if the user wants to ignore Gravity Form data
+	$gravity_ignore = $ecp1_event_fields['gravity_ignore'][1];
 	if ( isset( $_POST['ignore_gravity'] ) && '1' == $_POST['ignore_gravity'] )
 		$gravity_ignore = 'Y';
 
@@ -929,10 +933,10 @@ function ecp1_event_save() {
 			$ecp1_start_ts = $ds->format( 'U' );
 		else
 			$ecp1_start_ts = $ds->getTimestamp(); // UTC (i.e. without offset)
-		unset( $input['ecp1_start_date'] );
-		unset( $input['ecp1_start_time-hour'] );
-		unset( $input['ecp1_start_time-min'] );
-		unset( $input['ecp1_start_time-ante'] );
+		unset( $_POST['ecp1_start_date'] );
+		unset( $_POST['ecp1_start_time-hour'] );
+		unset( $_POST['ecp1_start_time-min'] );
+		unset( $_POST['ecp1_start_time-ante'] );
 	}
 	
 	// Convert the End Date + Time into a single UNIX time
@@ -959,10 +963,10 @@ function ecp1_event_save() {
 			$ecp1_end_ts = $ds->format( 'U' );
 		else
 			$ecp1_end_ts = $ds->getTimestamp(); // UTC (i.e. without offset)
-		unset( $input['ecp1_end_date'] );
-		unset( $input['ecp1_end_time-hour'] );
-		unset( $input['ecp1_end_time-min'] );
-		unset( $input['ecp1_end_time-ante'] );
+		unset( $_POST['ecp1_end_date'] );
+		unset( $_POST['ecp1_end_time-hour'] );
+		unset( $_POST['ecp1_end_time-min'] );
+		unset( $_POST['ecp1_end_time-ante'] );
 	}
 	
 	// If no times we're given then assume all day event
@@ -976,12 +980,12 @@ function ecp1_event_save() {
 	
 	// The repeat pattern / expression
 	$ecp1_repeat_pattern = $ecp1_event_fields['ecp1_repeat_pattern'][1];
-	$ecp1_repeat_custom_expression = $ecp1_event_fields['ecp1_repeat_custom'][1];
+	$ecp1_repeat_custom_expression = $ecp1_event_fields['ecp1_repeat_custom_expression'][1];
 	if ( isset( $_POST['ecp1_repeat_pattern'] ) )
 		$ecp1_repeat_pattern = $_POST['ecp1_repeat_pattern'];
 	if ( isset( $_POST['ecp1_repeat_custom'] ) ) {
 		$ecp1_repeat_custom_expression = $_POST['ecp1_repeat_custom'];
-		unset( $input['ecp1_repeat_custom'] );
+		unset( $_POST['ecp1_repeat_custom'] );
 	}
 
 	// Parameters for the repeated pattern
@@ -999,7 +1003,7 @@ function ecp1_event_save() {
 	// Cleanup the input array
 	foreach( EveryCal_RepeatExpression::$TYPES as $k=>$rp ) {
 		if ( is_array( $rp['params'] ) ) {
-			unset( $input['ecp1_rpp_' + $k] ); // whole array in one
+			unset( $_POST['ecp1_rpp_' + $k] ); // whole array in one
 		}
 	}
 	
@@ -1028,9 +1032,9 @@ function ecp1_event_save() {
 		}
 	}
 	// Cleanup the input array
-	unset( $input['ecp1_repeat_until'] );
-	unset( $input['ecp1_repeat_ntimes_value'] );
-	unset( $input['ecp1_repeat_to_date_value'] );
+	unset( $_POST['ecp1_repeat_until'] );
+	unset( $_POST['ecp1_repeat_ntimes_value'] );
+	unset( $_POST['ecp1_repeat_to_date_value'] );
 	
 	// The location as human address and lat/long coords
 	$ecp1_location = $ecp1_event_fields['ecp1_location'][1];
@@ -1059,7 +1063,7 @@ function ecp1_event_save() {
 
 	// The placemarker image should be a file in ECP1_DIR/img/mapicons
 	$ecp1_map_placemarker = $ecp1_event_fields['ecp1_map_placemarker'][1];
-	if ( isset( $_POST['ecp1_marker'] ) && file_exists( ECP1_DIR . '/img/mapicons/' . $_POST['ecp1_placemarker'] ) )
+	if ( isset( $_POST['ecp1_marker'] ) && file_exists( ECP1_DIR . '/img/mapicons/' . $_POST['ecp1_marker'] ) )
 		$ecp1_map_placemarker = $_POST['ecp1_marker'];
 	
 	// Are we overwriting the calendar colors
@@ -1079,6 +1083,8 @@ function ecp1_event_save() {
 	$save_fields_alone = array();
 	$save_fields_multi = array();
 	foreach( array_keys( $ecp1_event_fields ) as $key ) {
+		if ( ! isset( $$key ) || ! isset( $ecp1_event_fields[$key][1] ) )
+			continue; // only process if the variable is set
 		if ( $$key != $ecp1_event_fields[$key][1] ) { // only where the value is NOT default
 			if ( array_key_exists( $key, $ecp1_event_fields['_meta']['standalone'] ) ) {
 				// for fields in _meta['standalone'] store to be saved separately
@@ -1096,6 +1102,14 @@ function ecp1_event_save() {
 			// for array values where want one value per row in post meta
 			$save_fields_multi[$ecp1_event_fields['_meta']['multiple_keys'][$key]] = $$key;
 		} 
+	}
+
+	// Before saving track and changes to the event repeat details cache
+	// this function call will set extra fields on the meta value arrays
+	try {
+		EveryCal_Scheduler::EventCacheUpdate( $post->ID, $save_fields_group, $save_fields_alone, $calendar_tz );
+	} catch( Exception $cuex ) {
+		return $post->ID; // don't save changes cache couldn't update
 	}
 	
 	// Save the post meta information

@@ -3,6 +3,12 @@
  * Every Calendar Scheduler: Exceptions to Repeat Event Instances
  */
 
+// Make sure we're included from within the plugin
+require( ECP1_DIR . '/includes/check-ecp1-defined.php' );
+
+// We also need the helper functions
+require_once( ECP1_DIR . '/functions.php' );
+
 /**
  * ExceptionCoder Interface
  */
@@ -185,7 +191,7 @@ class DateTimeField implements ExceptionCoder
 		$caltz = new DateTimeZone( 'UTC' );
 		$etime = $otime = $event[$meta_key];
 		try {
-			$caltz = new DateTimeZone( $event['_meta']['calendar_tz'] );
+			$caltz = new DateTimeZone( _ecp1_get_calendar_timezone( $event['_meta']['calendar_tz'] ) );
 		} catch( Exception $e ) { } // use the UTC zone
 
 		// Two step process here:
@@ -388,16 +394,18 @@ class EveryCal_Exception
 	 * 
 	 * @param $field_key The field type to call update on
 	 * @param $event The event field array reference for update function
-	 * @param $meta_key The meta key parameter for the update function
 	 * @param $value The value parameter for the update function
 	 * @return True or false the same as update or null
 	 */
-	public static function Update( $field_key, &$event, $meta_key, $value )
+	public static function Update( $field_key, &$event, $value )
 	{
 		// Get the class
 		$class = EveryCal_Exception::GetFieldClass( $field_key );
 		if ( $class == null )
 			return null;
+
+		// Get the meta key this field represents
+		$meta_key = EveryCal_Exception::$FIELDS[$field_key]['meta_key'];
 
 		// Call the update function on the class
 		return $class::update( $event, $meta_key, $value );
@@ -444,9 +452,9 @@ class EveryCal_Exception
 	{
 		global $wpdb;
 		$table_name = $wpdb->prefix . "ecp1_cache";
-		if ( $start == null )
-			$start = date_create( null, new DateTimeZone( 'UTC' ) ); // get date as utc
-		$count = $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM $table_name WHERE post_id = %s AND is_exception=1 AND start >= '%s'", $event_id, $start->format( 'Y-m-d' ) ) );
+		if ( $start_from == null )
+			$start_from = new DateTime( null, new DateTimeZone( 'UTC' ) ); // get date as utc
+		$count = $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM $table_name WHERE post_id = %s AND is_exception=1 AND start >= '%s'", $event_id, $start_from->format( 'Y-m-d' ) ) );
 		if ( ! $count ) $count = 0;
 		return $count;
 	}
@@ -468,7 +476,7 @@ class EveryCal_Exception
 		global $wpdb;
 		$table_name = $wpdb->prefix . "ecp1_cache";
 		if ( $start_from == null )
-			$start_from = date_create( null, new DateTimeZone( 'UTC' ) ); // get date as utc
+			$start_from = new DateTime( null, new DateTimeZone( 'UTC' ) ); // get date as utc
 		$query = null;
 		if ( $until == null ) {
 			$query = $wpdb->prepare( "SELECT * FROM $table_name WHERE post_id = %s AND is_exception=1 AND start >= '%s' ORDER BY start", $event_id, $start_from->format( 'Y-m-d' ) );

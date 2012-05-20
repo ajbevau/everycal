@@ -14,7 +14,15 @@
  *
  * A new component Week since Epoch has been added for weekly schedules,
  * this is the number of weeks since the epoch (start) date of the event.
+ *
+ * TIMEZONES:
+ *  - All manipulations and comparisons are done on whole calendar days
+ *  - All timezones are assumed to be set in the DateTime objects
+ *  - You MUST ensure timezones are consistent between inputs
  */
+
+// Make sure we're included from within the plugin
+require( ECP1_DIR . '/includes/check-ecp1-defined.php' );
 
 // Example Expressions: (using // to allow */ in comments)
 //     DoM  MoY  DoW  WsE
@@ -530,9 +538,6 @@ class EveryCal_RepeatExpression
 		if ( $epoch > $start )
 			$start = $epoch;
 
-		// Based on the algorithm described above filter out non-matches
-		$results = array();
-
 		// 1 - Construct EveryCal_RE_DateRange
 		$ranger = new EveryCal_RE_DateRange( $epoch, $start, $end );
 
@@ -562,10 +567,10 @@ class EveryCal_RepeatExpression
 				$this->when_sets['WsE']['cycles'] );
 
 		// DEBUGGING ONLY: MUST BE REMOVED IN PRODUCTION
-		return $ranger;
+		//return $ranger;
 
 		// Finally return the computed array of objects
-		return $results;
+		return $ranger->GetDates();
 	}
 	
 	/**
@@ -877,6 +882,13 @@ class EveryCal_RE_Month
 	 * Pass the reverse parameter as false for start of month alignment,
 	 * which is the default if none given, or true for end of month.
 	 *
+	 * UTC Timezone: This function uses UTC timezones to get the day of
+	 * week for the 1st and last days of the month; it does NOT use the
+	 * timestamp within these DateTime objects for anything comparissons.
+	 * The Week objects in the returned vector will have their day0 in
+	 * UTC timezone too but this is just the first "date" of the week,
+	 * it does not affect the 0th Day object in the week.
+	 *
 	 * @param $reverse Should the weeks aligned to 1st or last day.
 	 * @return Array of week objects holding this months days.
 	 */
@@ -888,7 +900,7 @@ class EveryCal_RE_Month
 		// above the 1st of the month is the start of the first week this is NOT aligned to
 		// weeks in the year.
 		$wcounter = 0;
-		$utc = new DateTimeZone( 'UTC' );
+		$utc = new DateTimeZone( 'UTC' ); // see above
 		$tplym = $this->day0->format( 'Y-m-' );
 		$days_in_month = $this->day0->format( 't' );
 		$first_real_day = $this->day0->format( 'j' );
@@ -1452,6 +1464,22 @@ class EveryCal_RE_DateRange
 			$s .= sprintf( "%s\n", $this->years[$k] );
 		}
 		return $s;
+	}
+
+	/**
+	 * GetDates
+	 * Returns an array of the dates still available in the range.
+	 *
+	 * @return Array of DateTime objects which are available days.
+	 */
+	public function GetDates()
+	{
+		$mydates = array();
+		foreach( array_keys( $this->years ) as $k ) {
+			foreach( $this->years[$k]->GetDates() as $d )
+				$mydates[] = $d->GetDate();
+		}
+		return $mydates;
 	}
 
 	/**
