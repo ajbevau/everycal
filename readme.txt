@@ -142,7 +142,10 @@ than anything else. The external calendar interface is pluggable so you can exte
 = 1.0 =
 * Repeating events! This was the most requested feature...
 * Updated FullCalendar javascript (1.5.3)
-* Remove old reference to qtip
+* Remove old reference to qtip (qtip was never used)
+* Added RSS feed for a calendar it's in the same place as iCal / Webcal
+* Can now have both a FullCalendar and Event List on same page (Joseph Carrington)
+* Numerous bug fixes and value sanity checking
 
 = 0.3.3 =
 * Added support for event specific colors (NOTE: Feature Event colors still take precendence)
