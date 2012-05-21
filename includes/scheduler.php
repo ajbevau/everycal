@@ -590,12 +590,12 @@ printf( "\nDEBUG: Couldn't insert new event repeat\n" );
 			// If not a repeating event then just push the details
 			if ( 'Y' != $lookup[1] ) {
 				
-					// This is not a repeating event so we don't need these
-					$this_event['ecp1_next_repeat_ts'] = null; // can be used for permalinks
-					$this_event['ecp1_prev_repeat_ts'] = null;
+				// This is not a repeating event so we don't need these
+				$this_event['ecp1_next_repeat_ts'] = null; // can be used for permalinks
+				$this_event['ecp1_prev_repeat_ts'] = null;
 
-					// Add to the event meta results
-					$eventmeta[] = $this_event;
+				// Add to the event meta results
+				$eventmeta[] = $this_event;
 
 			} else { // repeating event i.e. Y == $lookup[1]
 				
@@ -603,8 +603,8 @@ printf( "\nDEBUG: Couldn't insert new event repeat\n" );
 				// by running a custom query on the current event id and range (date only)
 				$exceptions = EveryCal_Exception::Find( $lookup[0], $fstart, $fend );
 				$occurances = $wpdb->get_results( $wpdb->prepare(
-					"SELECT start, changes, is_exception FROM $cache_table WHERE post_id = %s AND start >= %s AND start <= %s",
-					$lookup[0], $fstart->format( 'Y-m-d' ), $fend->format( 'Y-m-d' )
+					"SELECT start, changes, is_exception FROM $cache_table WHERE post_id = %s AND start <= %s",
+					$lookup[0], $fend->format( 'Y-m-d' )
 				), OBJECT ); // numeric array of objects
 				if ( $occurances == null || count( $occurances ) == 0)
 					continue; // nothing for this event
@@ -647,6 +647,14 @@ printf( "\nDEBUG: Couldn't insert new event repeat\n" );
 								EveryCal_Exception::Update( $key, $this_occurance, $value );
 						}
 					}
+
+					// For the purposes of permalinks we need the cached start date
+					$this_occurance['_meta']['cache_start'] = $esdate->format( 'Y-n-j' );
+
+					// Finally exclude the repeat if it is wholly outside the range of the request
+					if ( $this_occurance['ecp1_start_ts'] > $fend->format( 'U' ) || 
+							$this_occurance['ecp1_end_ts'] < $fstart->format( 'U' ) )
+						$occurance_cancelled = true;
 
 					// Add the occurances fields to the final output array
 					if ( ! $occurance_cancelled ) 

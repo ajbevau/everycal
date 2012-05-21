@@ -6,6 +6,29 @@
 // Make sure we're included from within the plugin
 require( ECP1_DIR . '/includes/check-ecp1-defined.php' );
 
+// Custom function for testing default values
+function _ecp1_render_default( &$event, $key ) {
+	global $ecp1_event_fields;
+	return $event[$key] == $ecp1_event_fields[$key][1];
+}
+
+// Returns a permalink to the given $ecp1_event_fields event
+function ecp1_permalink_event( &$event ) {
+	// If a non-repeating event then just return straight permalink
+	$postperma = get_permalink( $event['post_id'] );
+	if ( 'Y' == $event['ecp1_repeating'] ) {
+		// Get the start date of the event 
+		$sdte = new DateTime( $event['_meta']['cache_start'], new DateTimeZone( $event['_meta']['calendar_tz'] ) );
+		$pstring = sprintf( 'ecp1_repeat=%s', $sdte->format( 'Y-n-j' ) );
+		// If there is already ? params in the URL append otherwise create
+		if ( false === strpos( '?', $postperma ) )
+			$postperma .= '?' . $pstring;
+		else
+			$postperma .= '&' . $pstring;
+	}
+	return $postperma;
+}
+
 // Function that applies WordPress content filters to the given string
 function ecp1_the_content( $content ) {
 	// $c = apply_filters( 'the_content', $content );
@@ -203,6 +226,7 @@ function _ecp1_template_error( $msg=null, $http_code=200, $http_msg='Every Calen
 		header( sprintf( 'HTTP/1.1 %s %s', $http_code, $http_msg ), 1 );
 		header( sprintf( 'Status: %s %s', $http_code, $http_msg ), 1 );
 		printf( '<!DOCTYPE html><html><body><p>%s</p></body></html>', $msg );
+		exit(); // finish the stream
 	}
 }
 

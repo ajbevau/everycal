@@ -9,6 +9,7 @@ require( ECP1_DIR . '/includes/check-ecp1-defined.php' );
 // We need the calendar providers for script enqueueing
 require_once( ECP1_DIR . '/includes/external-calendar-providers.php' );
 require_once( ECP1_DIR . '/includes/data/ecp1-settings.php' );
+require_once( ECP1_DIR . '/includes/scheduler.php' );
 
 // Define a global variable for the dynamic FullCalendar load script
 $_ecp1_dynamic_calendar_script = null;
@@ -292,12 +293,72 @@ function ecp1_print_fullcalendar_load() {
 
 // Function that will return the necessary HTML blocks and queue some static
 // JS for the document load event to render an event post page
-function ecp1_render_event( $event ) {
-	global $_ecp1_dynamic_event_script, $post;
-	
+function ecp1_render_event( &$event ) {
+	global $_ecp1_dynamic_event_script, $post, $wp_query, $wpdb;
+
 	// Make sure the event provided is valid
 	if ( ! is_array( $event ) )
 		return sprintf( '<div id="ecp1_event" class="ecp1_error">%s</div>', __( 'Invalid event cannot display.' ) );
+	
+	// Get the timezone for the events calendar
+	$caltz = new DateTimeZone( $event['_meta']['calendar_tz'] );
+	
+	// Does the event repeat and if so do we want a repetition?
+	$is_cancelled = false;
+	$repetition_date = null;
+	$repeating_event = 'Y' == $event['ecp1_repeating'][0];
+	if ( $repeating_event && isset( $wp_query->query_vars['ecp1_repeat'] ) ) {
+		try {
+			$repetition_date = new DateTime( $wp_query->query_vars['ecp1_repeat'], $caltz );
+		} catch( Exception $rex ) {
+			return sprintf( '<div id="ecp1_event" class="ecp1_error">%s</div>', __( 'Invalid repetition date parameter' ) );
+		}
+	}
+
+	// If this is a repeating event with a given repetition check that exists
+	// and apply any changes to the event array as necessary if exception
+	if ( $repeating_event && $repetition_date != null ) {
+		$cache_table = $wpdb->prefix . 'ecp1_cache';
+		$rep = $wpdb->get_results( $wpdb->prepare(
+			"SELECT start, changes, is_exception FROM $cache_table WHERE post_id = %s AND start = %s LIMIT 1",
+			$post->ID, $repetition_date->format( 'Y-m-d' )
+		), OBJECT ); // num index object
+		if ( $rep == null ) {
+			return sprintf( '<div id="ecp1_evept" class="ecp1_error">%s</div>', __( 'No such repeat for this event' ) );
+		} else {
+			
+			$repeat = $rep[0]; // there should only be one 
+
+			// Change the start DATE (ONLY THE DATE) to $repeat->start
+			$oldstart = $event['ecp1_start_ts'][0];
+			$esdate = new DateTime( $repeat->start, $caltz );
+			$osdate = new DateTime( '@' . $event['ecp1_start_ts'][0] ); $osdate->setTimezone( $caltz );
+			$osdate->setDate( $esdate->format( 'Y' ), $esdate->format( 'n' ), $esdate->format( 'j' ) );
+			$event['ecp1_start_ts'][0] = $osdate->format( 'U' );
+			// Update the end date by the same amount
+			if ( $oldstart != $event['ecp1_start_ts'][0] ) {
+				$oedate = new DateTime( '@' . $event['ecp1_end_ts'][0] ); $oedate->setTimezone( $caltz );
+				$daysdiff = floor( ( $event['ecp1_start_ts'][0] - $oldstart ) / 86400 );
+				$oedate->modify( "$daysdiff day" );
+				$event['ecp1_end_ts'][0] = $oedate->format( 'U' );
+			}
+
+			// Update the event details for the repeat
+			if ( $repeat->is_exception ) {
+				// Unserialize the exception details
+				$exdetail = unserialize( $repeat->changes );
+				$is_cancelled = array_key_exists( 'is_cancelled', $exdetail ) && $exdetail['is_cancelled'] ? true : false;
+				$updates = array( '_meta' => array( 'calendar_tz' => $event['_meta']['calendar_tz'] ) );
+				foreach( EveryCal_Exception::$FIELDS as $key=>$params ) {
+					$updates[$params['meta_key']] = $event[$params['meta_key']][0];
+					if ( array_key_exists( $key, $exdetail ) )
+						EveryCal_Exception::Update( $key, $updates, $exdetail[$key] );
+					$event[$params['meta_key']][0] = $updates[$params['meta_key']];
+				}
+			}
+
+		}
+	}
 	
 	// Register a hook to print the static JS to load FullCalendar on #ecp1_calendar
 	add_action( 'wp_print_footer_scripts', 'ecp1_print_event_load' );
@@ -315,6 +376,12 @@ function ecp1_render_event( $event ) {
 		$ecp1_time = ecp1_formatted_date_range( $event['ecp1_start_ts'][0], $event['ecp1_end_ts'][0],
 							$event['ecp1_full_day'][0], $event['_meta']['calendar_tz'] );
 	}
+
+	// If the event was cancelled then set when to reflect that
+	// NOTE: This is necessary here because the event can still be linked
+	// where as EveryCal_Scheduler::GetEvents does not include the repeat
+	if ( $repeating_event && $is_cancelled )
+		$ecp1_time = __( 'Event has been cancelled' );
 	
 	// String placeholder for the summary text
 	$ecp1_summary = $event['ecp1_summary'][1];
