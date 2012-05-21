@@ -113,7 +113,7 @@ function ecp1_event_list_calendar( $atts ) {
 	$outstring .= '</ol>';
 
 	// Now return HTML
-	$rss_addr = 'TODO:RSS ADDR'; // TODO
+	$rss_addr = get_site_url() . '/ecp1/' . urlencode( $cal_post->post_name ) . '/events.rss';
 	$ical_addr = get_site_url() . '/ecp1/' . urlencode( $cal_post->post_name ) . '/events.ics';
 	$icalfeed = sprintf( '<a href="%s" title="%s"><img src="%s" alt="ICAL" /></a>',
 				$ical_addr, __( 'Subscribe to Calendar Feed' ),

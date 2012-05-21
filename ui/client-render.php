@@ -199,7 +199,7 @@ jQuery(document).ready(function($) {
 ENDOFSCRIPT;
 	
 	// Now return HTML that the above script will use
-	$rss_addr = 'TODO:RSS ADDR'; // TODO
+	$rss_addr = get_site_url() . '/ecp1/' . urlencode( $calendar['slug'] ) . '/events.rss';
 	$ical_addr = get_site_url() . '/ecp1/' . urlencode( $calendar['slug'] ) . '/events.ics';
 	$_close_feed_popup = htmlspecialchars( __( 'Back to Calendar' ) ); // strings for i18n
 	$_feed_addrs = array(
