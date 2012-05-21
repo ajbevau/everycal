@@ -84,7 +84,6 @@ class EveryCal_Scheduler
 			$sdt = new DateTime( "@$start" ); $sdt->setTimezone( $tz ); // PHP 5.2.0
 			$edt = new DateTime( "@$end" ); $edt->setTimezone( $tz );
 		} catch( Exception $dex ) {
-printf( "\nDEBUG: Failed to build start/end for cache\n%s\n", $dex->getMessage() );
 			return false;
 		}
 
@@ -94,7 +93,6 @@ printf( "\nDEBUG: Failed to build start/end for cache\n%s\n", $dex->getMessage()
 
 		// There is a setting to control maximum build size for a cache
 		if ( $edt->format( 'U' ) - $sdt->format( 'U' ) > _ecp1_get_option( 'max_repeat_cache_block' ) ) {
-printf( "\nDEBUG: MORE THAN ALLOWED CACHE SIZE\n" );
 			return false; // can't build cache for this date range
 		}
 
@@ -207,7 +205,6 @@ printf( "\nDEBUG: MORE THAN ALLOWED CACHE SIZE\n" );
 				if ( $end > $terminate_at )
 					$cend = clone $terminate_at;
 			} catch( Exception $uex ) {
-printf( "\nDEBUG: COULDN'T BUILD UNTIL TERMINATE DATE\n%s\n", $uex->getMessage() );
 				return false; // can't build if unknown
 			}
 		}
@@ -349,11 +346,8 @@ printf( "\nDEBUG: COULDN'T BUILD UNTIL TERMINATE DATE\n%s\n", $uex->getMessage()
 			$repeater = self::GetRepeater( _ecp1_event_meta( 'ecp1_repeat_pattern' ), 
 				_ecp1_event_meta( 'ecp1_repeat_pattern_parameters' ), _ecp1_event_meta( 'ecp1_repeat_custom_expression' ),
 				$epoch );
-			if ( $repeater == null ) {
-printf( "\nDEBUG: Couldn't build repeater\nP: %s\nA: %s\nC: %s\n", _ecp1_event_meta( 'ecp1_repeat_pattern' ),
-                _ecp1_event_meta( 'ecp1_repeat_pattern_parameters' ), _ecp1_event_meta( 'ecp1_repeat_custom_expression' ) );
+			if ( $repeater == null )
 				return false;
-			}
 
 			// Use the parser to get all the points between the given dates
 			$dates = $repeater->GetRepeatsBetween( $epoch, $start, $end );
@@ -407,11 +401,8 @@ printf( "\nDEBUG: Couldn't build repeater\nP: %s\nA: %s\nC: %s\n", _ecp1_event_m
 				$repeater = self::GetRepeater( $coverage[$k]['ecp1_repeat_pattern'],
 					$coverage[$k]['ecp1_repeat_pattern_parameters'], $coverage[$k]['ecp1_repeat_custom_expression'],
 					$cepoch ); // make sure we use the history epoch
-				if ( $repeater == null ) {
-printf( "\nDEBUG: Couldn't build repeater\nP: %s\nA: %s\nC: %s\n", $coverage[$k]['ecp1_repeat_pattern'],
-                    $coverage[$k]['ecp1_repeat_pattern_parameters'], $coverage[$k]['ecp1_repeat_custom_expression'] );
+				if ( $repeater == null )
 					return false;
-				}
 
 				// Use the parser to get all the points for this cover set of dates
 				$cdates[] = $repeater->GetRepeatsBetween( $cepoch, $cstart, $cend );
@@ -435,7 +426,6 @@ printf( "\nDEBUG: Couldn't build repeater\nP: %s\nA: %s\nC: %s\n", $coverage[$k]
 				$points[] = $date;
 			return true; // successfully built
 		} else {
-printf( "\nDEBUG: NOT AN ARRAY FOR OUTPUT\n" );
 			return false; // failed
 		}
 	}
@@ -480,10 +470,8 @@ printf( "\nDEBUG: NOT AN ARRAY FOR OUTPUT\n" );
 			$event_id, $repeat_start->format( 'Y-m-d' )
 		) );
 		// Failure to count existing is an error
-		if ( $count == null) {
-printf( "\nDEBUG: BAD QUERY COUNTING EXISTING\n" );
+		if ( $count == null)
 			return false;
-		}
 		// If there are none then insert this one
 		if ( $count == 0 ) { 
 			$ok = $wpdb->insert(
@@ -491,10 +479,8 @@ printf( "\nDEBUG: BAD QUERY COUNTING EXISTING\n" );
 				array( 'post_id' => $event_id, 'is_exception' => 0, 'start' => $repeat_start->format( 'Y-m-d' ) ),
 				array( '%d', '%d', '%s' )
 			);
-			if ( ! $ok ) {
-printf( "\nDEBUG: Couldn't insert new event repeat\n" );
+			if ( ! $ok )
 				return false; // couldn't insert
-			}
 		}
 
 		// Success by process of elimination
@@ -545,11 +531,12 @@ printf( "\nDEBUG: Couldn't insert new event repeat\n" );
 
 		// Is this a feature event calendar: if so get the features (time range as above)
 		$features = array();
-		if ( _ecp1_calendar_show_featured( $cal_id ) )
-			$features = $wpdb->get_col( $wpdb->prepare( 
+		if ( _ecp1_calendar_show_featured( $cal_id ) ) {
+			$features = $wpdb->get_results( $wpdb->prepare( 
 				EveryCal_Query::Q( 'FEATURED_EVENTS' ),
 				$cal_id, $fstart->format( 'U' ), $fend->format( 'U' )
 			), ARRAY_N ); // number keyed array of results
+		}
 
 		// Combine the arrays so we can loop over one of them
 		$eventset = array_merge( $myevents, $features );
@@ -918,7 +905,7 @@ printf( "\nDEBUG: Couldn't insert new event repeat\n" );
 		// Summary: future event caching is removed
 		if ( ( $event_changes['ecp1_repeat_pattern']['old'] != $event_changes['ecp1_repeat_pattern']['new'] ) ||
 			( $event_changes['ecp1_repeat_pattern_parameters']['old'] != $event_changes['ecp1_repeat_pattern_parameters']['new'] ) ||
-			( $event_changes['ecp1_repeat_pattern_custom']['old'] != $event_changes['ecp1_repeat_pattern_custom']['new'] ) ) {
+			( $event_changes['ecp1_repeat_custom_expression']['old'] != $event_changes['ecp1_repeat_custom_expression']['new'] ) ) {
 			// Change doesn't matter just clearing future cache
 			$num = $wpdb->query( $wpdb->prepare(
 				"DELETE FROM $cache_table WHERE is_exception = 0 AND post_id = %s AND start >= %s",
@@ -987,7 +974,7 @@ printf( "\nDEBUG: Couldn't insert new event repeat\n" );
 	{
 		global $wpdb;
 		$meta = $wpdb->prefix . 'ecp1_cache';
-		$history_db = $wpdb->get_results( $wpdb->perpare(
+		$history_db = $wpdb->get_results( $wpdb->prepare(
 			"SELECT * FROM $meta WHERE post_id = %s AND meta_key = %s",
 			$event_id, 'ecp1_repeat_history'
 		) );
