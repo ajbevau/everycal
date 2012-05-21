@@ -192,7 +192,7 @@ class EveryCal_Scheduler
 
 		// Load the event termination parameters 
 		$termination = _ecp1_event_meta( 'ecp1_repeat_termination' );
-		$terimate_at = _ecp1_event_meta( 'ecp1_repeat_terminate_at' );
+		$terminate_at = _ecp1_event_meta( 'ecp1_repeat_terminate_at' );
 
 		// If this is a repeat until style repeat make not past until
 		// also if the end point is past the termination point adjust
@@ -939,7 +939,7 @@ class EveryCal_Scheduler
 				$wpdb->update(
 					$table_name,
 					array( 'meta_value' => serialize( $keep_ranges ) ),
-					array( 'post_id' => $event_id, 'meta_key' => 'ecp1_repeat_cache_range' ),
+					array( 'post_id' => $event_id, 'meta_key' => 'ecp1_repeat_cache_ranges' ),
 					'%s', '%s'
 				);
 			}
