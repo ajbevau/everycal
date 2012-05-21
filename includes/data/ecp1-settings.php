@@ -56,6 +56,9 @@ $_ecp1_settings = array(
 	'export_start_offset' => array( 'default' => '86400' ), // one day
 	'export_end_offset' => array( 'default' => '15811200' ), // 6 months
 
+	// The number of seconds into the future to publish events in the RSS feed
+	'rss_pubdate_prequel_range' => array( 'default' => '2592000' ), // 30 days
+
 	// The next two relate to if external calendars should be cached
 	// locally, and syndicated in the calendar feeds, or not. And if
 	// so how long the local cache should be considered valid for.
@@ -76,7 +79,7 @@ $_ecp1_settings = array(
 	// Repeating cache size and built-in expressions
 	'max_repeat_cache_block' => array( 'default' => '15811200' ), // 6 months
 	'allow_custom_repeats' => array( 'default' => 0 ), // can't write own cron expression
-	'_disable_builtin_repeats' => array( 'default' > '' ), // keys from EveryCal_Expression::TYPES
+	'_disable_builtin_repeats' => array( 'default' => '' ), // keys from EveryCal_Expression::TYPES
 
 	// Finally create synonyms effectively this is so we can create a
 	// setting that contains the value of another setting to maintain
@@ -150,6 +153,8 @@ function _ecp1_get_options( $option_key=null, $reload_from_db=false ) {
 	// Build an array of the actual values
 	$real_settings = array();
 	foreach( $_ecp1_settings as $key=>$values ) {
+		if ( $key == '_synonyms' )
+			continue; // skip it
 		if ( is_array( $values ) )
 			$real_settings[$key] = isset( $values['value'] ) ? $values['value'] : $values['default'];
 	}

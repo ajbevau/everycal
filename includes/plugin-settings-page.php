@@ -186,7 +186,7 @@ function ecp1_render_options_page() {
 					</td>
 				</tr>
 				<tr>
-					<th scope="row"><?php _e( 'Export Offsets' ); ?></th>
+					<th scope="row"><?php _e( 'Export Offsets' ); ?><br/><?php _e( 'iCAL / RSS' ); ?></th>
 					<td>
 <?php
 	// How far back and forward should we export
@@ -226,9 +226,22 @@ function ecp1_render_options_page() {
 		$eoffsetcustom = $eoffsetcustom || $val == _ecp1_get_option( 'export_external_cache_life' ) ? true : false;
 		printf( '<option value="%s"%s>%s</option>', $val, $val == _ecp1_get_option( 'export_external_cache_life' ) ? ' selected="selected"' : '', $time );
 	}
-	printf( '</select> or <input id="%s[cache_expire_custom]" name="%s[cache_expire_custom]" type="text" value="%s" /> %s',
+	printf( '</select> or <input id="%s[cache_expire_custom]" name="%s[cache_expire_custom]" type="text" value="%s" /> %s<br/>',
 			ECP1_GLOBAL_OPTIONS, ECP1_GLOBAL_OPTIONS,
 			! $eoffsetcustom ? _ecp1_get_option( 'export_external_cache_life' ) : '', __( 'seconds' ) );
+	
+	// How far in advance to publish RSS feed items
+	printf( '<span class="ecp1_ical_q">%s</span>', __( 'RSS Date:' ) );
+	printf( '<select id="%s[rss_prequel]" name="%s[rss_prequel]"><option value="-1">%s</option>', ECP1_GLOBAL_OPTIONS, ECP1_GLOBAL_OPTIONS, __( 'Custom' ) );
+	$roffsetcustom = false;
+	foreach( $times as $val=>$time ) {
+		$roffsetcustom = $roffsetcustom || $val == _ecp1_get_option( 'rss_pubdate_prequel_range' ) ? true : false;
+		printf( '<option value="%s"%s>%s</option>', $val, $val == _ecp1_get_option( 'rss_pubdate_prequel_range' ) ? ' selected="selected"' : '', $time );
+	}
+	printf( '</select> or <input id="%s[rss_prequel_custom]" name="%s[rss_prequel_custom]" type="text" value="%s" /> %s<br/><em>%s</em><br/>',
+			ECP1_GLOBAL_OPTIONS, ECP1_GLOBAL_OPTIONS,
+			! $roffsetcustom ? _ecp1_get_option( 'rss_pubdate_prequel_range' ) : '', __( 'seconds' ),
+			__( 'How far in advance should RSS items be published' ) );
 ?>
 					</td>
 				</tr>
@@ -522,7 +535,8 @@ function ecp1_validate_options_page( $input ) {
 				'max_repeat_cache_block'=>'repeat_cache_size',
 				'export_start_offset'=>'ical_start',
 				'export_end_offset'=>'ical_end',
-				'export_external_cache_life'=>'cache_expire' );
+				'export_external_cache_life'=>'cache_expire',
+				'rss_pubdate_prequel_range'=>'rss_prequel' );
 	foreach( $offsetnames as $setting=>$postkey ) {
 		$input[$setting] = _ecp1_option_get_default( $setting );
 		if ( isset( $input[$postkey] ) ) {  // select box value
