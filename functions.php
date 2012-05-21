@@ -189,7 +189,12 @@ function ecp1_formatted_date_range( $stimestamp, $etimestamp, $allday, $tzstring
 		$sameday = false;
 	}
 
+	return ecp1_formatted_datetime_range( $dates, $datee, $allday, $sameday );
+}
+
+function ecp1_formatted_datetime_range( $dates, $datee, $allday, $sameday=null ) {
 	// Check if events run on the same day
+	$datef = get_option( 'date_format' ) . ' ' . get_option( 'time_format' );
 	if ( null === $sameday ) { // no error occured
 		$sameday = $dates->format( 'Ymj' ) == $datee->format( 'Ymj' );
 		

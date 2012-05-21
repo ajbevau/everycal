@@ -63,7 +63,7 @@ ENDOFQUERY;
  *  End DateTime
  */
 private static $FEATURED_EVENTS = <<<ENDOFQUERY
-SELECT  p.ID
+SELECT  p.ID, r.meta_value
 FROM    {{prefix}}posts p
 		INNER JOIN {{prefix}}postmeta f ON f.post_id=p.ID AND f.meta_key='ecp1_event_is_featured'
 		INNER JOIN {{prefix}}postmeta s ON s.post_id=p.ID AND s.meta_key='ecp1_event_start'

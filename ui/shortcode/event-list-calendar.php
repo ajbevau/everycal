@@ -6,22 +6,29 @@
 // Make sure we're included from within the plugin
 require( ECP1_DIR . '/includes/check-ecp1-defined.php' );
 
-// Load the calendar and events post type fields so we can get the meta
+// We need the Every Calendar settings
+require_once( ECP1_DIR . '/includes/data/ecp1-settings.php' );
+
+// We need to know about the calendar/event post type meta/custom fields
 require_once( ECP1_DIR . '/includes/data/calendar-fields.php' );
 require_once( ECP1_DIR . '/includes/data/event-fields.php' );
 
-// Load the DRY query list so we can use them
-require_once( ECP1_DIR . '/ui/templates/_querylist.php' );
+// Load the repeating calendar scheduler
+require_once( ECP1_DIR . '/includes/scheduler.php' );
 
-// Register the shortcode type and callback
+// Load the helper functions
+require_once( ECP1_DIR . '/functions.php' );
+
+// THIS IS A SHORTCODE RENDERE: Register the type and callback
 add_shortcode( 'eventlist', 'ecp1_event_list_calendar' );
 
 // Placeholder for any dynamic script this calendar will show
 $_ecp1_event_list_calendar_script = null;
 
 // [ eventlist name="calendar name" starting="date to start from" until="end date of list" ]
-// Defaults:	starting = now
-//		until = 1st Jan 2038 - close enough to overflow
+// Defaults:
+//   starting = now
+//   until    = 1st Jan 2038 - close enough to overflow
 function ecp1_event_list_calendar( $atts ) {
 	global $_ecp1_event_list_calendar_script;
 
@@ -38,6 +45,14 @@ function ecp1_event_list_calendar( $atts ) {
 	// Make sure a name has been provided
 	if ( is_null( $name ) )
 		return sprintf( '<span class="ecp1_error">%s</span>', __( 'Unknown calendar: could not display.' ) );
+
+	// Lookup the Post ID for the calendar with that name
+	// Note: Pages are just Posts with post_type=page so the built in function works
+	$cal_post = get_page_by_title( $name, OBJECT, 'ecp1_calendar' );
+	_ecp1_parse_calendar_custom( $cal_post->ID );
+	$raw_timezone = ecp1_get_calendar_timezone();
+	$timezone = ecp1_timezone_display( $raw_timezone );
+
 
 	// Try and parse the starting date time string
 	if ( ! is_numeric( $starting ) ) {
@@ -57,12 +72,6 @@ function ecp1_event_list_calendar( $atts ) {
 			return sprintf( '<span class="ecp1_error">%s</span>', __( 'Could not parse event list end time.' ) );
 	}
 	
-	// Lookup the Post ID for the calendar with that name
-	// Note: Pages are just Posts with post_type=page so the built in function works
-	$cal_post = get_page_by_title( $name, OBJECT, 'ecp1_calendar' );
-	_ecp1_parse_calendar_custom( $cal_post->ID );
-	$raw_timezone = ecp1_get_calendar_timezone();
-	$timezone = ecp1_timezone_display( $raw_timezone );
 
 	// Lookup the events for the calendar and then render in a nice template
 	$outstring = '<ol>';
@@ -72,8 +81,7 @@ function ecp1_event_list_calendar( $atts ) {
 	$feature_back = _ecp1_calendar_meta( 'ecp1_feature_event_color' );
 	foreach( $events as $event ) {
 		// Featured events have their UTC times modified to be local to calendar TZ
-		$ewhen = ecp1_formatted_date_range( $event['start'], $event['end'], $event['allday'],
-				( $event['feature'] ? 'UTC' : $raw_timezone ) );
+		$ewhen = ecp1_formatted_datetime_range( $event['start'], $event['end'], $event['allday'] );
 		
 		$stylestring = '';
 		if ( $event['feature'] )
@@ -190,94 +198,67 @@ ENDOFSCRIPT;
 
 
 // Looks up the event list and sorts it then returns an array
-// ROADMAP: Use this function to render an RSS feed of events for the calendar
+// note that dates are DateTime objects in the array
 function _ecp1_event_list_get( $cal, $starting, $until ) {
-	global $wpdb;
+	// This is abstracted slightly so we can merge external calendar events
+	$local_events = EveryCal_Scheduler::GetEvents( $cal, $starting, $until );
+	$event_cache = array(); // the events that get returned
 
-	// We don't want calendar meta for the global page/post but for the one given by title
-	_ecp1_parse_calendar_custom( $cal ); // Load the calendar meta into global $ecp1_calendar_fields
-
-	// Timezone and external calendar sources
+	// Details about this calendar
 	$tz = ecp1_get_calendar_timezone();   // the effective timezone
 	$dtz = new DateTimeZone( $tz );
 	$ex_cals = _ecp1_calendar_meta( 'ecp1_external_cals' ); // before loop
 	$my_id = $cal; // because event meta reparses its calendars meta
+	$now = new DateTime( NULL, new DateTimeZone( 'UTC' ) );
 
-	// Get the ecp1_events that match the range
-	// The parameters are at UTC and so are dates in database => no converting needed
-	// Note: THIS LOOKS THE SAME AS ical-feed.php BUT NOT IN THE LOOP
-	// Note: The SQL has start comparission BEFORE end comparisson $until before $starting
-	// ROADMAP: Repeating events - probably will need to abstract this
-	$event_ids = $wpdb->get_col( $wpdb->prepare( _ecp1_tq( 'EVENTS' ), $my_id, $until, $starting ) );
-	$event_cache = array();
-
-	// Now look to see if this calendar supports featured events and if so load ids
-	$feature_ids = array();
-	if ( _ecp1_calendar_show_featured( $my_id ) )
-		$feature_ids = $wpdb->get_col( $wpdb->prepare( _ecp1_tq( 'FEATURED_EVENTS' ), $until, $starting ) );
-	$event_ids = array_merge( $event_ids, $feature_ids );
-
-	// If any events were found load them into the array for render
-	$event_posts = array();
-	if ( count( $event_ids ) > 0 )
-		$event_posts = get_posts( 
-			array( 'post__in' => $event_ids, 'post_type'=>'ecp1_event',
-				'numberposts' => -1, 'suppress_filters' => false )
-		);
-
-	// Loop through the events and setup the event in the cache
-	foreach( $event_posts as $epost ) {
-		_ecp1_parse_event_custom( $epost->ID );
-		
+	// Loop over the events and setup the cache for local events
+	foreach( $local_events as $event ) {
 		// Check the custom fields make sense
-		if ( _ecp1_event_meta_is_default( 'ecp1_start_ts' ) ||
-				_ecp1_event_meta_is_default( 'ecp1_end_ts' ) )
+		if ( _ecp1_render_default( $event, 'ecp1_start_ts' ) || _ecp1_render_default( $event, 'ecp1_end_ts' ) )
 			continue; // need a start and finish so skip to next post
 
 		try {
-			$e  = _ecp1_event_meta( 'ecp1_start_ts', false );
-			$es = new DateTime( "@$e" ); // requires PHP 5.2.0
-			$e  = _ecp1_event_meta( 'ecp1_end_ts', false );
-			$ee = new DateTime( "@$e" ); // 5.2.0 again
+			$es = new DateTime( '@' . $event['ecp1_start_ts'] ); // requires PHP 5.2.0
+			$ee = new DateTime( '@' . $event['ecp1_end_ts'] );   // 5.2.0 again
+			$es->setTimezone( $dtz );
+			$ee->setTimezone( $dtz );
 
 			// If this is a feature event (not from this calendar) then change the
 			// start/end times to be event local not calendar local if setting = 1
-			if ( _ecp1_event_meta( 'ecp1_calendar' ) != $my_id && in_array( $epost->ID, $feature_ids ) &&
+			$localdtz = new DateTimeZone( $event['_meta']['calendar_tz'] );
+			if ( $localdtz->getOffset( $now ) != $dtz->getOffset( $now ) ) {
+				if ( 'Y' == $event['ecp1_featured'] && '1' == _ecp1_get_option( 'base_featured_local_to_event' ) ) {
 					// Base feature events at local calendar timezone or event local timezone?
-					'1' == _ecp1_get_option( 'base_featured_local_to_event' ) ) {
-				// Offset the start and end times by the event calendar offset
-				$tz = ecp1_get_calendar_timezone(); // calendar is updated on _ecp1_parse_event_custom()
-				$localdtz = new DateTimeZone( $tz );
-				$e = _ecp1_event_meta( 'ecp1_start_ts', false ) + $localdtz->getOffset( new DateTime() );
-				$es = new DateTime( "@$e" ); // requires PHP 5.2.0
-				$e = _ecp1_event_meta( 'ecp1_end_ts', false ) + $localdtz->getOffset( new DateTime() );
-				$ee = new DateTime( "@$e" ); // 5.2.0 again
+					// Offset the start and end times by the event calendar offset
+					$es->setTimezone( $localdtz );
+					$ee->setTimezone( $localdtz );
+				}
 			}
 
 			// The start and end times
-			$estart  = $es->format( 'U' );
-			$eend    = $ee->format( 'U' );
-			$eallday = _ecp1_event_meta( 'ecp1_full_day' );
+			$estart  = clone $es;
+			$eend    = clone $ee;
+			$eallday = $event['ecp1_full_day'];
 
 			// Description and permalink/external url
-			$efeature = ( _ecp1_event_meta( 'ecp1_calendar' ) != $my_id && in_array( $epost->ID, $feature_ids ) );
-			$ecp1_desc = _ecp1_event_meta_is_default( 'ecp1_description' ) ? '' : strip_tags( _ecp1_event_meta( 'ecp1_description' ) );
-			$ecp1_url = _ecp1_event_meta_is_default( 'ecp1_url' ) ? get_permalink( $epost->ID ) : urldecode( _ecp1_event_meta( 'ecp1_url' ) );
+			$efeature = $my_id != $event['ecp1_calendar'] && 'Y' == $event['ecp1_featured'];
+			$ecp1_desc = _ecp1_render_default( $event, 'ecp1_description' ) ? '' : strip_tags( _ecp1_event_meta( 'ecp1_description' ) );
+			$ecp1_url = _ecp1_render_default( $event, 'ecp1_url' ) ? ecp1_permalink_event( $event['post_id'] ) : urldecode( $event['ecp1_url'] );
 
 			// If feature images are enabled by the them (aka Post Thumbnails) then show if there is one
 			$feature_image = false;
 			if ( function_exists( 'add_theme_support' ) && function_exists( 'get_the_post_thumbnail' ) ) {
-				if ( has_post_thumbnail( $epost->ID ) )
-					$feature_image = get_the_post_thumbnail( $epost->ID, 'thumbnail' );
+				if ( has_post_thumbnail( $event['post_id'] ) )
+					$feature_image = get_the_post_thumbnail( $event['post_id'], 'thumbnail' );
 			}
 			
 			// Are we overwriting the calendar colors with this event?
 			$bg_color = '';
 			$text_color = '';
-			$overwrite_colors = 'Y' == _ecp1_event_meta( 'ecp1_overwrite_color' );
+			$overwrite_colors = 'Y' == $event['ecp1_overwrite_color'];
 			if ( $overwrite_colors ) {
-				$bg_color = _ecp1_event_meta( 'ecp1_local_color' );
-				$text_color = _ecp1_event_meta( 'ecp1_local_textcolor' );
+				$bg_color = $event['ecp1_local_color'];
+				$text_color = $event['ecp1_local_textcolor'];
 			}
 
 			// Setup the event cache
@@ -285,8 +266,8 @@ function _ecp1_event_list_get( $cal, $starting, $until ) {
 				'start' => $estart, 'end' => $eend, 'allday' => $eallday,
 				'feature' => $efeature, 'image' => $feature_image,
 				'custom_colors' => $overwrite_colors, 'bg_color' => $bg_color, 'text_color' => $text_color,
-				'title' => $epost->post_title, 'location' => _ecp1_event_meta( 'ecp1_location' ),
-				'summary' => _ecp1_event_meta( 'ecp1_summary' ), 'description' => $ecp1_desc, 'url' => $ecp1_url );
+				'title' => get_the_title( $event['post_id'] ), 'location' => $event['ecp1_location'],
+				'summary' => $event['ecp1_summary'], 'description' => $ecp1_desc, 'url' => $ecp1_url );
 		} catch( Exception $e ) {
 			continue; // ignore bad timestamps they shouldn't happen
 		}
@@ -312,7 +293,7 @@ function _ecp1_event_list_get( $cal, $starting, $until ) {
 
 					// Create this event in the cache
 					$event_cache[] = array(
-						'start' => $estart->format( 'U' ), 'end' => $eend->format( 'U' ), 'allday' => $event['all_day'],
+						'start' => $estart, 'end' => $eend, 'allday' => $event['all_day'],
 						'title' => $event['title'], 'location' => $event['location'], 'summary' => $event['summary'],
 						'description' => $event['description'], 'url' => $event['url'], 'feature' => false, 'image' => false );
 				} catch( Exception $e ) {
@@ -333,6 +314,8 @@ function _ecp1_event_list_get( $cal, $starting, $until ) {
 function _ecp1_event_list_compare( $a, $b ) {
 	if ( ! array_key_exists( 'start', $a ) ) return 1;
 	if ( ! array_key_exists( 'start', $b ) ) return -1;
+	if ( $a['start'] == $b['start'] && $a['end'] == $b['end'] )
+		return 0;
 	return ( $a['start'] < $b['start'] || ( $a['start'] == $b['start'] && $a['end'] < $b['end'] ) ) ? -1 : 1;
 }
 

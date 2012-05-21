@@ -908,6 +908,9 @@ function ecp1_event_save() {
 				$ecp1_extra_cals[] = $cid;
 		}
 	}
+
+	// Decide if a time was given
+	$time_given = ! _ecp1_event_no_time_given();
 	
 	// Convert the Start Date + Time into a single UNIX time
 	$ecp1_start_ts = $ecp1_event_fields['ecp1_start_ts'][1];
@@ -970,7 +973,7 @@ function ecp1_event_save() {
 	}
 	
 	// If no times we're given then assume all day event
-	if ( _ecp1_event_no_time_given() )
+	if ( ! $time_given )
 		$ecp1_full_day = 'Y';
 	
 	// Repeating event details
@@ -1111,7 +1114,7 @@ function ecp1_event_save() {
 	} catch( Exception $cuex ) {
 		return $post->ID; // don't save changes cache couldn't update
 	}
-	
+
 	// Save the post meta information
 	update_post_meta( $post->ID, 'ecp1_event', $save_fields_group );
 	foreach( $save_fields_alone as $key=>$value )
