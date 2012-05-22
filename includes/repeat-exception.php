@@ -549,6 +549,16 @@ class EveryCal_Exception
 			if ( $v != null )
 				$changeset[$key] = $v;
 		}
+
+		// Do any non-exception cached events exist at this start date?
+		if ( $cache_id === null || ! is_numeric( $cache_id ) ) {
+			$check_existing = $wpdb->get_var( $wpdb->prepare(
+				"SELECT cache_id FROM $table_name WHERE post_id = %s AND start = %s AND is_exception = 0 LIMIT 1",
+				$event_id, $exStart
+			), 0 );
+			if ( $check_existing != null )
+				$cache_id = $check_existing;
+		}
 		
 		// Serialize the changeset
 		$serializedChanges = serialize( $changeset );
