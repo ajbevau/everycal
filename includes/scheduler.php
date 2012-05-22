@@ -232,9 +232,9 @@ class EveryCal_Scheduler
 		if ( count( $ranges ) > 0 ) {
 			$contains_start = $contains_end = -1;
 			for( $i=0; $i<count( $ranges ); $i++ ) {
-				if ( $ranges[$i]['end'] >= $start->format( 'U' ) )
+				if ( $ranges[$i]['start'] <= $cstart->format( 'U' ) && $cstart->format( 'U' ) <= $ranges[$i]['end'] )
 					$contains_start = $i; // this code ensures only one
-				if ( $ranges[$i]['start'] <= $end->format( 'U' ) )
+				if ( $ranges[$i]['start'] <= $cend->format( 'U' ) && $cend->format( 'U' ) <= $ranges[$i]['end'] )
 					$contains_end = $i; // again only one possible
 				if ( $contains_start != -1 && $contains_end != -1 )
 					break; // no point continuing once found
@@ -725,6 +725,8 @@ class EveryCal_Scheduler
 			"SELECT meta_value FROM $table_name WHERE post_id = %s AND meta_key = %s",
 			$event_id, 'ecp1_event'
 		) ) );
+		if ( $current == null )
+			$current = array(); // for new posts
 
 		// List of keys that we need to track the changes in
 		$track_changes = array(
@@ -735,6 +737,32 @@ class EveryCal_Scheduler
 			'ecp1_repeat_terminate_at',
 			'ecp1_start_ts',
 		);
+		
+		// Get the event epoch
+		$epoch = new DateTime( '@' . $meta_alone['ecp1_event_start'] );
+		$epoch->setTimezone( $tz );
+
+		// When did the last change occur
+		$last_change = array_key_exists( 'ecp1_repeat_last_changed', $current ) ? $current['ecp1_repeat_last_changed'] : null;
+		if ( $last_change == null ) {
+			$last_change = clone $epoch; // where there is no history (e.g. version update)
+		} else {
+			$last_change = new DateTime( "@$last_change" );
+			$last_change->setTimezone( $tz ); // this is not such a big deal
+		}
+
+		// If previously was non-repeating and is now then we don't need to do anything
+		if ( ! array_key_exists( 'ecp1_event_repeats', $meta_alone ) || 'Y' != $meta_alone['ecp1_event_repeats'] ) {
+			$prepeat = $wpdb->get_var( $wpdb->prepare(
+				"SELECT meta_value FROM $table_name WHERE post_id = %s AND meta_key = %s",
+				$event_id, 'ecp1_event_repeats'
+			) );
+			// Check if previously repeating
+			if ( 'Y' != $prepeat ) {
+				$meta_group['ecp1_repeat_last_changed'] = $last_change->format( 'U' );
+				return; // wasn't repeating so don't worry
+			}
+		}
 
 		// For simplicity create a 2D array of change keys new and old values
 		$event_changes = array();
@@ -751,7 +779,7 @@ class EveryCal_Scheduler
 				$nvalue = array_key_exists( $real_key, $meta_alone ) ? $meta_alone[$real_key] : null;
 			} else {
 				// Not a standalone value so get from group
-				$cvalue = array_key_exists( $change, $current ) ? $current[$change] : null;
+				$cvalue = is_array( $current ) && array_key_exists( $change, $current ) ? $current[$change] : null;
 				$nvalue = array_key_exists( $change, $meta_group ) ? $meta_group[$change] : null;
 			}
 			$event_changes[$change] = array( 'old' => $cvalue, 'new' => $nvalue );
@@ -762,24 +790,11 @@ class EveryCal_Scheduler
 		$cache_table = $wpdb->prefix . 'ecp1_cache';
 		$cache_is_dirty = false;
 
-		// Get the event epoch
-		$epoch = new DateTime( '@' . $meta_alone['ecp1_event_start'] );
-		$epoch->setTimezone( $tz );
-
 		// Has anything changed (if so continue otherwise do nothing)
 		$nochanges = true;
 		foreach( $event_changes as $k=>$values ) {
 			if ( $values['old'] != $values['new'] )
 				$nochanges = false;
-		}
-
-		// When did the last change occur
-		$last_change = array_key_exists( 'ecp1_repeat_last_changed', $current ) ? $current['ecp1_repeat_last_changed'] : null;
-		if ( $last_change == null ) {
-			$last_change = clone $epoch; // where there is no history (e.g. version update)
-		} else {
-			$last_change = new DateTime( "@$last_change" );
-			$last_change->setTimezone( $tz ); // this is not such a big deal
 		}
 
 		// If no changes have occured maintain the existing last change and finish
@@ -973,7 +988,7 @@ class EveryCal_Scheduler
 	private static function PushEventRepeatHistory( $event_id, $history )
 	{
 		global $wpdb;
-		$meta = $wpdb->prefix . 'ecp1_cache';
+		$meta = $wpdb->prefix . 'postmeta';
 		$history_db = $wpdb->get_results( $wpdb->prepare(
 			"SELECT * FROM $meta WHERE post_id = %s AND meta_key = %s",
 			$event_id, 'ecp1_repeat_history'
