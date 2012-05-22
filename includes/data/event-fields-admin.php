@@ -384,7 +384,7 @@ function ecp1_event_meta_form() {
 		_e( 'or' );
 ?>
 		<input type="text" id="ecp1_repeat_custom" name="ecp1_repeat_custom" value="<?php if ( '-1' == $ecp1_repeat_pattern ) print $ecp1_repeat_custom; ?>" />
-		<label for="ecp1_repeat_custom"><?php _e( 'custom expression' ); ?></label>
+		<label for="ecp1_repeat_custom"><?php _e( 'custom expression' ); ?></label> <a href="<?php echo plugins_url( '/docs/customexpressions.html', dirname( dirname( __FILE__ ) ) ); ?>" target="_blank" id="ecp1_cehelp">(help)</a>
 <?php
 	}
 ?>
@@ -833,6 +833,8 @@ function _ecp1_time_select_trio( $base_key, $select_value_ts ) {
 add_action( 'save_post', 'ecp1_event_save' );
 function ecp1_event_save() {
 	global $post, $ecp1_event_fields;
+	if ( ! isset( $post ) )
+		return; // don't update if not a post
 	if ( 'revision' == $post->post_type )
 		return; // don't update on revisions
 	if ( 'ecp1_event' != $post->post_type )

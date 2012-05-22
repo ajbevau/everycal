@@ -253,6 +253,8 @@ function ecp1_calendar_meta_form() {
 add_action( 'save_post', 'ecp1_calendar_save' );
 function ecp1_calendar_save() {
 	global $post, $ecp1_calendar_fields;
+	if ( ! isset( $post ) )
+		return; // don't update if not a post yet
 	if ( 'revision' == $post->post_type )
 		return; // don't update on revisions
 	if ( 'ecp1_calendar' != $post->post_type )
