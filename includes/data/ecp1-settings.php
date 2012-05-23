@@ -78,6 +78,7 @@ $_ecp1_settings = array(
 
 	// Repeating cache size and built-in expressions
 	'max_repeat_cache_block' => array( 'default' => '15811200' ), // 6 months
+	'enforce_repeat_cache_size' => array( 'default' => 0 ), // don't enforce by default
 	'allow_custom_repeats' => array( 'default' => 0 ), // can't write own cron expression
 	'_disable_builtin_repeats' => array( 'default' => '' ), // keys from EveryCal_Expression::TYPES
 

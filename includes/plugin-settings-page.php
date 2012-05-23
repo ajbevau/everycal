@@ -115,6 +115,7 @@ function ecp1_render_options_page() {
 				<tr>
 					<th scope="row"><?php _e( 'Repeating Events' ); ?></th>
 					<td>
+		<div class="ecp1_meta">
 <?php
 	// Cache block size templates
 	$times = array( '2592000'=>__( '1 Month' ), '15811200'=>__( '6 Months' ), '31536000'=>__( '1 Year' ), '63072000'=>__( '2 Years' ) );
@@ -131,7 +132,9 @@ function ecp1_render_options_page() {
 	
 	// Enable / disable custom scheduler expressions
 ?>
-		<div class="ecp1_meta">
+			<input id="<?php printf( '%s[force_cache]', ECP1_GLOBAL_OPTIONS ); ?>" name="<?php printf( '%s[force_cache]', ECP1_GLOBAL_OPTIONS ); ?>" type="checkbox" value="1"<?php echo '1' == _ecp1_get_option( 'enforce_repeat_cache_size' ) ? ' checked="checked"' : '' ?> />
+			<label for="<?php printf( '%s[force_cache]', ECP1_GLOBAL_OPTIONS ); ?>"><?php _e( 'Enforce the maximum cache size' ); ?></label><br/>
+			<em><?php _e( 'Note: Only enforce the cache size if you know you will never make a larger request; for example the event list shortcode with an open ended finish date will overrun any cache size (except 30 years) because it computes repeats until January 2038. You have two options: a) set an end date on the shortcode or not to enforce the cache size.' ); ?></em><br/>
 			<input id="<?php printf( '%s[custom_repeats]', ECP1_GLOBAL_OPTIONS ); ?>" name="<?php printf( '%s[custom_repeats]', ECP1_GLOBAL_OPTIONS ); ?>" type="checkbox" value="1"<?php echo '1' == _ecp1_get_option( 'allow_custom_repeats' ) ? ' checked="checked"' : '' ?> />
 			<label for="<?php printf( '%s[custom_repeats]', ECP1_GLOBAL_OPTIONS ); ?>"><?php _e( 'Enable custom repeat expressions?' ); ?></label><br/>
 
@@ -462,6 +465,7 @@ function ecp1_validate_options_page( $input ) {
 		'use_maps'=>'use_maps',
 		'tz_change'=>'tz_change',
 		'feature_tz_local'=>'base_featured_local_to_event',
+		'force_cache'=>'enforce_repeat_cache_size',
 		'custom_repeats'=>'allow_custom_repeats',
 		'export_external'=>'export_include_external',
 		'show_export_icon'=>'show_export_icon',
