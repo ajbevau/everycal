@@ -4,7 +4,7 @@ Donate link: http://andrewbevitt.com/code/everycalplus1/
 Tags: calendar, events
 Requires at least: 3.0
 Tested up to: 3.3.2
-Stable tag: 1.0
+Stable tag: 1.0.1
 
 A WordPress plugin that integrates calendars, custom post types, maps, and offsite linking and now repeating events.
 
@@ -141,6 +141,10 @@ than anything else. The external calendar interface is pluggable so you can exte
 2. description corresponds to screenshot-2.(png|jpg|jpeg|gif) in same dir.
 
 == Changelog ==
+
+= 1.0.1 =
+* Fixed PHP 5.2 HEREDOC bug in includes/data/sql.php
+* Added option to disable max cache size
 
 = 1.0 =
 * Repeating events! This was the most requested feature...
