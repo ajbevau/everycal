@@ -21,7 +21,7 @@ interface ExceptionCoder
 	 * @param $value The value for the field.
 	 * @return The HTML for a textare.
 	 */
-	public static function render( $id, $name, $value=null );
+	public function render( $id, $name, $value=null );
 
 	/**
 	 * Processes a given array of POSTed data and returns then
@@ -36,7 +36,7 @@ interface ExceptionCoder
 	 * @return Value this exception will swap into the event. Return
 	 *         null if there is no value that should be swapped.
 	 */
-	public static function process( $key, $values );
+	public function process( $key, $values );
 
 	/**
 	 * Takes the serialized value from the process function and
@@ -51,7 +51,7 @@ interface ExceptionCoder
 	 * @param $value The serialized value to be used in the event
 	 * @return True or false if the event array was updated
 	 */
-	public static function update( &$event, $meta_key, $value );
+	public function update( &$event, $meta_key, $value );
 }
 
 /**
@@ -59,7 +59,7 @@ interface ExceptionCoder
  */
 class MediumTextArea implements ExceptionCoder
 {
-	public static function render( $id, $name, $value=null )
+	public function render( $id, $name, $value=null )
 	{
 		return str_replace(
 			array( '{{id}}', '{{name}}', '{{value}}' ),
@@ -68,13 +68,13 @@ class MediumTextArea implements ExceptionCoder
 		);
 	}
 
-	public static function process( $key, $values )
+	public function process( $key, $values )
 	{
 		// Does the key exist in the array: if so use otherwise empty string
 		return array_key_exists( $key, $values ) ? $values[$key] : null;
 	}
 
-	public static function update( &$event, $meta_key, $value )
+	public function update( &$event, $meta_key, $value )
 	{
 		if ( $value == null )
 			return false; // don't update with null
@@ -94,7 +94,7 @@ class MediumTextArea implements ExceptionCoder
  */
 class DateTimeField implements ExceptionCoder
 {
-	public static function render( $id, $name, $value=null )
+	public function render( $id, $name, $value=null )
 	{
 		$date_str = $select_hours = $select_mins = $select_meridiem = $outstr = '';
 
@@ -149,7 +149,7 @@ class DateTimeField implements ExceptionCoder
 		return $outstr;
 	}
 
-	public static function process( $key, $values )
+	public function process( $key, $values )
 	{
 		// This is more complex that the others: date | hour | min | ante
 		// and is stored with both a date and time component so if one
@@ -178,7 +178,7 @@ class DateTimeField implements ExceptionCoder
 		return $out; // the serializable result
 	}
 
-	public static function update( &$event, $meta_key, $value )
+	public function update( &$event, $meta_key, $value )
 	{
 		if ( $value == null || !is_array( $value ) )
 			return false; // don't update null
@@ -239,14 +239,14 @@ class DateTimeField implements ExceptionCoder
  */
 class YesNoRadioChoice implements ExceptionCoder
 {
-	public static function render( $id, $name, $value=null )
+	public function render( $id, $name, $value=null )
 	{
 		return sprintf( '<input type="radio" id="%s_Y" name="%s" value="Y"%s/> <label for="%s_Y">%s</label> <input type="radio" id="%s_N" name="%s" value="N"%s/> <label for="%s_N">%s</label>',
 			$id, $name, $value == 'Y' ? ' checked="checked"' : '', $id, __( 'Yes' ),
 			$id, $name, $value == 'N' ? ' checked="checked"' : '', $id, __( 'No' ) );
 	}
 
-	public static function process( $key, $values )
+	public function process( $key, $values )
 	{
 		$choice = array_key_exists( $key, $values ) ? $values[$key] : null;
 		if ( 'Y' == $choice or 'N' == $choice )
@@ -254,7 +254,7 @@ class YesNoRadioChoice implements ExceptionCoder
 		return null; // null means don't store
 	}
 
-	public static function update( &$event, $meta_key, $value )
+	public function update( &$event, $meta_key, $value )
 	{
 		if ( $value == null )
 			return false; // don't update null
@@ -268,7 +268,7 @@ class YesNoRadioChoice implements ExceptionCoder
  */
 class LongTextBox implements ExceptionCoder
 {
-	public static function render( $id, $name, $value=null )
+	public function render( $id, $name, $value=null )
 	{
 		return str_replace(
 			array( '{{id}}', '{{name}}', '{{value}}' ),
@@ -277,13 +277,13 @@ class LongTextBox implements ExceptionCoder
 		);
 	}
 
-	public static function process( $key, $values )
+	public function process( $key, $values )
 	{
 		// If the parameter is given return it otherwise null
 		return array_key_exists( $key, $values ) ? $values[$key] : null;
 	}
 
-	public static function update( &$event, $meta_key, $value )
+	public function update( &$event, $meta_key, $value )
 	{
 		if ( $value == null )
 			return false; // don't update null
@@ -324,30 +324,8 @@ class EveryCal_Exception
 		$field = array_key_exists( $field_key, EveryCal_Exception::$FIELDS ) ? EveryCal_Exception::$FIELDS[$field_key] : null;
 		if ( $field == null )
 			return null;
-
-		// Check PHP version and return the appropriate class descriptor
-		if ( ECP1_PHP5 >= 3 ) { // can use the class name as string var
-			return $field['class'];
-		} else {
-			// SLOWER BUT SUPPORTS EARLIER VERSIONS
-			switch( $field['class'] ) {
-				case 'MediumTextArea':
-					return MediumTextArea;
-					break;
-				case 'DateTimeField':
-					return DateTimeField;
-					break;
-				case 'LongTextBox':
-					return LongTextBox;
-					break;
-				case 'YesNoRadioChoice':
-					return YesNoRadioChoice;
-					break;
-			}
-		}
-
-		// Failsafe
-		return null;
+		$className = $field['class'];
+		return new $className();
 	}
 
 	/**
@@ -367,7 +345,8 @@ class EveryCal_Exception
 			return sprintf( '<div class="ecp1_error">Invalid FIELD="%s" for exception renderer</div>', $field_key );
 
 		// Call the render function on the class
-		return $class::render( $id, $name, $value );
+		return $class->render( $id, $name, $value );
+		//return $class::render( $id, $name, $value );
 	}
 
 	/**
@@ -386,7 +365,8 @@ class EveryCal_Exception
 			return null; // unknown field
 
 		// Call the process function on the class
-		return $class::process( $key, $values );
+		return $class->process( $key, $values );
+		//return $class::process( $key, $values );
 	}
 
 	/**
@@ -408,7 +388,8 @@ class EveryCal_Exception
 		$meta_key = EveryCal_Exception::$FIELDS[$field_key]['meta_key'];
 
 		// Call the update function on the class
-		return $class::update( $event, $meta_key, $value );
+		return $class->update( $event, $meta_key, $value );
+		//return $class::update( $event, $meta_key, $value );
 	}
 
 	/**
