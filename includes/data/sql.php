@@ -35,7 +35,7 @@ public static function Q( $qs ) {
  *  Start DateTime
  *  End DateTime
  */
-private static $CALENDAR_EVENTS = <<<ENDOFQUERY
+private static $CALENDAR_EVENTS = "
 SELECT  p.ID, r.meta_value
 FROM    {{prefix}}posts p
 		INNER JOIN {{prefix}}postmeta c ON c.post_id=p.ID AND (c.meta_key='ecp1_event_calendar' OR c.meta_key='ecp1_extra_calendar')
@@ -50,7 +50,7 @@ WHERE   p.post_status='publish' AND
 		)
 ORDER BY
 		s.meta_value, p.post_name ASC;
-ENDOFQUERY;
+";
 
 
 /**
@@ -62,7 +62,7 @@ ENDOFQUERY;
  *  Start DateTime
  *  End DateTime
  */
-private static $FEATURED_EVENTS = <<<ENDOFQUERY
+private static $FEATURED_EVENTS = "
 SELECT  p.ID, r.meta_value
 FROM    {{prefix}}posts p
 		INNER JOIN {{prefix}}postmeta f ON f.post_id=p.ID AND f.meta_key='ecp1_event_is_featured'
@@ -77,7 +77,7 @@ WHERE   p.post_status='publish' AND
 		)
 ORDER BY
 		s.meta_value, p.post_name ASC;
-ENDOFQUERY;
+";
 
 /**
  * One column: Event Post ID
@@ -86,13 +86,13 @@ ENDOFQUERY;
  * Parameters:
  *  Calendar ID
  */
-private static $REPEATS_ON_CALENDAR = <<<ENDOFQUERY
+private static $REPEATS_ON_CALENDAR = "
 SELECT	DISTINCT p.ID
 FROM	{{prefix}}posts p
 		INNER JOIN {{prefix}}postmeta m ON m.post_id=p.ID AND m.meta_key = 'ecp1_event_calendar'
 		INNER JOIN {{prefix}}postmeta j ON j.post_id=p.ID AND j.meta_key = 'ecp1_event_repeats'
 WHERE	p.post_status = 'publish' AND j.meta_value = 'Y' AND m.meta_value = %s;
-ENDOFQUERY;
+";
 
 /**
  * Two columns: Calendar Post ID | Event Post ID
@@ -102,14 +102,14 @@ ENDOFQUERY;
  * Parameters:
  *  Extra Calendar ID
  */
-private static $REPEATS_ON_EXTRA = <<<ENDOFQUERY
+private static $REPEATS_ON_EXTRA = "
 SELECT	DISTINCT k.meta_value, p.ID
 FROM	{{prefix}}posts p
 		INNER JOIN {{prefix}}postmeta m ON m.post_id=p.ID AND m.meta_key = 'ecp1_extra_calendar'
 		INNER JOIN {{prefix}}postmeta j ON j.post_id=p.ID AND j.meta_key = 'ecp1_event_repeats'
 		INNER JOIN {{prefix}}postmeta k ON k.post_id=p.ID AND k.meta_key = 'ecp1_event_calendar'
 WHERE	p.post_status = 'publish' AND j.meta_value = 'Y' AND m.meta_value = %s;
-ENDOFQUERY;
+";
 
 /**
  * Two columns: Calendar Post ID | Event Post ID
@@ -118,14 +118,14 @@ ENDOFQUERY;
  * Parameters:
  *  NONE
  */
-private static $FEATURED_REPEATS = <<<ENDOFQUERY
+private static $FEATURED_REPEATS = "
 SELECT	DISTINCT k.meta_value, p.ID
 FROM	{{prefix}}posts p
 		INNER JOIN {{prefix}}postmeta m ON m.post_id=p.ID AND m.meta_key = 'ecp1_event_is_featured'
 		INNER JOIN {{prefix}}postmeta j ON j.post_id=p.ID AND j.meta_key = 'ecp1_event_repeats'
 		INNER JOIN {{prefix}}postmeta k ON k.post_id=p.ID AND k.meta_key = 'ecp1_event_calendar'
 WHERE	p.post_status = 'publish' AND j.meta_value = 'Y';
-ENDOFQUERY;
+";
 
 }
 
