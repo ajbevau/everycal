@@ -92,7 +92,9 @@ class EveryCal_Scheduler
 			return true; // not an error just no cache to build
 
 		// There is a setting to control maximum build size for a cache
-		if ( $edt->format( 'U' ) - $sdt->format( 'U' ) > _ecp1_get_option( 'max_repeat_cache_block' ) ) {
+		if ( ( $edt->format( 'U' ) - $sdt->format( 'U' ) > _ecp1_get_option( 'max_repeat_cache_block' ) )
+				&& 	_ecp1_get_option( 'enforce_repeat_cache_size' ) ) {
+			error_log( 'WP Every Calendar +1: The cache option is too small to build the requested range!' );
 			return false; // can't build cache for this date range
 		}
 
