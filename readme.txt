@@ -4,7 +4,7 @@ Donate link: http://andrewbevitt.com/code/everycalplus1/
 Tags: calendar, events
 Requires at least: 3.0
 Tested up to: 3.3.2
-Stable tag: 1.0.1
+Stable tag: 1.0.2
 
 A WordPress plugin that integrates calendars, custom post types, maps, and offsite linking and now repeating events.
 
