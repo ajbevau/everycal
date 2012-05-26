@@ -415,6 +415,17 @@ function ecp1_event_meta_form() {
 		}
 		printf( '%s</div>', $s );
 	}
+
+	// If this is repeat until convert the timestamp to a date
+	$until_date = null;
+	if ( 'UNTIL' == $ecp1_repeat_end_type ) {
+		try {
+			$until_date = new DateTime( "@$ecp1_repeat_end_param" );
+			$until_date->setTimezone( $tz );
+		} catch( Exception $udex ) {
+			// do nothing
+		}
+	}
 ?>
 	</div>
 					</li>
@@ -429,7 +440,7 @@ function ecp1_event_meta_form() {
 
 	<input type="radio" id="ecp1_repeat_to_date" name="ecp1_repeat_until" value="UNTIL" <?php checked( 'UNTIL', $ecp1_repeat_end_type ); ?> />
 	<label for="ecp1_repeat_to_date"><?php _e( 'Repeats until' ); ?></label>
-	<input id="ecp1_repeat_to_date_value" name="ecp1_repeat_to_date_value" type="text" class="ecp1_datepick" value="<?php if ( 'UNTIL' == $ecp1_repeat_end_type ) print $ecp1_repeat_end_param; ?>" /><br/>
+	<input id="ecp1_repeat_to_date_value" name="ecp1_repeat_to_date_value" type="text" class="ecp1_datepick" value="<?php if ( 'UNTIL' == $ecp1_repeat_end_type && $until_date != null ) print $until_date->format( 'Y-m-d' ); ?>" /><br/>
 	<em><?php _e( 'Please enter date as YYYY-MM-DD or use the date picker' ); ?></em>
 					</li>
 					</ul>

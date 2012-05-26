@@ -200,7 +200,7 @@ class EveryCal_Scheduler
 		// also if the end point is past the termination point adjust
 		if ( $termination == 'UNTIL' ) {
 			try {
-				$terminate_at = new DateTime( "@$terimate_at" );
+				$terminate_at = new DateTime( "@$terminate_at" );
 				$terminate_at->setTimezone( $tz );
 				if ( $start >= $terminate_at )
 					return true; // nothing to cache
