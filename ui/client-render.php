@@ -42,7 +42,7 @@ function ecp1_render_calendar( $calendar ) {
 	// Text based description make sure it's escaped
 	$description = $calendar['ecp1_description'][1];
 	if ( ! _ecp1_calendar_meta_is_default( 'ecp1_description' ) )
-		$description = wp_filter_post_kses( $calendar['ecp1_description'][0] );
+		$description = wp_filter_post_kses( htmlspecialchars( $calendar['ecp1_description'][0] ) );
 	
 	// Timezone events in this calendar occur in
 	$raw_timezone = ecp1_get_calendar_timezone();
@@ -386,7 +386,7 @@ function ecp1_render_event( &$event ) {
 	// String placeholder for the summary text
 	$ecp1_summary = $event['ecp1_summary'][1];
 	if ( ! _ecp1_event_meta_is_default( 'ecp1_summary' ) )
-		$ecp1_summary = wp_filter_post_kses( $event['ecp1_summary'][0] );
+		$ecp1_summary = wp_filter_post_kses( htmlspecialchars( $event['ecp1_summary'][0] ) );
 	
 	// String placeholders for the location and map coords if enabled
 	$ecp1_location = $event['ecp1_location'][1];

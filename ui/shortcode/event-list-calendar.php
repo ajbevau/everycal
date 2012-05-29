@@ -177,7 +177,7 @@ ENDOFSCRIPT;
 	// Text based description make sure it's escaped
 	$description = '';
 	if ( ! _ecp1_calendar_meta_is_default( 'ecp1_description' ) )
-		$description = wp_filter_post_kses( _ecp1_calendar_meta( 'ecp1_description' ) );
+		$description = wp_filter_post_kses( htmlspecialchars( _ecp1_calendar_meta( 'ecp1_description' ) ) );
 	$description = '' != $description ? '<p><strong>' . $description . '</strong></p>' : '';
 	$feature_msg = '';
 	if ( _ecp1_calendar_show_featured( _ecp1_calendar_meta_id() ) &&
