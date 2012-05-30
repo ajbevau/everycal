@@ -209,8 +209,13 @@ function ecp1_formatted_datetime_range( $dates, $datee, $allday, $sameday=null )
 	// Format the dates as strings if they're valid
 	if ( $dates instanceof DateTime )
 		$dates = $dates->format( $datef );
-	if ( $datee instanceof DateTime )
-		$datee = $datee->format( $datef );
+	if ( $datee instanceof DateTime ) {
+		if ( true === $sameday ) {
+			$datee = $datee->format( get_option( 'time_format' ) );
+		} else {
+			$datee = $datee->format( $datef );
+		}
+	}
 
 	// Do we need an (all day) message?
 	$all_day = _ecp1_get_option( 'show_all_day_message' ) ? __( '(all day)' ) : '';
