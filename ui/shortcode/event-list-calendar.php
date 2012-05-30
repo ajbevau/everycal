@@ -243,7 +243,7 @@ function _ecp1_event_list_get( $cal, $starting, $until ) {
 			// Description and permalink/external url
 			$efeature = $my_id != $event['ecp1_calendar'] && 'Y' == $event['ecp1_featured'];
 			$ecp1_desc = _ecp1_render_default( $event, 'ecp1_description' ) ? '' : strip_tags( _ecp1_event_meta( 'ecp1_description' ) );
-			$ecp1_url = _ecp1_render_default( $event, 'ecp1_url' ) ? ecp1_permalink_event( $event['post_id'] ) : urldecode( $event['ecp1_url'] );
+			$ecp1_url = _ecp1_render_default( $event, 'ecp1_url' ) ? ecp1_permalink_event( $event ) : urldecode( $event['ecp1_url'] );
 
 			// If feature images are enabled by the them (aka Post Thumbnails) then show if there is one
 			$feature_image = false;
