@@ -73,6 +73,7 @@ function ecp1_event_custom_columns( $column ) {
 				$allday = $ecp1_event_fields['ecp1_full_day'][0];
 				$start = $ecp1_event_fields['ecp1_start_ts'][0];
 				$end = $ecp1_event_fields['ecp1_end_ts'][0];
+				$rpt = $ecp1_event_fields['ecp1_repeating'][0];
 
 				if ( '' != $start && is_numeric( $start ) ) {
 					// Output the start date
@@ -91,9 +92,17 @@ function ecp1_event_custom_columns( $column ) {
 						$outstr .= __( 'No end date given.' );
 					}
 				
+					// Add the timezone as a string to the output
+					$outstr .= sprintf( '<br/>%s', ecp1_timezone_display( $tz->getName() ) );
+
 					// Note that this event runs all day if it does
 					if ( 'Y' == $allday )
 						$outstr .= sprintf( '<br/>%s', __( 'Running all day' ) );
+
+					// If this is a repeating event or not
+					if ( 'Y' == $rpt )
+						$outstr .= sprintf( '<br/>%s', __( 'Event repeats' ) );
+
 				} else {
 					$outstr = __( 'No start date given.' );
 				}
@@ -101,7 +110,7 @@ function ecp1_event_custom_columns( $column ) {
 				$outstr = __( 'Invalid date stored in database, please correct it.' );
 			}
 			
-			printf( '%s<br/>%s', $outstr, ecp1_timezone_display( $tz->getName() ) );
+			printf( $outstr );
 			break;
 		
 		case 'ecp1_location':
