@@ -3,8 +3,8 @@ Contributors: andrewbevitt
 Donate link: http://andrewbevitt.com/code/everycalplus1/
 Tags: calendar, events
 Requires at least: 3.0
-Tested up to: 3.3.2
-Stable tag: 1.0.4
+Tested up to: 3.4
+Stable tag: 1.0.5
 
 A WordPress plugin that integrates calendars, custom post types, maps, and offsite linking and now repeating events.
 
@@ -141,6 +141,10 @@ than anything else. The external calendar interface is pluggable so you can exte
 2. description corresponds to screenshot-2.(png|jpg|jpeg|gif) in same dir.
 
 == Changelog ==
+
+= 1.0.5 =
+* Fixed cache buffer between repeat cache points (was 1 day now 10s)
+* Better error checking for cache range date points
 
 = 1.0.4 =
 * Better cache coverage when updating the repeat until date
