@@ -84,6 +84,7 @@ class EveryCal_Scheduler
 			$sdt = new DateTime( "@$start" ); $sdt->setTimezone( $tz ); // PHP 5.2.0
 			$edt = new DateTime( "@$end" ); $edt->setTimezone( $tz );
 		} catch( Exception $dex ) {
+			error_log( 'WP Every Calendar +1: The start and end cache dates are invalid!' );
 			return false;
 		}
 
@@ -207,6 +208,7 @@ class EveryCal_Scheduler
 				if ( $end > $terminate_at )
 					$cend = clone $terminate_at;
 			} catch( Exception $uex ) {
+				error_log( 'WP Every Calendar +1: Repeat UNTIL terminate date is unknown!' );
 				return false; // can't build if unknown
 			}
 		}
@@ -275,7 +277,10 @@ class EveryCal_Scheduler
 		$bresult = self::BuildCachePoints( $cache_points, $event_id, $cstart, $cend, $tz );
 
 		// Did we successfully build the points arrays?
-		if ( ! $bresult ) return false;
+		if ( ! $bresult ) {
+			error_log( 'WP Every Calendar +1: Could not build cache points!' );
+			return false;
+		}
 
 		// If this is a XTIMES termination event then drop any after X
 		if ( $termination == 'XTIMES' ) {
@@ -285,8 +290,10 @@ class EveryCal_Scheduler
 
 		// If there are any points to be touched do that now
 		foreach( $cache_points as $touch_date ) {
-			if ( ! self::TouchEventRepeat( $event_id, $touch_date ) )
+			if ( ! self::TouchEventRepeat( $event_id, $touch_date ) ) {
+				error_log( sprintf( 'WP Every Calendar +1: Could not touch event repeats for %s at %s', $event_id, $touch_date->format( 'Y-m-d' ) ) );
 				$bresult = false;
+			}
 		}
 
 		// If we haven't successfully updated the database don't change meta
@@ -348,8 +355,10 @@ class EveryCal_Scheduler
 			$repeater = self::GetRepeater( _ecp1_event_meta( 'ecp1_repeat_pattern' ), 
 				_ecp1_event_meta( 'ecp1_repeat_pattern_parameters' ), _ecp1_event_meta( 'ecp1_repeat_custom_expression' ),
 				$epoch );
-			if ( $repeater == null )
+			if ( $repeater == null ) {
+				error_log( 'WP Every Calendar +1: Could not construct a repeater!' );
 				return false;
+			}
 
 			// Use the parser to get all the points between the given dates
 			$dates = $repeater->GetRepeatsBetween( $epoch, $start, $end );
@@ -409,20 +418,27 @@ class EveryCal_Scheduler
 				$repeater = self::GetRepeater( $coverage[$k]['ecp1_repeat_pattern'],
 					$coverage[$k]['ecp1_repeat_pattern_parameters'], $coverage[$k]['ecp1_repeat_custom_expression'],
 					$cepoch ); // make sure we use the history epoch
-				if ( $repeater == null )
+				if ( $repeater == null ) {
+					error_log( 'WP Every Calendar +1: Could not build a repeater!' );
 					return false;
+				}
 
 				// Use the parser to get all the points for this cover set of dates
 				$cdates[] = $repeater->GetRepeatsBetween( $cepoch, $cstart, $cend );
 			}
 
 			// Combine the cover dates into one array or null if failed
-			if ( ! in_array( null, $cdates ) ) {
+			if ( is_array( $cdates ) ) {
 				$dates = array();
 				foreach( $cdates as $cdate ) {
-					foreach( $cdate as $date )
-						$dates[] = $date;
+					if ( is_array( $cdate ) ) {
+						foreach( $cdate as $date )
+							$dates[] = $date;
+					}
 				}
+			} else {
+				error_log( 'WP Every Calendar +1: Non-array combined dates found!' );
+				$dates = null;
 			}
 		}
 
@@ -434,6 +450,7 @@ class EveryCal_Scheduler
 				$points[] = $date;
 			return true; // successfully built
 		} else {
+			error_log( 'WP Every Calendar +1: Non-array date set found as cache points!' );
 			return false; // failed
 		}
 	}
