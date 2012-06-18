@@ -365,6 +365,12 @@ class EveryCal_Scheduler
 			$coverage = array(); // start | end | +keys for details
 			foreach( $history as $repeat ) {
 				$rdtl = unserialize( $repeat );
+				// Check this history if valid
+				if ( $rdtl['start'] > $rdtl['end'] ) continue;
+				if ( !array_key_exists( 'ecp1_start_ts', $rdtl ) || is_null( $rdtl['ecp1_start_ts'] ) ) continue;
+				if ( !array_key_exists( 'ecp1_repeat_pattern', $rdtl ) || is_null( $rdtl['ecp1_repeat_pattern'] ) ) continue;
+
+				// Finally if the history covers the range use it
 				if ( $rdtl['start'] <= $end->format( 'U' ) || $rdtl['end'] >= $start->format( 'U' ) )
 					$coverage[$rdtl['start']] =  $rdtl;
 			}
@@ -967,9 +973,9 @@ class EveryCal_Scheduler
 		foreach( $track_changes as $hkey )
 			$history[$hkey] = $event_changes[$hkey]['old'];
 		// Also keep a record of when this set of parameters applies
-		$yesterday = clone $today; $yesterday->modify( '-1 day' );
+		//$yesterday = clone $today; $yesterday->modify( '-1 day' );
 		$history['start'] = $last_change->format( 'U' );
-		$history['end'] = $yesterday->format( 'U' );
+		$history['end'] = $today->format( 'U' ) - 10; //$yesterday->format( 'U' );
 		self::PushEventRepeatHistory( $event_id, $history );
 
 		// We've made changes so update the last change date
