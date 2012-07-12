@@ -186,10 +186,7 @@ function ecp1_event_meta_form() {
 			$d = new DateTime( '@' . $ecp1_event_fields['ecp1_start_ts'][0] );
 			$d->setTimezone( $tz );
 			$ecp1_start_date = $d->format( 'Y-m-d' );
-			if ( ECP1_PHP5 < 3 ) // support 5.2.0
-				$ecp1_start_time = $d->format( 'U' ) + $d->getOffset();
-			else
-				$ecp1_start_time = $d->getTimestamp() + $d->getOffset(); // format( 'U' ) and timestamp are NOT offset by TZ
+			$ecp1_start_time = $d; // formatted later
 		} catch( Exception $serror ) {
 			$ecp1_start_date = $ecp1_start_time = '';
 			printf( '<div class="ecp1_error">%s</div>', __( 'ERROR: Could not parse start date/time please re-enter.' ) );
@@ -203,10 +200,7 @@ function ecp1_event_meta_form() {
 			$d = new DateTime( '@' . $ecp1_event_fields['ecp1_end_ts'][0] );
 			$d->setTimezone( $tz );
 			$ecp1_end_date = $d->format( 'Y-m-d' );
-			if ( ECP1_PHP5 < 3 ) // support 5.2.0
-				$ecp1_end_time = $d->format( 'U' ) + $d->getOffset();
-			else
-				$ecp1_end_time = $d->getTimestamp() + $d->getOffset(); // format( 'U' ) and timestamp are NOT offset by TZ
+			$ecp1_end_time = $d; // formatted later
 		} catch( Exception $eerror ) {
 			$ecp1_end_date = $ecp1_end_time = '';
 			printf( '<div class="ecp1_error">%s</div>', __( 'ERROR: Could not parse end date/time please re-enter.' ) );
@@ -826,12 +820,12 @@ ENDOFSCRIPT;
 }
 
 // Returns a string of HH:MM:AM/PM select boxes for time entry
-function _ecp1_time_select_trio( $base_key, $select_value_ts ) {
+function _ecp1_time_select_trio( $base_key, $tsdt ) {
 	$select_hours = $select_mins = $select_meridiem = '';
-	if ( '' != $select_value_ts ) {
-		$select_hours = date( 'g', $select_value_ts );
-		$select_mins = date( 'i', $select_value_ts );
-		$select_meridiem = date( 'A', $select_value_ts );
+	if ( '' != $tsdt ) {
+		$select_hours = $tsdt->format( 'g' );
+		$select_mins = $tsdt->format( 'i' );
+		$select_meridiem = $tsdt->format( 'A' );
 	}
 	
 	$outstr = sprintf( '<select id="%s-hour" name="%s-hour"><option value=""></option>', $base_key, $base_key );
