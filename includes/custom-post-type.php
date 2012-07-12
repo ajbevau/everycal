@@ -91,10 +91,10 @@ function ecp1_register_types() {
 	register_post_type( 'ecp1_calendar', $ecp1_cal_args );
 
 	// Add a permalink structure for events
-	add_rewrite_tag( '%ecp1_event%', '([^/]+)', 'ecp1_event=' );
-	add_rewrite_tag( '%ees_year%', '([0-9]{4})', 'ees_year=' );
-	add_rewrite_tag( '%ees_month%', '([0-9]{1,2})', 'ees_month=' );
-	add_rewrite_tag( '%ees_day%', '([0-9]{1,2})', 'ees_day=' );
+	//add_rewrite_tag( '%ecp1_event%', '([^/]+)', 'ecp1_event=' );
+	//add_rewrite_tag( '%ees_year%', '([0-9]{4})', 'ees_year=' );
+	//add_rewrite_tag( '%ees_month%', '([0-9]{1,2})', 'ees_month=' );
+	//add_rewrite_tag( '%ees_day%', '([0-9]{1,2})', 'ees_day=' );
 	add_permastruct( 'ecp1_event', '/event/%ees_year%/%ees_month%/%ees_day%/%ecp1_event%', false );
 }
 

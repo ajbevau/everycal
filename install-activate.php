@@ -16,6 +16,8 @@ function ecp1_add_rewrite_rules() {
 		'ecp1/([a-zA-Z0-9_\-]+)/events.json$' => 'index.php?ecp1tpl=event-json&ecp1_cal=$matches[1]', // Events as JSON
 		'ecp1/([a-zA-Z0-9_\-]+)/events.ics$' => 'index.php?ecp1tpl=ical-feed&ecp1_cal=$matches[1]', // Events iCalendar Feed
 		'ecp1/([a-zA-Z0-9_\-]+)/events.rss$' => 'index.php?ecp1tpl=rss-feed&ecp1_cal=$matches[1]', // Events RSS Feed
+		#'event/([0-9]{4})/([0-9]{1,2})/([0-9]{1,2})/([^/]+)/$' => // Events page 
+		#	'index.php?ees_year=$matches[1]&ees_month=$matches[2]&ees_day=$matches[3]&ecp1_event=$matches[4]',
 	);
 
 	// Loop over the rules and add them to the top then

@@ -52,6 +52,11 @@ function ecp1_register_query_tags() {
 		'ecp1_end'        => '([0-9]+)',   #  and the end lookup (neither validated)
 		'ecp1_cal'        => '([a-zA-Z0-9_\-]+)',  # the ecp1_calendar slug to lookup in json/ical
 		'ecp1_repeat'     => '([0-9]{4}\-[0-9]{1,2}\-[0-9]{1,2})', # date repeat starts
+
+		'ecp1_event'      => '([^/]+)', # event slug to lookup
+		'ees_year'        => '([0-9]{4})', # event start year
+		'ees_month'       => '([0-9]{1,2})', # event start month
+		'ees_day'         => '([0-9]{1,2})', # event start day
 	);
 
 	// Loop over the tags and add them to the query vars
