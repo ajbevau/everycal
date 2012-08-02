@@ -559,7 +559,7 @@ class EveryCal_Scheduler
 		if ( _ecp1_calendar_show_featured( $cal_id ) ) {
 			$features = $wpdb->get_results( $wpdb->prepare( 
 				EveryCal_Query::Q( 'FEATURED_EVENTS' ),
-				$cal_id, $fstart->format( 'U' ), $fend->format( 'U' )
+				$fstart->format( 'U' ), $fend->format( 'U' )
 			), ARRAY_N ); // number keyed array of results
 		}
 
