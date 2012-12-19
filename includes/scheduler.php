@@ -126,9 +126,12 @@ class EveryCal_Scheduler
 
 		// Get all the feature events if this is a feature calendar
 		if ( $is_feature ) {
-			$events = $wpdb->get_results( $wpdb->prepare(
+			// WP3.5 made $wpdb->prepare() require a second argument
+			// to ensure queries are sanitised; the FEATURED_REPEATS
+			// query does NOT require params so removed prepare.
+			$events = $wpdb->get_results( /*$wpdb->prepare(*/
 				EveryCal_Query::Q( 'FEATURED_REPEATS' )
-			), ARRAY_N ); // numerical array indexed
+			/*)*/, ARRAY_N ); // numerical array indexed
 			if ( $events != null && count( $events ) > 0 ) {
 				foreach( $events as $row ) {
 					// Don't add duplicates if the event is featured on this calendar
