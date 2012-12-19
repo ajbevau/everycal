@@ -12,6 +12,10 @@ span.ecp1_event-text_wide {vertical-align:top;display:block;padding-left:0.5em;}
 span#ecp1_feature, span.ecp1_feature {float:right;margin:0 0 10px 10px;}
 li.ecp1_event {list-style-type:none;border-bottom:2px solid #cccccc;padding-bottom:1em;}
 
+/* The WP3.5 theme introduces rounded corners for content images
+   this messes with the tiling for the maps on event pages */
+#ecp1_event_map img {max-width:inherit;box-shadow:none;border-radius:0px;}
+
 /* Full Calendar Modifications */
 .fc-event {cursor:pointer;}
 

@@ -10,13 +10,163 @@ var _showEventDetails = 'Back to Event Details';
 var _showLargeMap = 'Large Map';
 var _geocodeAddr = false;
 var _showMap = false;
+var _mapProvider = false;
+var _geocoderEnabled = false;
+var _geocoderService = false;
+/***
+ Before Mapstraction was implemented the following functions
+ were defined manually in the plugins map provider section.
+ The function name was specified during the client render
+ stage. With Mapstraction the functions are now consistent
+ for all map providers. To maintain compatibility they have
+ been implemented here as wrappers to Mapstraction.
+
 var _mapLoadFunction = false;
 var _mapDeleteFunction = false;
 var _mapCenterFunction = false;
 var _mapMarkersFunction = false;
 var _mapAddMarkerFunction = false;
+ ***/
 var _showTimeOnAllDay = false;
 var _ecp1Counter = 0;
+
+// A dictionary of ID => mapstraction instances
+var ECP1_MXNS = {};
+
+// Called to render a map into the given element
+function ECP1_MXNRender( id, zoom, center, marker ) {
+	// Clear the map container
+	jQuery( '#' + id ).empty();
+
+	// Create map with some contols, center it and enable zoom
+	var ecp1_mapstraction = new mxn.Mapstraction( id, _mapProvider );
+	ecp1_mapstraction.addControls({ pan: false, zoom: 'small', map_type: true });
+	ecp1_mapstraction.setCenterAndZoom(center, zoom);
+	ecp1_mapstraction.enableScrollWheelZoom();
+
+	// If marker is true or a string then show marker and
+	// if it is a string then use that as the image url
+	if ( marker ) {
+		var mk = new mxn.Marker(center);
+		mk.setDraggable(false);
+		if ( typeof marker == 'string' ) {
+			mk.setIcon( marker, [32,36], [16,36] );
+		}
+		ecp1_mapstraction.addMarker( mk );
+	}
+	// Add the map to the MXN dictionary
+	ECP1_MXNS[id] = ecp1_mapstraction;
+}
+
+// Called when loading a map
+function _mapLoadFunction( options ) {
+
+	// Validate we have a element id
+	if ( typeof options.element == 'undefined' )
+		throw 'No ElementID passed to map loader...';
+	var eID = options.element;
+
+	// Check if there is a marker to use
+	var mark = false;
+	if ( typeof options.mark == 'boolean' || typeof options.mark == 'string' )
+		mark = options.mark;
+
+	// Use a default zoom if not provided
+	var zoom = 11;
+	if ( typeof options.zoom == 'number' )
+		zoom = options.zoom;
+
+	// If there is a lat and long use those directly otherwise 
+	// try and geocode the provided address and use results
+	if ( typeof options.lat != 'undefined' && typeof options.lng != 'undefined' ) {
+		// Call the function to render using Mapstraction
+		ECP1_MXNRender( eID, zoom, new mxn.LatLonPoint(options.lat, options.lng), mark );
+	} else if ( typeof options.location == 'string' ) {
+		// Given an address so try and geocode it and then call the renderer
+		if ( _geocoderEnabled ) {
+			var ecp1_geocoder = new mxn.Geocoder(_geocoderService, function( gp ) {
+				// Get the lat and long for the location and render
+				ECP1_MXNRender( eID, zoom, gp.point, mark );
+			});
+			var address = $.trim( $( '#ecp1_location' ).val() );
+			if ( '' != address && ecp1_geocoder != null ) {
+				// Geocode the address
+				ecp1_geocoder.geocode(address);
+			}
+		} else {
+			throw 'Address geocoding required but no geocoder enabled...';
+		}
+	} else { // Finally
+		throw 'No Lat/Lng or Location passed to map loader...';
+	}
+
+}
+
+// Called when a map should be removed
+function _mapDeleteFunction( id ) {
+	// Check if the id is in the MXN dictionary
+	if ( id in ECP1_MXNS ) {
+		delete ECP1_MXNS[id];
+	}
+}
+
+// Called to get the center point of an existing map
+function _mapCenterFunction( id ) {
+	// Get the mapstraction element and return a center point {lat:x, lng:x} object
+	if ( id in ECP1_MXNS ) {
+		var emxn = ECP1_MXNS[id];
+		var cp = emxn.getCenter();
+		return { lat: cp.lat, lng: cp.lon }; // getCenter needs .lon for some reason
+	}
+	// Failsafe if not a valid id
+	return { lat: 0, lng: 0 };
+}
+
+// Called to get a list of markers on the given map
+// Function that returns an array of { 'lat':X, 'lng':Y, 'src':MarkerURL } for
+// all markers that are on this map; API specifies return empty array if none
+function _mapMarkersFunction( id ) {
+	// Get the mapstraction object
+	if ( id in ECP1_MXNS ) {
+		// Use the MXN API to get the markers
+		var counter = 0;
+		var outMarks = new Array();
+		for ( mkidx in ECP1_MXNS[id].markers ) {
+			var mk = ECP1_MXNS[id].markers[mkidx];
+			outMarks[counter] = { lat: mk.location.lat, lng: mk.location.lng, src: mk.iconUrl };
+			counter++;
+		}
+		return outMarks;
+	}
+	// Failsafe if not a valid id
+	return new Array();
+}
+
+// Called to add a marker to a given map
+function _mapAddMarkerFunction( id, mark ) {
+	// Get the mapstraction object and then add the marker
+	if ( id in ECP1_MXNS ) {
+		var center = new mxn.LatLonPoint( mark.lat, mark.lng );
+		var mk = new mxn.Marker(center);
+		mk.setDraggable(false);
+		if ( typeof mark.src == 'string' ) {
+			// Only add the marker icon if one was given originally
+			mk.setIcon( mark.src, [32,36], [16,36] );
+		}
+		ECP1_MXNS[id].addMarker( mk );
+	}
+}
+
+// Returns the zoom of the given map
+function _mapGetZoomFunction( id ) {
+	// Get the mapstraction instance otherwise return 10
+	if ( id in ECP1_MXNS ) {
+		return ECP1_MXNS[id].getZoom();
+	}
+	// Failsafe if map doesnt exist
+	return 10;
+}
+
 
 // Called when FullCalendar renders an event
 // Adds a dynamic div with the event details

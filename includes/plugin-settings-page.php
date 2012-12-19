@@ -10,7 +10,7 @@ require( ECP1_DIR . '/includes/check-ecp1-defined.php' );
 require_once( ECP1_DIR . '/includes/custom-post-admin.php' );
 
 // Load the maps interface so we know which map implementations exist
-require_once( ECP1_DIR . '/includes/map-providers.php' );
+require_once( ECP1_DIR . '/includes/mapstraction/controller.php' );
 
 // Load the external calendars interface so we know which ones exist
 require_once( ECP1_DIR . '/includes/external-calendar-providers.php' );
@@ -65,26 +65,38 @@ function ecp1_render_options_page() {
 			<?php settings_fields( ECP1_OPTIONS_GROUP ); ?>
 			<table class="form-table">
 				<tr valign="top">
-				<tr valign="top">
 					<th scope="row"><?php _e( 'Allow Timezone Changes' ); ?></th>
 					<td>
 						<input id="<?php echo ECP1_GLOBAL_OPTIONS; ?>[tz_change]" name="<?php echo ECP1_GLOBAL_OPTIONS; ?>[tz_change]" type="checkbox" value="1" <?php checked( '1', _ecp1_get_option( 'tz_change' ) ); ?> />
 						<em><?php _e( 'Note: by default calendars will use the WordPress Timezone setting.' ); ?></em>
 					</td>
 				</tr>
-					<th scope="row"><?php _e( 'Enable Maps / Provider' ); ?></th>
-					<td>
+				<tr valign="top">
+					<th scope="row"><?php _e( 'Maps' ); ?></th>
+					<td class="xlabels">
+						<label for="<?php echo ECP1_GLOBAL_OPTIONS; ?>[use_maps]"><?php _e( 'Enabled' ); ?>:</label>
 						<input id="<?php echo ECP1_GLOBAL_OPTIONS; ?>[use_maps]" name="<?php echo ECP1_GLOBAL_OPTIONS; ?>[use_maps]" type="checkbox" value="1" <?php checked( '1', _ecp1_get_option( 'use_maps' ) ); ?> />
+						<label for="<?php echo ECP1_GLOBAL_OPTIONS; ?>[map_provider]"><?php _e( 'Provider' ); ?></label>
 						<select id="<?php echo ECP1_GLOBAL_OPTIONS; ?>[map_provider]" name="<?php echo ECP1_GLOBAL_OPTIONS; ?>[map_provider]">
 <?php
 	// For each map provider create an entry
+	/* Replaced by mapstraction API
 	$map_providers = ecp1_map_providers();
 	foreach( $map_providers as $slug=>$details ) 
 		printf( '<option value="%s"%s>%s</option>', $slug, $slug == _ecp1_get_option( 'map_provider' ) ? ' selected="selected"' : '', $details['name'] );
+	*/
+	printf( ECP1Mapstraction::ToOptionTags() );
+?>
+						</select>
+						<label for="<?php echo ECP1_GLOBAL_OPTIONS; ?>[map_geocoder]"><?php _e( 'Geocoder' ); ?></label>
+						<select id="<?php echo ECP1_GLOBAL_OPTIONS; ?>[map_geocoder]" name="<?php echo ECP1_GLOBAL_OPTIONS; ?>[map_geocoder]">
+<?php
+	printf( ECP1Mapstraction::ToOptionTags( true ) );
 ?>
 						</select>
 					</td>
 				</tr>
+				<tr valign="top">
 					<th scope="row"><?php _e( 'Calendar Providers' ); ?></th>
 					<td>
 <?php
@@ -112,7 +124,7 @@ function ecp1_render_options_page() {
 ?>
 					</td>
 				</tr>
-				<tr>
+				<tr valign="top">
 					<th scope="row"><?php _e( 'Repeating Events' ); ?></th>
 					<td>
 		<div class="ecp1_meta">
@@ -150,7 +162,7 @@ function ecp1_render_options_page() {
 		</div>
 					</td>
 				</tr>
-				<tr>
+				<tr valign="top">
 					<th scope="row"><?php _e( 'Featured Calendars' ); ?></th>
 					<td>
 <?php
@@ -188,7 +200,7 @@ function ecp1_render_options_page() {
 		</div>
 					</td>
 				</tr>
-				<tr>
+				<tr valign="top">
 					<th scope="row"><?php _e( 'Export Offsets' ); ?><br/><?php _e( 'iCAL / RSS' ); ?></th>
 					<td>
 <?php
@@ -248,7 +260,7 @@ function ecp1_render_options_page() {
 ?>
 					</td>
 				</tr>
-				<tr>
+				<tr valign="top">
 					<th scope="row"><?php _e( 'Template and Layout' ); ?></th>
 					<td>
 	<div class="ecp1subsettings">
@@ -448,16 +460,28 @@ ENDOFSCRIPT;
 
 // Sanitize and validate input. Accepts an array, return a sanitized array.
 function ecp1_validate_options_page( $input ) {
-	// Check the map provider is valid
-	if ( isset( $input['map_provider'] ) ) {
+	// Check the map provider and geocoder are valid
+	if ( isset( $input['map_provider'] ) && isset( $input['map_geocoder'] ) ) {
+		/* Replaced with mapstraction
 		$map_providers = ecp1_map_providers();
 		if ( ! array_key_exists( $input['map_provider'], $map_providers ) ) {
 			// Not a valid map selected: use default (none)
 			$input['map_provider'] = _ecp1_option_get_default( 'map_provider' );
 		}
+		*/
+		if ( ! ECP1Mapstraction::ValidProvider( $input['map_provider'] ) )
+			$input['map_provider'] = _ecp1_option_get_default( 'map_provider' );
+		if ( ! ECP1Mapstraction::ValidGeocoder( $input['map_geocoder'] ) ) {
+			if ( ECP1Mapstraction::ValidGeocoder( $input['map_provider'] ) ) {
+				$input['map_geocoder'] = $input['map_provider'];
+			} else {
+				$input['map_geocoder'] = _ecp1_option_get_default( 'map_geocoder' );
+			}
+		}
 	} else {
-		// Use default map provider
+		// Use default map provider and geocoder
 		$input['map_provider'] = _ecp1_option_get_default( 'map_provider' );
+		$input['map_geocoder'] = _ecp1_option_get_default( 'map_geocoder' );
 	}
 	
 	// If the checkbox setting is given then set to true otherwise to false

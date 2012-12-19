@@ -35,3 +35,6 @@ div.ecp1_meta .ecp1submeta {padding-bottom:1em;}
 .ecp1_exrow_summary label{vertical-align:top;}
 #ecp1_repeat_exceptions_existing > li, #new_exceptions_container > div {padding-bottom:1em;border-bottom:1px solid #ccc;margin-bottom:1em;}
 #ecp1_repeat_exceptions_existing > li:last-child, #new_exceptions_container > div:last-child {border-bottom:none;}
+td.xlabels label { padding-left: 1em; }
+td.xlabels label:first-child { padding-left: 0; }
+span.strike { text-decoration: line-through; }

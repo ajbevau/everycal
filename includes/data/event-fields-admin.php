@@ -9,7 +9,7 @@ require( ECP1_DIR . '/includes/check-ecp1-defined.php' );
 // Make sure the plugin settings and event fields have been loaded
 require_once( ECP1_DIR . '/includes/data/ecp1-settings.php' );
 require_once( ECP1_DIR . '/includes/data/event-fields.php' );
-require_once( ECP1_DIR . '/includes/map-providers.php' );
+require_once( ECP1_DIR . '/includes/mapstraction/controller.php' );
 
 // Load the scheduler
 require_once( ECP1_DIR . '/includes/scheduler.php' );
@@ -475,22 +475,21 @@ ENDOFSCRIPT;
 				<td>
 					<input id="ecp1_location" name="ecp1_location" type="text" class="ecp1_w75" value="<?php echo $ecp1_location; ?>" />
 <?php
-	// If maps are supported then we need to render a container div and some controls
-	if ( _ecp1_get_option( 'use_maps' ) ) {
-		$mapinstance = ecp1_get_map_provider_instance();
-		if ( ! is_null( $mapinstance ) ) {
-			// Add dynamic function on load to render a map with the appropriate details
-			$ecp1_init_func_call = $mapinstance->get_onload_function();
-			$ecp1_render_func_call = $mapinstance->get_maprender_function();
-			$options_hash = array(
-				'element' => '"ecp1-event-map"', // not quoted below so do it here
-				'mark' => '["ecp1_showmarker","ecp1_marker"]', // checkbox and img url
-				'zoom' => '"ecp1_zoom"', 'lat' => '"ecp1_lat"', 'lng' => '"ecp1_lng"' );
 
-			$options_hash_str = '{';
-			foreach( $options_hash as $key=>$value )
-				$options_hash_str .= sprintf( ' %s:%s,', $key, $value );
-			$options_hash_str = trim( $options_hash_str, ',' ) . ' }';
+	// Are maps enabled and do we have a valid provider?
+	if ( ECP1Mapstraction::MapsEnabled() ) {
+		$provider = ECP1Mapstraction::GetProviderKey();
+		if ( ECP1Mapstraction::ValidProvider( $provider ) ) {
+			
+			// Get the geocoder and convert null to javascript 'disabled'
+			$geocoder = ECP1Mapstraction::GetGeocoderKey();
+			if ( is_null( $geocoder ) ) {
+				printf( '<button type="button" id="ecp1_event_geocode" disabled="disabled"><span class="strike">%s</span></button>', __( 'Lookup Address' ) );
+				$geocoder = 'disabled';
+			} else {
+				$geocoder = ECP1Mapstraction::ProviderData( $geocoder, 'mxnid' );
+				printf( '<button type="button" id="ecp1_event_geocode">%s</button>', __( 'Lookup Address' ) );
+			}
 
 			// Build an array of map placemarker icons
 			$marker_path = plugins_url( '/img/mapicons', dirname( dirname( __FILE__ ) ) );
@@ -501,36 +500,168 @@ ENDOFSCRIPT;
 			$marker_icons_str = trim( $marker_icons_str, ',' ) . ']';
 			$feature_icons_str = '["pin.png","information.png","zoom.png","downloadicon.png"]';
 
+			// I18N / L10N strings for use in JavaScript
 			$_map_default_str = __( 'Map Default' );
 			$_show_event_details = __( 'Back to Edit Event' );
 			$_loading_icons_message = __( 'Loading Icons' );
 
-			$_ecp1_event_admin_init_js .= <<<ENDOFSCRIPT
-// Global variable for function reference for render actions
-var _mapLoadFunction = function( args ) { $ecp1_render_func_call( args ); };
+			// What is the Mapstraction ID of this provider?
+			$map_provider = ECP1Mapstraction::ProviderData( $provider, 'mxnid' );
+
+			// Mapstraction needs an initialization function to bootstrap the library
+$_ecp1_event_admin_init_js .= <<<ENDOFSCRIPT
+// Quick helper function
+// http://stackoverflow.com/questions/18082/validate-numbers-in-javascript-isnumeric
+function isNumber(n) { return !isNaN(parseFloat(n)) && isFinite(n); }
+
+// Global variables for references
+var ecp1_mapstraction = null;
+var ecp1_geocoder = null;
+var ecp1_marker = null;
+
+// String values and arrays
 var _mapDefaultIcon = '$_map_default_str';
 var _iconsPath = '$marker_path';
 var _featureIconsArray = $feature_icons_str;
 var _iconsArray = $marker_icons_str;
 var _showEventDetails = '$_show_event_details';
 var _loadIconStr = '$_loading_icons_message';
+
+// Load the Mapstraction map
 jQuery(document).ready(function($) {
-	// $() will work as an alias for jQuery() inside of this function
-	$ecp1_init_func_call( function() { $ecp1_render_func_call( $options_hash_str ); } );
+	// Sets the form fields for lat/long
+	function ecp1SetLatLon(ll) {
+		$('#ecp1_lat').val(ll.lat);
+		$('#ecp1_lng').val(ll.lon);
+	}
 
-	$( '#ecp1_showmarker' ).change( function() { $ecp1_render_func_call( $options_hash_str ); } );
+	// Create a LatLonPoint from the form or map center
+	function ecp1ToFocalPoint() {
+		var lat = $('#ecp1_lat').val();
+		var lon = $('#ecp1_lng').val();
+		if (isNumber(lat) && isNumber(lon))
+			return new mxn.LatLonPoint(lat, lon);
+		return new mxn.LatLonPoint(ecp1_mapstraction.getCenter());
+	}
 
+	// Function that updates the map with a marker at lat/long
+	function ecp1DrawMapMarker() {
+		// Mapstraction doesn't allow us to move the marker
+		var placeAt = null;
+		if ( ecp1_marker != null ) {
+			placeAt = ecp1_marker.location;
+			ecp1_mapstraction.removeMarker(ecp1_marker);
+			ecp1_marker = null;
+		}
+
+		// Act based on if the marker is to be shown or not
+		if ( $('#ecp1_showmarker').is(':checked') ) {
+			// If an argument was given it should be the point to place
+			if (arguments.length > 0) placeAt = arguments[0];
+			if (placeAt == null) placeAt = ecp1ToFocalPoint();
+			// We're displaying the marker so create it
+			ecp1_marker = new mxn.Marker(placeAt);
+			ecp1_marker.setDraggable(true);
+			ecp1SetLatLon(placeAt);
+			// Icon if set
+			var icon = jQuery.trim($('#ecp1_marker').val());
+			if (icon != '') {
+				ecp1_marker.setIcon(_iconsPath + '/' + icon, [32,36], [16,36]);
+			}
+			// Add the marker to the map
+			ecp1_mapstraction.addMarker( ecp1_marker );
+			ecp1_marker.dragend.addHandler(function() { ecp1MarkerMoved(); });
+		} else {
+			// We're hiding the marker so center point is to be saved
+			ecp1SetLatLon( ecp1_mapstraction.getCenter() );
+		}
+	}
+
+	// Triggered whenever the map is moved / zoomed
+	function ecp1MapViewChange(n, s, a) {
+		var zm = ecp1_mapstraction.getZoom();
+		$('#ecp1_zoom').val(zm);
+		if ( ecp1_marker == null ) {
+			// Marker is the point provider unless missing
+			ecp1SetLatLon( ecp1_mapstraction.getCenter() );
+		}
+	}
+
+	// Triggered whenever the marker is moved
+	function ecp1MarkerMoved() {
+		ecp1SetLatLon(ecp1_marker.location);
+	}
+
+	// Called when the geocoder completes
+	function ecp1GeocodeComplete(location) {
+		ecp1_mapstraction.setCenterAndZoom(location.point, 12);
+		ecp1DrawMapMarker(location.point);
+	}
+
+	// Create and center the map
+	var ecp1_mapstraction = new mxn.Mapstraction("ecp1-event-map", "$map_provider");
+	var latV = $('#ecp1_lat').val();
+	var lngV = $('#ecp1_lng').val();
+	var zoomV = $('#ecp1_zoom').val();
+	if (isNumber(latV) && isNumber(lngV)) {
+		var cp = new mxn.LatLonPoint(latV, lngV);
+		if (!isNumber(zoomV)) zoomV = 9;
+		else zoomV = parseInt(zoomV);
+		ecp1_mapstraction.setCenterAndZoom(cp, zoomV);
+		ecp1DrawMapMarker(); // at center point
+	} else {
+		var tLL = new mxn.LatLonPoint(0, 0);
+		ecp1_mapstraction.setCenterAndZoom(tLL, 1);
+	}
+
+	// Controls for the map
+	ecp1_mapstraction.addControls({ pan: false, zoom: 'small', map_type: true });
+	ecp1_mapstraction.setOption('enableScrollWheelZoom', true);
+
+	// Track move and zoom change events
+	ecp1_mapstraction.changeZoom.addHandler(ecp1MapViewChange);
+	ecp1_mapstraction.endPan.addHandler(ecp1MapViewChange);
+
+	// Create a geocoder if enabled
+	if ( "$geocoder" != "disabled" ) {
+		ecp1_geocoder = new mxn.Geocoder("$geocoder", ecp1GeocodeComplete);
+	}
+
+	// Listen to geocode enter key and lookup button click
+	$('#ecp1_event_geocode').click(function() {
+		var address = $.trim( $( '#ecp1_location' ).val() );
+		if ( '' != address && ecp1_geocoder != null ) {
+			// Geocode the address
+			ecp1_geocoder.geocode(address);
+		}
+		// Do not allow this event to submit the form
+		return false;
+	});
+	// and now the keypress event on the textbox
+	$('#ecp1_location').keypress(function(e) {
+		var code = (e.keyCode ? e.keyCode : e.which);
+		if ( 13 == code && $('#ecp1_event_geocode').length > 0 ) {
+			$('#ecp1_event_geocode').click();
+			return false; // prevent form submit
+		} else {
+			return true; // allow character to be typed
+		}
+	});
+
+	// Events for handling marker details
+	$( '#ecp1_showmarker' ).change(function() { ecp1DrawMapMarker(); });
 	$( '#ecp1_reset_marker' ).css( { padding:'0 5px', cursor:'pointer' } ).click( function() {
 		$( '#ecp1_marker' ).val( '' );
 		$( '#ecp1_marker_preview' ).empty().text( _mapDefaultIcon );
-		$ecp1_render_func_call( $options_hash_str );
+		ecp1DrawMapMarker();
 	} );
 
+	// Controls for using a custom marker
 	$( '#ecp1_change_marker' ).css( { padding:'0 5px', cursor:'pointer' } ).click( function() {
 		var lm = $( '#_ecp1-map-icon' );
 		if ( lm.length == 0 ) {
 			$( 'body' ).append( $( '<div></div>' )
-						.attr( { id:'_ecp1-map-icon' } ).css( { display:'none', 'z-index':99999 } ) );
+				.attr( { id:'_ecp1-map-icon' } ).css( { display:'none', 'z-index':99999 } ) );
 			lm = $( '#_ecp1-map-icon' );
 		}
 
@@ -549,60 +680,32 @@ jQuery(document).ready(function($) {
 						.click( function() {
 							$( '#_ecp1-map-icon' ).remove();
 						} ) ) )
-					.append( $( '<div></div>' )
-						.attr( { id:'_ecp1-icontainer' } )
-						.css( { textAlign:'left', width:800 } ) ) );
-
+				.append( $( '<div></div>' )
+					.attr( { id:'_ecp1-icontainer' } )
+					.css( { textAlign:'left', width:800 } ) ) );
+		
 		var ic = $( '#_ecp1-icontainer' );
-		var comb = _featureIconsArray.concat( _iconsArray );
+        var comb = _featureIconsArray.concat( _iconsArray );
 		for ( var i=0; i < comb.length; i++ )
 			ic.append( $( '<span></span>' )
 				.css( { display:'inline-block', margin:'2px' } )
-				.append( $( '<img>' )
+			    .append( $( '<img>' )
 					.attr( { alt:comb[i].split('.')[0], src:( _iconsPath + '/' + comb[i] ), id:comb[i] } )
-					.css( { cursor:'pointer' } )
+		            .css( { cursor:'pointer' } )
 					.click( function() {
 						var part = $( this ).attr( 'id' );
 						$( '#ecp1_marker' ).val( part );
 						$( '#ecp1_marker_preview' ).empty().append( $( this ).clone() );
-						$ecp1_render_func_call( $options_hash_str );
+						ecp1DrawMapMarker()
 						lm.find( 'div div a' ).first().click();
-					} ) ) );
+		            } ) ) );
 	} );
 
-	$( '#ecp1_location' ).keypress( function(e) {
-		var code = (e.keyCode ? e.keyCode : e.which);
-		if ( 13 == code && $( '#ecp1_event_geocode' ).length > 0 ) {
-			$( '#ecp1_event_geocode' ).click();
-			return false;
-		} else {
-			return true;
-		}
-	} ); // prevent form submit
-} );
+});
 
 ENDOFSCRIPT;
-
-			// If the map provider supports geocoding put a lookup button in place
-			if ( $mapinstance->support_geocoding() ) {
-				$_failed_message = htmlspecialchars( __( 'Could not find the address you entered' ) );
-				printf( '<input id="ecp1_event_geocode" type="button" value="%s" />', __( 'Lookup Address' ) );
-				$_ecp1_event_admin_init_js .= <<<ENDOFSCRIPT
-var _geocodeFailedMessage = '$_failed_message';
-jQuery(document).ready(function($) {
-	// $() will work as an alias for jQuery() inside of this function
-	$( '#ecp1_event_geocode' ).click( function() {
-		var address = $.trim( $( '#ecp1_location' ).val() );
-		if ( '' != address ) {
-			var opts = $options_hash_str;
-			opts.location = address;
-			_mapLoadFunction( opts );
-		}
-	} );
-} );
-
-ENDOFSCRIPT;
-			}
+			
+			// Write out a new line before adding the controls
 			printf( '<br/>' ); // new line now
 
 			// Next render a maps container with two checkboxes and four hidden inputs
@@ -641,7 +744,7 @@ ENDOFSCRIPT;
 			</li>
 		</ul>
 	</div>
-	<div id="ecp1-event-map"><?php _e( 'Loading map...' ); ?></div>
+	<div id="ecp1-event-map"></div>
 <?php
 		} // mapinstance not null
 	} // use maps
@@ -1211,7 +1314,7 @@ function _ecp1_event_no_time_given() {
 			(
 			( ! isset( $_POST['ecp1_start_time-hour'] ) && ! isset( $_POST['ecp1_start_time-min'] ) ) ||	// neither start given
 			( '' == $_POST['ecp1_start_time-hour'] && '' == $_POST['ecp1_start_time-min'] ) 		// or both blank
-			) && 																							// AND
+			) && 			// AND
 			(
 			( ! isset( $_POST['ecp1_end_time-hour'] ) && ! isset( $_POST['ecp1_end_time-min'] ) ) ||		// neither end given
 			( '' == $_POST['ecp1_end_time-hour'] && '' == $_POST['ecp1_end_time-min'] )				// or both blank

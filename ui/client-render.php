@@ -60,10 +60,10 @@ function ecp1_render_calendar( $calendar ) {
 	$event_source_params = array(
 		'_defaults' => array( // Note values ARE NOT quoted automatically do it HERE
 			'startParam' => "'ecp1_start'",  # default is start but plugin uses ecp1_start
-			'endParam'   => "'ecp1_end'",    #  as above but for end
-			'ignoreTimezone' => 'false',     # don't ignore ISO8601 timezone details
-			'color'     => "'#3366cc'",      # the event background and border colours
-			'textColor' => "'#ffffff'",      #  and the text colour (any css format)
+			'endParam'   => "'ecp1_end'",	#  as above but for end
+			'ignoreTimezone' => 'false',	 # don't ignore ISO8601 timezone details
+			'color'	 => "'#3366cc'",	  # the event background and border colours
+			'textColor' => "'#ffffff'",	  #  and the text colour (any css format)
 		)
 	);
 	
@@ -123,34 +123,25 @@ function ecp1_render_calendar( $calendar ) {
 	$_large_map = htmlspecialchars( __( 'Large Map' ) );
 	$_geocode_addresses = 'false';
 	$_use_maps = 'false';
-	$_map_show_func = 'false';
-	$_map_delete_func = 'false';
-	$_map_center_func = 'false';
-	$_map_markers_func = 'false';
-	$_map_addmarker_func = 'false';
-	$_map_getzoom_func = 'false';
+	$_map_provider = 'false';
+	$_geocoder_enabled = 'false';
+	$_geocoder_service = 'false';
 	$_show_time_on_all_day = '1' == _ecp1_get_option( 'show_time_on_all_day' ) ? 'true' : 'false';
-	$_init_maps_func = '';
 
-	if ( _ecp1_get_option( 'use_maps' ) ) {
+	// If maps are enabled then update the client settings
+	if ( ECP1Mapstraction::MapsEnabled() ) {
 		$_use_maps = 'true';
-		$mapinstance = ecp1_get_map_provider_instance();
-		if ( ! is_null( $mapinstance ) ) {
-			if ( $mapinstance->support_geocoding() )
-				$_geocode_addresses = 'true';
-			$_map_show_func = sprintf( 'function( args ) { %s( args ); }',
-						$mapinstance->get_maprender_function() );
-			$_map_delete_func = sprintf( 'function( args ) { %s( args ); }',
-						$mapinstance->get_unload_function() );
-			$_map_center_func = sprintf( 'function( args ) { return %s( args ); }',
-						$mapinstance->get_centerpoint_function() );
-			$_map_markers_func = sprintf( 'function( args ) { return %s( args ); }',
-						$mapinstance->get_markerlist_function() );
-			$_map_addmarker_func = sprintf( 'function( id, args ) { %s( id, args ); }',
-						$mapinstance->get_addmarker_function() );
-			$_map_getzoom_func = sprintf( 'function( args ) { return %s( args ); }',
-						$mapinstance->get_mapzoom_function() );
-			$_init_maps_func = sprintf( '%s()', $mapinstance->get_onload_function() ); // might not be used so need () here
+		$provider = ECP1Mapstraction::GetProviderKey();
+		if ( ECP1Mapstraction::ValidProvider( $provider ) ) {
+			// Get the map provider string
+			$_map_provider = ECP1Mapstraction::ProviderData( $provider, 'mxnid' );
+			// Get the geocoding status
+			$geocoder = ECP1Mapstraction::GetGeocoderKey();
+			if ( ! is_null( $geocoder ) ) {
+				// Geocoding is enabled
+				$_geocoder_enabled = 'true';
+				$_geocoder_service = ECP1Mapstraction::ProviderData( $geocoder, 'mxnid' );
+			}
 		}
 	}
 
@@ -186,14 +177,10 @@ jQuery(document).ready(function($) {
 	_showLargeMap = '$_large_map';
 	_geocodeAddr = $_geocode_addresses;
 	_showMap = $_use_maps;
-	_mapLoadFunction = $_map_show_func;
-	_mapDeleteFunction = $_map_delete_func;
-	_mapCenterFunction = $_map_center_func;
-	_mapMarkersFunction = $_map_markers_func;
-	_mapAddMarkerFunction = $_map_addmarker_func;
-	_mapGetZoomFunction = $_map_getzoom_func;
+	_mapProvider = '$_map_provider';
+	_geocoderEnabled = $_geocoder_enabled;
+	_geocoderServer = '$_geocoder_service';
 	_showTimeOnAllDay = $_show_time_on_all_day;
-	$_init_maps_func;
 });
 
 ENDOFSCRIPT;
@@ -393,59 +380,59 @@ function ecp1_render_event( &$event ) {
 	if ( ! _ecp1_event_meta_is_default( 'ecp1_location' ) )
 		$ecp1_location = htmlspecialchars( $event['ecp1_location'][0] );
 
+	// Enable map for the event if required
 	$ecp1_map_placeholder = ''; 
-	if ( _ecp1_get_option( 'use_maps' ) && 'Y' == _ecp1_event_meta( 'ecp1_showmap' ) ) {
-		$mapinstance = ecp1_get_map_provider_instance();
-		if ( ! is_null( $mapinstance ) &&
-			( ( ! _ecp1_event_meta_is_default( 'ecp1_coord_lat' ) && ! _ecp1_event_meta_is_default( 'ecp1_coord_lng' ) ) || // has lat/lng
-			( ! _ecp1_event_meta_is_default( 'ecp1_location' ) && $mapinstance->support_geocoding() ) ) ) { // or have address + geocoding
-				// Render a placeholder and setup some init scripts
-				$ecp1_element_id = 'ecp1_event_map';
-				$ecp1_map_placeholder = '<div id="' . $ecp1_element_id . '">' . __( 'Loading map...' ) . '</div>';
-				$ecp1_init_func_call = $mapinstance->get_onload_function();
-				$ecp1_render_func_call = $mapinstance->get_maprender_function();
-				$options_hash = array( 'element' => "'$ecp1_element_id'" );
+	if ( ECP1Mapstraction::MapsEnabled() && 'Y' == _ecp1_event_meta( 'ecp1_showmap' ) ) {
+		$provider = ECP1Mapstraction::GetProviderKey();
+		if ( ECP1Mapstraction::ValidProvider( $provider ) && 
+				( ( ! _ecp1_event_meta_is_default( 'ecp1_coord_lat' ) && ! _ecp1_event_meta_is_default( 'ecp1_coord_lng' ) ) || // has lat/lng
+				  ( ! _ecp1_event_meta_is_default( 'ecp1_location' ) && $mapinstance->support_geocoding() ) ) ) { // or have address + geocoding
+			$map_provider = ECP1Mapstraction::ProviderData( $provider, 'mxnid' );
+			$ecp1_element_id = 'ecp1_event_map';
+			$ecp1_map_placeholder = '<div id="' . $ecp1_element_id . '">' . __( 'Loading map...' ) . '</div>';
+			// Build options for the map loader function
+			$options_hash = array( 'element' => "'$ecp1_element_id'" );
 				
-				// Decide between location string and lat/lng
-				$ecp1_lat = _ecp1_event_meta( 'ecp1_coord_lat' );
-				$ecp1_lng = _ecp1_event_meta( 'ecp1_coord_lng' );
-				if ( is_numeric( $ecp1_lat ) && is_numeric( $ecp1_lng ) ) {
-					$options_hash['lat'] = $ecp1_lat;
-					$options_hash['lng'] = $ecp1_lng;
-				} else {
-					$options_hash['location'] = "'$ecp1_location'";
-				}
+			// Decide between location string and lat/lng
+			$ecp1_lat = _ecp1_event_meta( 'ecp1_coord_lat' );
+			$ecp1_lng = _ecp1_event_meta( 'ecp1_coord_lng' );
+			if ( is_numeric( $ecp1_lat ) && is_numeric( $ecp1_lng ) ) {
+				$options_hash['lat'] = $ecp1_lat;
+				$options_hash['lng'] = $ecp1_lng;
+			} else {
+				$options_hash['location'] = "'$ecp1_location'";
+			}
 
-				// Do we want placemarks? and if so default or a url?
-				if ( 'Y' == _ecp1_event_meta( 'ecp1_showmarker' ) ) {
-					if ( _ecp1_event_meta_is_default( 'ecp1_map_placemarker' ) ||
-						! file_exists( ECP1_DIR . '/img/mapicons/' . _ecp1_event_meta( 'ecp1_map_placemarker' ) ) )
-						$options_hash['mark'] = 'true';
-					else // file given and exists
-						$options_hash['mark'] = sprintf( '"%s"', plugins_url( '/img/mapicons/' . _ecp1_event_meta( 'ecp1_map_placemarker' ), dirname( __FILE__ ) ) );
-				} else {
-					$options_hash['mark'] = 'false';
-				}
+			// Do we want placemarks? and if so default or a url?
+			if ( 'Y' == _ecp1_event_meta( 'ecp1_showmarker' ) ) {
+				if ( _ecp1_event_meta_is_default( 'ecp1_map_placemarker' ) ||
+					! file_exists( ECP1_DIR . '/img/mapicons/' . _ecp1_event_meta( 'ecp1_map_placemarker' ) ) )
+					$options_hash['mark'] = 'true';
+				else // file given and exists
+					$options_hash['mark'] = sprintf( '"%s"', plugins_url( '/img/mapicons/' . _ecp1_event_meta( 'ecp1_map_placemarker' ), dirname( __FILE__ ) ) );
+			} else {
+				$options_hash['mark'] = 'false';
+			}
 
-				// Map zoom is simple
-				$options_hash['zoom'] = _ecp1_event_meta( 'ecp1_map_zoom' );
+			// Map zoom is simple
+			$options_hash['zoom'] = _ecp1_event_meta( 'ecp1_map_zoom' );
 
-				$options_hash_str = '{ ';
-				foreach( $options_hash as $_k=>$_v )
-					$options_hash_str .= sprintf( '%s:%s, ', $_k, $_v );
-				$options_hash_str = trim( $options_hash_str, ',' ) . ' }';
+			$options_hash_str = '{ ';
+			foreach( $options_hash as $_k=>$_v )
+				$options_hash_str .= sprintf( '%s:%s, ', $_k, $_v );
+			$options_hash_str = trim( $options_hash_str, ',' ) . ' }';
 
-				// Dynamic script to run on document ready
-				$_ecp1_dynamic_event_script = <<<ENDOFSCRIPT
+			// Dynamic script to run on document ready
+			$_ecp1_dynamic_event_script = <<<ENDOFSCRIPT
 jQuery(document).ready(function($) {
 	// $() will work as an alias for jQuery() inside of this function
-	var container = jQuery( '#ecp1_event_map' );
+	var container = jQuery( '#$ecp1_element_id' );
 	if ( container.length > 0 ) {
 		var pWidth = container.parent().parent().width() - 150 - 90 - 25; // thumb - title - buffer
 		var pHeight = pWidth * 0.65;
 		container.css( { width:pWidth, height:pHeight } );
 	}
-	$ecp1_init_func_call( function() { $ecp1_render_func_call( $options_hash_str ); } );
+	_mapLoadFunction( $options_hash_str );
 } );
 ENDOFSCRIPT;
 		}

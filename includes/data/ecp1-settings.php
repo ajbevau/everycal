@@ -26,6 +26,10 @@ $_ecp1_settings = array(
 	// Which Map Provider should be used: default none
 	// Should be set to a key out of the Map Providers array
 	'map_provider' => array( 'default' => 'none' ),
+
+	// Which Map Provider should be used for geocoding: default none
+	// Should be set to a key out of the Map Providers array
+	'map_geocoder' => array( 'default' => 'none' ),
 	
 	// Allow calendars to change the timezone they're for from WordPress: default true
 	'tz_change' => array( 'default' => 1 ),
