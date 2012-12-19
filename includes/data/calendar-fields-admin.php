@@ -78,7 +78,7 @@ function ecp1_calendar_meta_form() {
 	_ecp1_parse_calendar_custom();
 	
 	// Sanitize and do security checks
-	$ecp1_desc = _ecp1_calendar_meta_is_default( 'ecp1_description' ) ? '' : htmlspecialchars( $ecp1_calendar_fields['ecp1_description'][0] );
+	$ecp1_desc = _ecp1_calendar_meta_is_default( 'ecp1_description' ) ? '' : esc_textarea( $ecp1_calendar_fields['ecp1_description'][0] );
 	$ecp1_tz = _ecp1_calendar_meta_is_default( 'ecp1_timezone' ) ? '_' : $ecp1_calendar_fields['ecp1_timezone'][0];
 	$ecp1_defview = _ecp1_calendar_meta_is_default( 'ecp1_default_view' ) ? '' : $ecp1_calendar_fields['ecp1_default_view'][0];
 	$ecp1_first_day = _ecp1_calendar_meta_is_default( 'ecp1_first_day' ) ? '-1' : $ecp1_calendar_fields['ecp1_first_day'][0];
@@ -274,7 +274,7 @@ function ecp1_calendar_save() {
 	// Escape any nasty in the description
 	$ecp1_description = '';
 	if ( isset( $_POST['ecp1_description'] ) )
-		$ecp1_description = wp_filter_post_kses( $_POST['ecp1_description'] );
+		$ecp1_description = sanitize_text_field( $_POST['ecp1_description'] );
 	
 	// Verify the timezone is valid if not error out
 	$ecp1_timezone = '';

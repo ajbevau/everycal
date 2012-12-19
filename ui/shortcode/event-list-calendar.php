@@ -105,10 +105,10 @@ function ecp1_event_list_calendar( $atts ) {
 	</ul>
 </li>',
 				$event['image'], $stylestring,
-				urldecode( $event['url'] ), htmlentities( $event['title'] ),
+				urldecode( $event['url'] ), $event['title'], // get_the_title used in _ecp1_event_list_get
 				__( 'When' ), $ewhen,
-				__( 'Where' ), $event['location'],
-				__( 'Summary' ), $event['summary'] );
+				__( 'Where' ), esc_html( $event['location'] ),
+				__( 'Summary' ), esc_html( $event['summary'] ) );
 	}
 	$outstring .= '</ol>';
 

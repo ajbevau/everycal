@@ -156,14 +156,14 @@ function ecp1_event_meta_form() {
 	_ecp1_parse_event_custom();
 	
 	// Sanitize and do security checks
-	$ecp1_summary = _ecp1_event_meta_is_default( 'ecp1_summary' ) ? '' : $ecp1_event_fields['ecp1_summary'][0];
+	$ecp1_summary = _ecp1_event_meta_is_default( 'ecp1_summary' ) ? '' : esc_textarea( $ecp1_event_fields['ecp1_summary'][0] );
 	$ecp1_url = _ecp1_event_meta_is_default( 'ecp1_url' ) ? '' : urldecode( $ecp1_event_fields['ecp1_url'][0] );
 	$ecp1_description = _ecp1_event_meta_is_default( 'ecp1_description' ) ? '' : $ecp1_event_fields['ecp1_description'][0];
 	$ecp1_calendar = _ecp1_event_meta_is_default( 'ecp1_calendar' ) ? '-1' : $ecp1_event_fields['ecp1_calendar'][0];
 	$ecp1_full_day = _ecp1_event_meta_is_default( 'ecp1_full_day' ) ? 'N' : $ecp1_event_fields['ecp1_full_day'][0];
 	$ecp1_featured = _ecp1_event_meta_is_default( 'ecp1_featured' ) ? 'N' : $ecp1_event_fields['ecp1_featured'][0];
 	
-	$ecp1_location = _ecp1_event_meta_is_default( 'ecp1_location' ) ? '' : $ecp1_event_fields['ecp1_location'][0];
+	$ecp1_location = _ecp1_event_meta_is_default( 'ecp1_location' ) ? '' : esc_textarea( $ecp1_event_fields['ecp1_location'][0] );
 	$ecp1_lat = _ecp1_event_meta_is_default( 'ecp1_coord_lat' ) ? null : $ecp1_event_fields['ecp1_coord_lat'][0];
 	$ecp1_lng = _ecp1_event_meta_is_default( 'ecp1_coord_lng' ) ? null : $ecp1_event_fields['ecp1_coord_lng'][0];
 	$ecp1_zoom = _ecp1_event_meta_is_default( 'ecp1_map_zoom' ) ? 1 : $ecp1_event_fields['ecp1_map_zoom'][0];
@@ -983,7 +983,7 @@ function ecp1_event_save() {
 	// Escape any nasty in the summary (it's meant to be HTML free)
 	$ecp1_summary = $ecp1_event_fields['ecp1_summary'][1];
 	if ( isset( $_POST['ecp1_summary'] ) )
-		$ecp1_summary = wp_filter_nohtml_kses( $_POST['ecp1_summary'] );
+		$ecp1_summary = sanitize_text_field( $_POST['ecp1_summary'] );
 	
 	// URL Encode the external URL
 	$ecp1_url = $ecp1_event_fields['ecp1_url'][1];
@@ -1161,7 +1161,7 @@ function ecp1_event_save() {
 	// The location as human address and lat/long coords
 	$ecp1_location = $ecp1_event_fields['ecp1_location'][1];
 	if ( isset( $_POST['ecp1_location'] ) )
-		$ecp1_location = $_POST['ecp1_location'];
+		$ecp1_location = sanitize_text_field( $_POST['ecp1_location'] );
 
 	// Yes if set No if not for show map/markers
 	$ecp1_showmap = $ecp1_showmarker = 'N';

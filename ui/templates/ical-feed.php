@@ -145,13 +145,13 @@ foreach( $events as $event ) {
 		$eend   = $eend->format( $format );
 
 		// Create a location string like appears on the event page
-		$elocation = $event['ecp1_location'];
+		$elocation = strip_tags( $event['ecp1_location'] );
 
 		// Now for the tricky part: if an event only has a URL then set URL to that
 		// if event only has a description set URL to the event post page; and if
 		// neither then don't set the URL option - remembering that if this is a
 		// repeat of an event the URL is different for posts
-		$edescription = sprintf( "%s", $event['ecp1_summary'] );
+		$edescription = sprintf( "%s", strip_tags( $event['ecp1_summary'] ) );
 		$ecp1_desc = _ecp1_render_default( $event, 'ecp1_description' ) ? null : strip_tags( $event['ecp1_description'] );
 		$ecp1_url = _ecp1_render_default( $event, 'ecp1_url' ) ? ecp1_permalink_event( $event ) : urldecode( $event['ecp1_url'] );
 		if ( ! is_null( $ecp1_desc ) && ! is_null( $ecp1_url ) )
@@ -211,7 +211,7 @@ if ( '1' == _ecp1_get_option( 'ical_export_include_external' ) ) {
 
 					// The summary and location can be verbatim
 					$etitle = $event['title'];
-					$elocation = $event['location'];
+					$elocation = strip_tags( $event['location'] );
 
 					// Now for the tricky part: description needs to have URL and/or local
 					// description text depending on what was set in the admin and the sumary

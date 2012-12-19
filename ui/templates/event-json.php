@@ -175,11 +175,11 @@ foreach( $events as $event ) {
 
 		// If the event has a summary then put it in
 		if ( ! _ecp1_render_default( $event, 'ecp1_summary' ) )
-			$events_json[$loop_counter]['description'] = $event['ecp1_summary'];
+			$events_json[$loop_counter]['description'] = esc_html( $event['ecp1_summary'] );
 
 		// Create a location string like appears on the event page
 		if ( ! _ecp1_render_default( $event, 'ecp1_location' ) )
-			$events_json[$loop_counter]['location'] = $event['ecp1_location'];
+			$events_json[$loop_counter]['location'] = esc_html( $event['ecp1_location'] );
 
 		// Enable map visibility
 		$events_json[$loop_counter]['showmap'] = 'Y' == $event['ecp1_showmap'];
@@ -239,10 +239,11 @@ foreach( $events as $event ) {
 wp_reset_query();
 
 // JSON Encode the results
-if ( ! $plain )
-	printf( json_encode( $events_json ) );
-else
+if ( ! $plain ) {
+	print( json_encode( $events_json ) );
+} else {
 	print_r( $events_json );
-
+	print( json_encode( $events_json ) );
+}
 
 ?>

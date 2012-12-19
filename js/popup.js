@@ -226,7 +226,7 @@ function ecp1_onrender( calEvent, element, view ) {
 						.addClass( 'h' ) )
 					.append( jQuery( '<span></span>' )
 						.addClass( 'mlblock' )
-						.text( calEvent.location )
+						.html( calEvent.location )
 						.append( jQuery( '<br>' ) ) ) );
 		} else if ( calEvent.lat && calEvent.lng ) {
 			popup.find( '.nodeco' )
@@ -361,7 +361,7 @@ function ecp1_onrender( calEvent, element, view ) {
 		}
 
 		if ( calEvent.description )
-			popup.find( '.nodeco' ).append( jQuery( '<li></li>' ).text( calEvent.description ) );
+			popup.find( '.nodeco' ).append( jQuery( '<li></li>' ).html( calEvent.description ) );
 
 		if ( calEvent.url )
 			popup.find( '.nodeco' ).append( jQuery( '<li></li>' )
