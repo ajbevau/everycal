@@ -53,7 +53,8 @@ function ecp1_event_edit_libs() {
 	// Include the TinyMCE editor - this requires use of the_editor($content, 'element_id')
 	// inplace of the <textarea></textarea> tags on the event meta box - and naturally will
 	// obey user preferences on richtext editors etc...
-	if ( user_can_richedit() ) {
+	// 19/DEC/2012: not needed for newer versions of WP
+	/*if ( user_can_richedit() ) {
 		wp_enqueue_script( 'common' );
 		wp_enqueue_script( 'jquery-color' );
 		wp_enqueue_scripts( 'editor' );
@@ -65,7 +66,7 @@ function ecp1_event_edit_libs() {
 		do_action( 'admin_print_styles-post-php' );
 		do_action( 'admin_print_styles' );
 		wp_enqueue_script( 'ecp1_event_wysiwyg_script' );
-	}
+	}*/
 
 	if ( ECP1Mapstraction::MapsEnabled() ) {
 		ECP1Mapstraction::EnqueueResources( ECP1Mapstraction::ADMIN );

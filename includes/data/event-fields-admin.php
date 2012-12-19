@@ -281,7 +281,7 @@ function ecp1_event_meta_form() {
 	if ( count( $calendars ) > 1 ) {
 ?>
 			<tr valign="top">
-				<th scope="row"><label for="ecp1_extra_clas"><?php _e( 'Also show on' ); ?></label></th>
+				<th scope="row"><label for="ecp1_extra_cals"><?php _e( 'Also show on' ); ?></label></th>
 				<td>
 <?php
 	// Iterate over the calendar list and print checkboxes
