@@ -247,4 +247,5 @@ function ecp1_filter_event_posts_requests( $query, $object ) {
 include_once( ECP1_DIR . '/includes/data/calendar-fields-admin.php' );
 include_once( ECP1_DIR . '/includes/data/event-fields-admin.php' );
 
-?>
+// Don't close the php interpreter
+/*?>*/

@@ -211,4 +211,5 @@ function _ecp1_scheduler_expression_is_disabled( $expr_key ) {
 	return is_array( $set ) && in_array( $expr_key, $set );
 }
 
-?>
+// Don't close the php interpreter
+/*?>*/

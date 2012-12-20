@@ -52,4 +52,5 @@ function ecp1_add_client_scripts() {
 	}
 }
 
-?>
+// Don't close the php interpreter
+/*?>*/

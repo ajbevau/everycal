@@ -1322,4 +1322,5 @@ function _ecp1_event_no_time_given() {
 		);
 }
 
-?>
+// Don't close the php interpreter
+/*?>*/

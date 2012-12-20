@@ -619,4 +619,5 @@ function ecp1_validate_options_page( $input ) {
 	return $input;
 }
 
-?>
+// Don't close the php interpreter
+/*?>*/

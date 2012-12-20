@@ -35,4 +35,5 @@ function ecp1_full_size_calendar( $atts ) {
 	return ecp1_render_calendar( $fields ); // Pass the calendar to the render function
 }
 
-?>
+// Don't close the php interpreter
+/*?>*/

@@ -483,4 +483,5 @@ function ecp1_print_event_load() {
 	}
 }
 
-?>
+// Don't close the php interpreter
+/*?>*/

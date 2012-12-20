@@ -1578,4 +1578,5 @@ class EveryCal_RE_DateRange
 	}
 }
 
-?>
+// Don't close the php interpreter
+/*?>*/

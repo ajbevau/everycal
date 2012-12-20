@@ -315,4 +315,5 @@ function _ecp1_event_gravity2ecp1( $tz=null ) {
 		update_post_meta( $event_id, $key, $value );
 }
 
-?>
+// Don't close the php interpreter
+/*?>*/

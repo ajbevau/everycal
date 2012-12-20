@@ -327,5 +327,5 @@ function ecp1_print_eventlist_load() {
 	}
 }
 
-
-?>
+// Don't close the php interpreter
+/*?>*/

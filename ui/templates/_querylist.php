@@ -53,4 +53,5 @@ ORDER BY
 	s.meta_value, p.post_name ASC;
 ENDOFFEATURE;
 
-?>
+// Don't close the php interpreter
+/*?>*/

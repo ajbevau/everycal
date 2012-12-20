@@ -21,4 +21,5 @@ include_once( ECP1_DIR . '/ui/event-post.php' );
 include_once( ECP1_DIR . '/ui/shortcode/full-size-calendar.php' );
 include_once( ECP1_DIR . '/ui/shortcode/event-list-calendar.php' );
 
-?>
+// Don't close the php interpreter
+/*?>*/

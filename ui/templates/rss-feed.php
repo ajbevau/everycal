@@ -259,3 +259,7 @@ wp_reset_query();
 ?>
 </channel>
 </rss>
+<?php
+
+// Don't close the php interpreter
+/*?>*/

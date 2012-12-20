@@ -183,4 +183,5 @@ function ecp1_map_calendar_cap_to_event( $caps, $cap, $user_id, $args ) {
 
 }
 
-?>
+// Don't close the php interpreter
+/*?>*/

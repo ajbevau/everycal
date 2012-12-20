@@ -384,4 +384,5 @@ function ecp1_calendar_save() {
 	update_post_meta( $post->ID, 'ecp1_calendar', $save_fields );
 }
 
-?>
+// Don't close the php interpreter
+/*?>*/

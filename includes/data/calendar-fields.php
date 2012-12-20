@@ -107,4 +107,5 @@ function _ecp1_calendar_meta_id() {
 	return $ecp1_calendar_fields['_meta']['_id'];
 }
 
-?>
+// Don't close the php interpreter
+/*?>*/

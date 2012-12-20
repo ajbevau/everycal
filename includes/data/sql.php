@@ -129,4 +129,5 @@ WHERE	p.post_status = 'publish' AND j.meta_value = 'Y';
 
 }
 
-?>
+// Don't close the php interpreter
+/*?>*/

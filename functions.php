@@ -240,5 +240,5 @@ function _ecp1_template_error( $msg=null, $http_code=200, $http_msg='Every Calen
 	}
 }
 
-
-?>
+// Don't close the php interpreter
+/*?>*/

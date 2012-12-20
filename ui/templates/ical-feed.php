@@ -252,3 +252,7 @@ wp_reset_query();
 
 ?>
 END:VCALENDAR
+<?php
+
+// Don't close the php interpreter
+/*?>*/

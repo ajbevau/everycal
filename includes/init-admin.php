@@ -12,4 +12,5 @@ include_once( ECP1_DIR . '/includes/custom-post-admin.php' );
 // Load the plugin settings form
 include_once( ECP1_DIR . '/includes/plugin-settings-page.php' );
 
-?>
+// Don't close the php interpreter
+/*?>*/

@@ -75,5 +75,5 @@ function ecp1_add_cache_tables() {
 	}
 }
 
-
-?>
+// Don't close the php interpreter
+/*?>*/

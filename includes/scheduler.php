@@ -1053,4 +1053,5 @@ class EveryCal_Scheduler
 
 }
 
-?>
+// Don't close the php interpreter
+/*?>*/

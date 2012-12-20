@@ -246,4 +246,5 @@ if ( ! $plain ) {
 	print( json_encode( $events_json ) );
 }
 
-?>
+// Don't close the php interpreter
+/*?>*/

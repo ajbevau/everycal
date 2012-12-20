@@ -74,4 +74,5 @@ if ( is_admin() )
 else
 	include_once( ECP1_DIR . '/ui/init-client-ui.php' );
 
-?>
+// Don't close the php interpreter
+/*?>*/

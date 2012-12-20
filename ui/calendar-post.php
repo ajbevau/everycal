@@ -27,4 +27,5 @@ function ecp1_post_as_calendar( $content ) {
 	return $content;
 }
 
-?>
+// Don't close the php interpreter
+/*?>*/

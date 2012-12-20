@@ -169,4 +169,5 @@ class ECP1GoogleCalendar extends ECP1Calendar {
 
 }
 
-?>
+// Don't close the php interpreter
+/*?>*/

@@ -566,4 +566,5 @@ class EveryCal_Exception
 
 }
 
-?>
+// Don't close the php interpreter
+/*?>*/

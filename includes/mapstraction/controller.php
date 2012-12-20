@@ -238,4 +238,5 @@ class ECP1Mapstraction
 
 }
 
-?>
+// Don't close the php interpreter
+/*?>*/

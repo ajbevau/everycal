@@ -22,4 +22,5 @@ if ( defined( 'WP_UNINSTALL_PLUGIN' ) ) {
 
 }
 
-?>
+// Don't close the php interpreter
+/*?>*/

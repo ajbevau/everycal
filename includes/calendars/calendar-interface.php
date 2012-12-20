@@ -168,4 +168,5 @@ abstract class ECP1Calendar {
 
 }
 
-?>
+// Don't close the php interpreter
+/*?>*/

@@ -70,4 +70,8 @@ function ecp1_register_query_tags() {
 // NOTE: this is forward declared (see install-activate.php)
 add_action( 'plugins_loaded', 'ecp1_add_cache_tables' );
 
-?>
+// Load the plugin widget registry which will load/register widgets
+require( ECP1_DIR . '/widgets/register.php' );
+
+// Don't close the php interpreter
+/*?>*/

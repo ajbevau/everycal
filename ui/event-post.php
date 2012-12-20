@@ -26,4 +26,5 @@ function ecp1_post_as_event( $content ) {
 	return $content;
 }
 
-?>
+// Don't close the php interpreter
+/*?>*/

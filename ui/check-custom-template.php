@@ -41,4 +41,5 @@ function ecp1_rewrite_custom_template() {
 	}
 }
 
-?>
+// Don't close the php interpreter
+/*?>*/

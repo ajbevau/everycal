@@ -41,5 +41,5 @@ function ecp1_get_calendar_provider_instance( $provkey, $cal_id, $url ) {
 	return new $provider['ecp1_ical_class']( $cal_id, $url );
 }
 
-
-?>
+// Don't close the php interpreter
+/*?>*/
