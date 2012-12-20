@@ -3,10 +3,10 @@ Contributors: andrewbevitt
 Donate link: http://andrewbevitt.com/code/everycalplus1/
 Tags: calendar, events
 Requires at least: 3.0
-Tested up to: 3.4.1
-Stable tag: 1.0.7
+Tested up to: 3.5
+Stable tag: 2.0.0
 
-A WordPress plugin that integrates calendars, custom post types, maps, and offsite linking and now repeating events.
+A WordPress plugin that integrates calendars, repeating events, custom post types, maps, offsite linking and has widget support.
 
 == Description ==
 
@@ -31,7 +31,8 @@ This plugin was written because I could not find a plugin that provided great ev
 There is a planned development roadmap:
 
 * Add support for extra calendar providers
-* Add support for different calendar layouts / widgets
+* Add more widgets
+
 
 == Installation ==
 
@@ -43,7 +44,12 @@ Once the plugin has been installed/uploaded you need to Activate this plugin in 
 
 To put a calendar onto one of your pages use the provided shortcode in the 'Calendar' admin panel (created by plugin).
 
+
 == Frequently Asked Questions ==
+
+= Widget Support =
+
+As of version 2.0.0 Every Calendar +1 has built in support for widgets. Initially there is a simple widget for listing event titles and dates, more will be addded in time. If you would like to contribute a widget please see widgets/title-list.php for an example of what needs to be done.
 
 = Repeating Events =
 
@@ -86,7 +92,6 @@ Some more complicated expression examples:
 	 2-8    2,5,9,10/2,5   3,4/1,2  *         1st/2nd Tue|Wed where is 2nd-8th in Feb|May|Sep|Oct and is 2nd or 5th Month cycle since start
 	 *      1,2,12         2,3      1,2/5,7   Mon|Tue of 1st|2nd weeks in a 5|7 week rolling cycle since epoch in Summer month
 
-
 = Does Every Calendar +1 Support Gravity Forms Custom Post Type Plugin? =
 
 Yes. But the start / end date functionality requires PHP 5.3.0.
@@ -113,9 +118,7 @@ Once again **start / end date importing requires PHP 5.3.0**.
 
 Note: Importing the values sets the plugin meta value: ecp1_ignore_gravity = Y. This means you will not be prompted again. If you want to be prompted to import again use the custom-fields at the bottom of the Event post edit screen to remove or set this meta value to N.
 
-
 See http://au.php.net/manual/en/datetime.createfromformat.php for valid format strings.
-
 
 = How do I allow contributors/authors to add events to a (someone elses) calendar? =
 
@@ -135,12 +138,21 @@ I wanted a WordPress calendar that did everything and I couldn't find one that d
 For the initial release only Google Calendar will be supported. This is more because of limitations in Full Calendar
 than anything else. The external calendar interface is pluggable so you can extend as you wish.
 
+
 == Screenshots ==
 
-1. description corresponds to screenshot-1.(png|jpg|jpeg|gif) in same dir.
-2. description corresponds to screenshot-2.(png|jpg|jpeg|gif) in same dir.
+1. Demo calendar with event details popup and map shown.
+2. Event details page in the TwentyTwelve theme.
+
 
 == Changelog ==
+
+= 2.0.0 =
+* Updated to FullCalendar 1.5.4 - supporting new WP3.5 jQuery
+* Added Mapstraction library for more map providers
+* Added support for OpenLayers (OSM) mapping using Mapstraction
+* Added widget support and a simple upcoming event list widget
+* Added some screenshots
 
 = 1.0.7 =
 * Fixed feature events wrapping end of years
@@ -227,9 +239,16 @@ than anything else. The external calendar interface is pluggable so you can exte
 = 0.1-alpha =
 * Initial plugin creation
 
+
 == Upgrade Notice ==
 
 All versions of Every Calendar +1 are backward compatible at present.
 
+= 2.0.0 = 
+This version introduces the Mapstraction library - while the changes are backward compatible the database is modified for this version and will no longer work with older versions of the plugin.
+
+The OpenLayers library (map) requires WordPress 3.5 or newer but the Google Maps library will continue to work with older versions of WordPress.
+
 = 0.1-alpha0 =
 This is the first alpha development release there is no reason to upgrade yet.
+
