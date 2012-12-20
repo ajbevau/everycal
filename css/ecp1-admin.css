@@ -38,3 +38,5 @@ div.ecp1_meta .ecp1submeta {padding-bottom:1em;}
 td.xlabels label { padding-left: 1em; }
 td.xlabels label:first-child { padding-left: 0; }
 span.strike { text-decoration: line-through; }
+.ecp1_admin_form_list {list-item:none;}
+.ecp1_admin_form_list li {margin:0; padding:0;}
