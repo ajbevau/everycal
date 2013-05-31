@@ -135,8 +135,7 @@ I wanted a WordPress calendar that did everything and I couldn't find one that d
 
 = What external calendars are supported? =
 
-For the initial release only Google Calendar will be supported. This is more because of limitations in Full Calendar
-than anything else. The external calendar interface is pluggable so you can extend as you wish.
+For the initial release only Google Calendar will be supported. This is more because of limitations in Full Calendar than anything else. The external calendar interface is pluggable so you can extend as you wish.
 
 
 == Screenshots ==
