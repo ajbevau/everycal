@@ -140,14 +140,19 @@ class ECP1_TitleListWidget extends WP_Widget {
 
 		} // End loop of events
 
-		// Loop over the events and display them in a list
-		printf( '<ol class="%s">', esc_attr( $instance['list_class'] ) );
-		foreach( $events as $event ) {
-			printf( '<li class="%s"><span>%s:</span> <a href="%s" title="Visit event page">%s</a></li>',
-				esc_attr( $instance['item_class'] ),
-				$event['when'], $event['link'], $event['title'] );
+		if ( count( $events ) > 0 ) {
+			// Loop over the events and display them in a list
+			printf( '<ol class="%s">', esc_attr( $instance['list_class'] ) );
+			foreach( $events as $event ) {
+				printf( '<li class="%s"><span>%s:</span> <a href="%s" title="Visit event page">%s</a></li>',
+					esc_attr( $instance['item_class'] ),
+					$event['when'], $event['link'], $event['title'] );
+			}
+			print( '</ol>' );
+		} else {
+			printf( '<p class="%s">%s</p>', esc_attr( $instance['list_class'] ), 
+				empty( $instance['none_msg'] ) ? __( 'No events scheduled' ) : $instance['none_msg'] );
 		}
-		print( '</ol>' );
 		echo $after_widget; // from $args
 	}
 
@@ -158,6 +163,7 @@ class ECP1_TitleListWidget extends WP_Widget {
 	 * The following parameters are POSTED using the form() below
 	 *  calendar: The EveryCal calendar for events
 	 *  title: The widget title text
+	 *  none_msg: Message to display when no events listed
 	 *  count: The number of events to display
 	 *  sort_order: Newest first or oldest first
 	 *  list_class: CSS Class for list element
@@ -175,6 +181,7 @@ class ECP1_TitleListWidget extends WP_Widget {
 		if ( count( $cals ) > 0 )
 			$ins['calendar'] = $cal_new;
 		$ins['title'] = sanitize_text_field( $new_instance['title'] );
+		$ins['none_msg'] = sanitize_text_field( $new_instance['none_msg'] );
 		$ins['count'] = intval( $new_instance['count'] );
 		$ins['sort_order'] = intval( $new_instance['sort_order'] );
 		$ins['list_class'] = sanitize_text_field( $new_instance['list_class'] );
@@ -195,6 +202,7 @@ class ECP1_TitleListWidget extends WP_Widget {
 		$defaults = array(
 			'calendar' => 0,
 			'title' => __( 'Upcoming events' ),
+			'none_msg' => __( 'No events scheduled' ),
 			'count' => 5,
 			'list_class' => 'ecp1_list',
 			'item_class' => 'ecp1_list_item',
@@ -214,6 +222,7 @@ class ECP1_TitleListWidget extends WP_Widget {
 		$fields = array(
 			'calendar' => array( 'label' => __( 'Calendar' ), 'type' => 'select', 'options' => $cal_options ),
 			'title' => array( 'label' => __( 'Title' ), 'type' => 'text', 'length' => 100 ),
+			'none_msg' => array( 'label' => __( 'No events message' ), 'type' => 'text', 'length' => 100 ),
 			'count' => array( 'label' => __( 'Number of events' ), 'type' => 'text', 'length' => 2 ),
 			'sort_order' => array( 'label' => __( 'Order' ), 'type' => 'select', 'options' => array(
 				self::SORT_NEXT_FIRST => __( 'Next event first' ),
