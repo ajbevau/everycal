@@ -9,8 +9,9 @@ __MACOSX/
 # Ignore the Windows Thumbs.db
 Thumbs.db
 
-# TextMate files can be ignored too
+# TextMate and Vim files can be ignored too
 ._
+*.swp
 
 # Don't check in ba(c)k(up) files
 .bak
