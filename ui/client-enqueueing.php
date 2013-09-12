@@ -21,10 +21,21 @@ function ecp1_add_client_scripts() {
 		//wp_enqueue_script( 'jquery-ui-core' );
 		
 		// Register the FullCalendar scripts and styles
-		wp_register_style( 'ecp1_fullcalendar_style_all', plugins_url( '/fullcalendar/fullcalendar.css', dirname( __FILE__ ) ), false, false, 'all' );
-		wp_register_style( 'ecp1_fullcalendar_style_print', plugins_url( '/fullcalendar/fullcalendar.print.css', dirname( __FILE__ ) ), false, array( 'ecp1_fullcalendar_style_all' ), 'print' );
+		$cdnjs = _ecp1_get_option( 'cdnjs' );
+		if ( $cdnjs == '1' ) {
+			// Use the version of the files from CDNJS
+			wp_register_style( 'ecp1_fullcalendar_style_all', '//cdnjs.cloudflare.com/ajax/libs/fullcalendar/1.6.4/fullcalendar.css', false, false, 'all' );
+			wp_register_style( 'ecp1_fullcalendar_style_print', '//cdnjs.cloudflare.com/ajax/libs/fullcalendar/1.6.4/fullcalendar.print.css', false, array( 'ecp1_fullcalendar_style_all' ), 'print' );
+			wp_register_script( 'ecp1_fullcalendar_script', '//cdnjs.cloudflare.com/ajax/libs/fullcalendar/1.6.4/fullcalendar.min.js', array( 'jquery' ) );
+		} else {
+			// Use local version of the files
+			wp_register_style( 'ecp1_fullcalendar_style_all', plugins_url( '/fullcalendar/fullcalendar.css', dirname( __FILE__ ) ), false, false, 'all' );
+			wp_register_style( 'ecp1_fullcalendar_style_print', plugins_url( '/fullcalendar/fullcalendar.print.css', dirname( __FILE__ ) ), false, array( 'ecp1_fullcalendar_style_all' ), 'print' );
+			wp_register_script( 'ecp1_fullcalendar_script', plugins_url( '/fullcalendar/fullcalendar.js', dirname( __FILE__ ) ), array( 'jquery' ) );
+		}
+
+		// Plugin script and styles
 		wp_register_style( 'ecp1_client_style', plugins_url( '/css/ecp1-client.css', dirname( __FILE__ ) ), false, array( 'ecp1_fullcalendar_style_all' ), 'all' );
-		wp_register_script( 'ecp1_fullcalendar_script', plugins_url( '/fullcalendar/fullcalendar.js', dirname( __FILE__ ) ), array( 'jquery' ) );
 		wp_register_script( 'ecp1_popup_script', plugins_url( '/js/popup.js', dirname( __FILE__ ) ), array( 'jquery' ) );
 		
 		// Enqueue the registered scripts and styles
