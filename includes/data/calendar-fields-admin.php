@@ -20,6 +20,7 @@ function ecp1_calendar_edit_columns( $columns ) {
 
 	$columns = array(
 		'title' => 'Name', # Default field title
+		'ecp1_featured' => 'Featured events', # Y|N if calendar shows featured events
 		'ecp1_cal_description' => 'Description', # Will show description<br/>url
 		'ecp1_tz' => 'Timezone', # Calendar timezone
 	);
@@ -40,6 +41,13 @@ function ecp1_calendar_custom_columns( $column ) {
 	
 	// act based on the column that is being rendered
 	switch ( $column ) {
+
+		case 'ecp1_featured':
+			if ( _ecp1_calendar_show_featured( _ecp1_calendar_meta_id() ) )
+				printf( __( 'Y' ) );
+			else
+				printf( __( 'N' ) );
+			break;
 		
 		case 'ecp1_cal_description':
 			if ( ! _ecp1_calendar_meta_is_default( 'ecp1_description' ) ) 
