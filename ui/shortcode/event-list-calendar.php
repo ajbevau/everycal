@@ -112,24 +112,27 @@ function ecp1_event_list_calendar( $atts ) {
 	}
 	$outstring .= '</ol>';
 
-	// Now return HTML
-	$rss_addr = get_site_url() . '/ecp1/' . urlencode( $cal_post->post_name ) . '/events.rss';
-	$ical_addr = get_site_url() . '/ecp1/' . urlencode( $cal_post->post_name ) . '/events.ics';
-	$icalfeed = sprintf( '<a href="%s" title="%s"><img src="%s" alt="ICAL" /></a>',
-				$ical_addr, __( 'Subscribe to Calendar Feed' ),
-				plugins_url( '/img/famfamfam/date.png', dirname( dirname( __FILE__ ) ) ) );
-	$_close_feed_popup = htmlspecialchars( __( 'Back to Event List' ) ); // strings for i18n
-	$_feed_addrs = array(
-		__( 'iCal / ICS' ) => $ical_addr,
-		__( 'Outlook WebCal' ) => preg_replace( '/http[s]?:\/\//', 'webcal://', $ical_addr ),
-		__( 'RSS' ) => $rss_addr,
-	);
-	$_feed_addrs_js = '{';
-	foreach( $_feed_addrs as $title=>$link )
-		$_feed_addrs_js .= sprintf( "'%s':'%s',", htmlspecialchars( $title ), $link );
-	$_feed_addrs_js = trim( $_feed_addrs_js, ',' ) . '}';
+	$feeds = ""; // empty string to be updated if showing icon
+	if ( '1' == _ecp1_get_option( 'show_export_icon' ) ) {
 
-	$_ecp1_event_list_calendar_script .= <<<ENDOFSCRIPT
+		// Now return HTML
+		$rss_addr = get_site_url() . '/ecp1/' . urlencode( $cal_post->post_name ) . '/events.rss';
+		$ical_addr = get_site_url() . '/ecp1/' . urlencode( $cal_post->post_name ) . '/events.ics';
+		$icalfeed = sprintf( '<a href="%s" title="%s"><img src="%s" alt="ICAL" /></a>',
+					$ical_addr, __( 'Subscribe to Calendar Feed' ),
+					plugins_url( '/img/famfamfam/' . _ecp1_get_option( 'export_icon' ), dirname( dirname( __FILE__ ) ) ) );
+		$_close_feed_popup = htmlspecialchars( __( 'Back to Event List' ) ); // strings for i18n
+		$_feed_addrs = array(
+			__( 'iCal / ICS' ) => $ical_addr,
+			__( 'Outlook WebCal' ) => preg_replace( '/http[s]?:\/\//', 'webcal://', $ical_addr ),
+			__( 'RSS' ) => $rss_addr,
+		);
+		$_feed_addrs_js = '{';
+		foreach( $_feed_addrs as $title=>$link )
+			$_feed_addrs_js .= sprintf( "'%s':'%s',", htmlspecialchars( $title ), $link );
+		$_feed_addrs_js = trim( $_feed_addrs_js, ',' ) . '}';
+
+		$_ecp1_event_list_calendar_script .= <<<ENDOFSCRIPT
 var _feedLinks = $_feed_addrs_js;
 jQuery(document).ready(function($) {
 	// $() will work as an alias for jQuery() inside of this function
@@ -173,7 +176,9 @@ jQuery(document).ready(function($) {
 } );
 
 ENDOFSCRIPT;
-	$feeds = '<div class="feeds">' . $icalfeed . '</div>';
+		$feeds = '<div class="feeds">' . $icalfeed . '</div>';
+	} // end if show export icon
+
 	// Text based description make sure it's escaped
 	$description = '';
 	if ( ! _ecp1_calendar_meta_is_default( 'ecp1_description' ) )
