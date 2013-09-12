@@ -116,8 +116,8 @@ function ecp1_event_list_calendar( $atts ) {
 	if ( '1' == _ecp1_get_option( 'show_export_icon' ) ) {
 
 		// Now return HTML
-		$rss_addr = get_site_url() . '/ecp1/' . urlencode( $cal_post->post_name ) . '/events.rss';
-		$ical_addr = get_site_url() . '/ecp1/' . urlencode( $cal_post->post_name ) . '/events.ics';
+		$rss_addr = home_url() . '/ecp1/' . urlencode( $cal_post->post_name ) . '/events.rss';
+		$ical_addr = home_url() . '/ecp1/' . urlencode( $cal_post->post_name ) . '/events.ics';
 		$icalfeed = sprintf( '<a href="%s" title="%s"><img src="%s" alt="ICAL" /></a>',
 					$ical_addr, __( 'Subscribe to Calendar Feed' ),
 					plugins_url( '/img/famfamfam/' . _ecp1_get_option( 'export_icon' ), dirname( dirname( __FILE__ ) ) ) );

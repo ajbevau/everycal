@@ -62,7 +62,7 @@ $tz = ecp1_get_calendar_timezone();	  // and the effective timezone
 $dtz = new DateTimeZone( $tz );
 $ex_cals = _ecp1_calendar_meta( 'ecp1_external_cals' ); // before loop
 $my_id = $cal->ID; // because event meta reparses its calendars meta
-$feed_url = get_site_url() . '/ecp1/' . urlencode( $cal->post_name ) . '/events.rss';
+$feed_url = home_url() . '/ecp1/' . urlencode( $cal->post_name ) . '/events.rss';
 
 // ICAL HEADERS / CALENDAR DETAILS
 ?>

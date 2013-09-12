@@ -70,7 +70,7 @@ function ecp1_render_calendar( $calendar ) {
 	
 	// Create a URL and event parameter array for local event posts
 	$event_source_params['local'] = $event_source_params['_defaults'];
-	$event_source_params['local']['url'] = sprintf( "'%s/ecp1/%s/events.json'", site_url(), $calendar['slug'] );
+	$event_source_params['local']['url'] = sprintf( "'%s/ecp1/%s/events.json'", home_url(), $calendar['slug'] );
 	$event_source_params['local']['color'] = sprintf( "'%s'", _ecp1_calendar_meta( 'ecp1_local_event_color' ) );
 	$event_source_params['local']['textColor'] = sprintf( "'%s'", _ecp1_calendar_meta( 'ecp1_local_event_textcolor' ) );
 	$event_source_params['local']['ignoreTimezone'] = 'true'; # show events at time at event location
@@ -187,8 +187,8 @@ jQuery(document).ready(function($) {
 ENDOFSCRIPT;
 	
 	// Now return HTML that the above script will use
-	$rss_addr = get_site_url() . '/ecp1/' . urlencode( $calendar['slug'] ) . '/events.rss';
-	$ical_addr = get_site_url() . '/ecp1/' . urlencode( $calendar['slug'] ) . '/events.ics';
+	$rss_addr = home_url() . '/ecp1/' . urlencode( $calendar['slug'] ) . '/events.rss';
+	$ical_addr = home_url() . '/ecp1/' . urlencode( $calendar['slug'] ) . '/events.ics';
 	$_close_feed_popup = htmlspecialchars( __( 'Back to Calendar' ) ); // strings for i18n
 	$_feed_addrs = array(
 		__( 'iCal / ICS' ) => $ical_addr,
