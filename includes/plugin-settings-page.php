@@ -56,6 +56,7 @@ function ecp1_render_options_page() {
 
 ?>
 	<div class="wrap">
+		<div id="icon-options-general" class="icon32"><br/></div>
 		<h2><?php _e( 'Every Calendar +1 Options' ); ?></h2>
 <?php
 	if ( ECP1_DEBUG )
@@ -63,41 +64,59 @@ function ecp1_render_options_page() {
 ?>
 		<form method="post" action="options.php">
 			<?php settings_fields( ECP1_OPTIONS_GROUP ); ?>
+			<h3><?php _e( 'General settings' ); ?></h3>
 			<table class="form-table">
-				<tr valign="top">
-					<th scope="row"><?php _e( 'Allow Timezone Changes' ); ?></th>
+				 <tr>
+					<th><?php _e( 'Featured Calendars' ); ?></th>
 					<td>
-						<input id="<?php echo ECP1_GLOBAL_OPTIONS; ?>[tz_change]" name="<?php echo ECP1_GLOBAL_OPTIONS; ?>[tz_change]" type="checkbox" value="1" <?php checked( '1', _ecp1_get_option( 'tz_change' ) ); ?> />
-						<em><?php _e( 'Note: by default calendars will use the WordPress Timezone setting.' ); ?></em>
-					</td>
-				</tr>
-				<tr valign="top">
-					<th scope="row"><?php _e( 'Maps' ); ?></th>
-					<td class="xlabels">
-						<label for="<?php echo ECP1_GLOBAL_OPTIONS; ?>[use_maps]"><?php _e( 'Enabled' ); ?>:</label>
-						<input id="<?php echo ECP1_GLOBAL_OPTIONS; ?>[use_maps]" name="<?php echo ECP1_GLOBAL_OPTIONS; ?>[use_maps]" type="checkbox" value="1" <?php checked( '1', _ecp1_get_option( 'use_maps' ) ); ?> />
-						<label for="<?php echo ECP1_GLOBAL_OPTIONS; ?>[map_provider]"><?php _e( 'Provider' ); ?></label>
-						<select id="<?php echo ECP1_GLOBAL_OPTIONS; ?>[map_provider]" name="<?php echo ECP1_GLOBAL_OPTIONS; ?>[map_provider]">
 <?php
-	// For each map provider create an entry
-	/* Replaced by mapstraction API
-	$map_providers = ecp1_map_providers();
-	foreach( $map_providers as $slug=>$details ) 
-		printf( '<option value="%s"%s>%s</option>', $slug, $slug == _ecp1_get_option( 'map_provider' ) ? ' selected="selected"' : '', $details['name'] );
-	*/
-	printf( ECP1Mapstraction::ToOptionTags() );
+	// List all of the available calendars with checkboxes
+	$calendars = _ecp1_current_user_calendars();
+	$display_counter = 0;
+	foreach( $calendars as $cal ) {
+		if ( 0 == $display_counter )
+			printf( '<div class="ecp1_checkbox_row">' );
 ?>
-						</select>
-						<label for="<?php echo ECP1_GLOBAL_OPTIONS; ?>[map_geocoder]"><?php _e( 'Geocoder' ); ?></label>
-						<select id="<?php echo ECP1_GLOBAL_OPTIONS; ?>[map_geocoder]" name="<?php echo ECP1_GLOBAL_OPTIONS; ?>[map_geocoder]">
+		<span class="ecp1_checkbox_block">
+			<input id="<?php printf( '%s[feature_cals][%s]', ECP1_GLOBAL_OPTIONS, $cal->ID ); ?>" name="<?php printf( '%s[feature_cals][%s]', ECP1_GLOBAL_OPTIONS, $cal->ID ); ?>" type="checkbox" value="1"<?php echo _ecp1_calendar_show_featured( $cal->ID ) ? ' checked="checked"' : ''; ?> />
+			<label for="<?php printf( '%s[feature_cals][%s]', ECP1_GLOBAL_OPTIONS, $cal->ID ); ?>"><?php echo $cal->post_title; ?></label>
+		</span>
 <?php
-	printf( ECP1Mapstraction::ToOptionTags( true ) );
+		$display_counter += 1;
+		if ( 3 == $display_counter ) { // i.e. 3 displayed
+			printf( '</div>' );
+			$display_counter = 0;
+		}
+	}
+	if ( 3 != $display_counter ) {
+		printf( '</div>' ); // close the div if not already done
+	}
 ?>
-						</select>
-					</td>
+					<p><em><?php _e( 'Which calendars should featured events be displayed on?' ); ?></em></p>
 				</tr>
-				<tr valign="top">
-					<th scope="row"><?php _e( 'Calendar Providers' ); ?></th>
+				<tr>
+					<th><?php _e( 'Timezones' ); ?></th>
+					<td>
+						<dl>
+							<dt><input id="<?php echo ECP1_GLOBAL_OPTIONS; ?>[tz_change]" name="<?php echo ECP1_GLOBAL_OPTIONS; ?>[tz_change]" type="checkbox" value="1" <?php checked( '1', _ecp1_get_option( 'tz_change' ) ); ?> /> <label for="<?php echo ECP1_GLOBAL_OPTIONS; ?>[tz_change]"><?php _e( 'Allow Timezone Changes' ); ?></label></dt>
+							<dd><?php _e( 'Calendars will default to the WordPress Timezone setting.' ); ?></dd>
+
+							<dt>
+								<input id="<?php printf( '%s[feature_tz_local]', ECP1_GLOBAL_OPTIONS ); ?>" name="<?php printf( '%s[feature_tz_local]', ECP1_GLOBAL_OPTIONS ); ?>" type="checkbox" value="1" <?php checked( '1', _ecp1_get_option( 'base_featured_local_to_event' ) ); ?> /> <label for="<?php printf( '%s[feature_tz_local]', ECP1_GLOBAL_OPTIONS ); ?>"><?php _e( 'Featured events display event local time' ); ?></label><br/>
+								<label for="<?php printf( '%s[feature_tz_note]', ECP1_GLOBAL_OPTIONS ); ?>"><?php _e( 'Note text:' ); ?></label>
+								<input id="<?php printf( '%s[feature_tz_note]', ECP1_GLOBAL_OPTIONS ); ?>" name="<?php printf( '%s[feature_tz_note]', ECP1_GLOBAL_OPTIONS ); ?>" type="text" class="ecp1_w75" value="<?php echo _ecp1_get_option( 'base_featured_local_note' ); ?>" />
+							</dt>
+							<dd><?php _e( 'When featured events are displayed on other calendars the event start/end time can either be displayed as the event local time (i.e. time where the event is happening) or as the calendar local time. The default is event local time! For example: An Event starts are 10am (Australia/Melbourne) and is displayed on a calendar with timezone Europe/London if this setting is enabled: the event will show starting time of 10am with the note text below the calendar; if this setting is disabled: the event will show start time as midnight on the calendar (10am Melbourne is midnight London).' ); ?></dd>
+					</dl>
+				<tr>
+					<th><?php _e( 'CDN' ); ?></th>
+					<td><dl>
+						<dt><input id="<?php echo ECP1_GLOBAL_OPTIONS; ?>[cdnjs]" name="<?php echo ECP1_GLOBAL_OPTIONS; ?>[cdnjs]" type="checkbox" value="1" <?php checked( '1', _ecp1_get_option( 'cdnjs' ) ); ?> /> <label for="<?php echo ECP1_GLOBAL_OPTIONS; ?>[cdnjs]"><?php _e( 'Use CDNJS for JavaScript?' ); ?></label></dt>
+						<dd><?php _e( 'Recommended for improving load times' ); ?></dd>
+					</dl></td>
+				</tr>
+				<tr>
+					<th><?php _e( 'Calendar Providers' ); ?></th>
 					<td>
 <?php
 	// For each provider display a checkbox do rows of 3
@@ -122,12 +141,30 @@ function ecp1_render_options_page() {
 		printf( '</div>' ); // close the div if not already done
 	}
 ?>
+						<p><em><?php _e( 'Which external calendar providers do you wish to enable?' ); ?></em></p>
 					</td>
 				</tr>
-				<tr valign="top">
-					<th scope="row"><?php _e( 'Repeating Events' ); ?></th>
-					<td>
-		<div class="ecp1_meta">
+				<tr>
+					<th><?php _e( 'Maps' ); ?></th>
+					<td><dl>
+						<dt><input id="<?php echo ECP1_GLOBAL_OPTIONS; ?>[use_maps]" name="<?php echo ECP1_GLOBAL_OPTIONS; ?>[use_maps]" type="checkbox" value="1" <?php checked( '1', _ecp1_get_option( 'use_maps' ) ); ?> /> <label for="<?php echo ECP1_GLOBAL_OPTIONS; ?>[use_maps]"><?php _e( 'Enable event location maps' ); ?>:</label></dt>
+						<dd><?php _e( 'If enabled individual event posts can set whether a map is displayed or not' ); ?></dd>
+						<dt>
+							<label for="<?php echo ECP1_GLOBAL_OPTIONS; ?>[map_provider]"><?php _e( 'Map service' ); ?></label> <select id="<?php echo ECP1_GLOBAL_OPTIONS; ?>[map_provider]" name="<?php echo ECP1_GLOBAL_OPTIONS; ?>[map_provider]"><?php printf( ECP1Mapstraction::ToOptionTags() ); ?></select> <label for="<?php echo ECP1_GLOBAL_OPTIONS; ?>[map_geocoder]"><?php _e( 'Geocoding service' ); ?></label> <select id="<?php echo ECP1_GLOBAL_OPTIONS; ?>[map_geocoder]" name="<?php echo ECP1_GLOBAL_OPTIONS; ?>[map_geocoder]"><?php printf( ECP1Mapstraction::ToOptionTags( true ) ); ?></select>
+						</dt>
+						<dd><?php _e( 'Choose which map provider you would like to use. If you want to lookup locations by address (i.e. geocode the address) you will also need to choose a geocoding service.' ); ?></dd>
+					</dl></td>
+				</tr>
+			</table>
+
+			<p class="submit"><input type="submit" class="button-primary" value="<?php _e('Save Changes') ?>" /></p>
+
+			<h3><?php _e( 'Repeating Events' ); ?></h3>
+			<table class="form-table">
+				<tr>
+					<th><?php _e( 'Cache' ); ?></th>
+					<td><dl>
+						<dt>
 <?php
 	// Cache block size templates
 	$times = array( '2592000'=>__( '1 Month' ), '15811200'=>__( '6 Months' ), '31536000'=>__( '1 Year' ), '63072000'=>__( '2 Years' ) );
@@ -144,13 +181,17 @@ function ecp1_render_options_page() {
 	
 	// Enable / disable custom scheduler expressions
 ?>
-			<input id="<?php printf( '%s[force_cache]', ECP1_GLOBAL_OPTIONS ); ?>" name="<?php printf( '%s[force_cache]', ECP1_GLOBAL_OPTIONS ); ?>" type="checkbox" value="1"<?php echo '1' == _ecp1_get_option( 'enforce_repeat_cache_size' ) ? ' checked="checked"' : '' ?> />
-			<label for="<?php printf( '%s[force_cache]', ECP1_GLOBAL_OPTIONS ); ?>"><?php _e( 'Enforce the maximum cache size' ); ?></label><br/>
-			<em><?php _e( 'Note: Only enforce the cache size if you know you will never make a larger request; for example the event list shortcode with an open ended finish date will overrun any cache size (except 30 years) because it computes repeats until January 2038. You have two options: a) set an end date on the shortcode or not to enforce the cache size.' ); ?></em><br/>
-			<input id="<?php printf( '%s[custom_repeats]', ECP1_GLOBAL_OPTIONS ); ?>" name="<?php printf( '%s[custom_repeats]', ECP1_GLOBAL_OPTIONS ); ?>" type="checkbox" value="1"<?php echo '1' == _ecp1_get_option( 'allow_custom_repeats' ) ? ' checked="checked"' : '' ?> />
-			<label for="<?php printf( '%s[custom_repeats]', ECP1_GLOBAL_OPTIONS ); ?>"><?php _e( 'Enable custom repeat expressions?' ); ?></label><br/>
-
-			<strong><?php _e( 'Disable the following repeat templates:' ); ?></strong><br/>
+							<input id="<?php printf( '%s[force_cache]', ECP1_GLOBAL_OPTIONS ); ?>" name="<?php printf( '%s[force_cache]', ECP1_GLOBAL_OPTIONS ); ?>" type="checkbox" value="1"<?php echo '1' == _ecp1_get_option( 'enforce_repeat_cache_size' ) ? ' checked="checked"' : '' ?> /> <label for="<?php printf( '%s[force_cache]', ECP1_GLOBAL_OPTIONS ); ?>"><?php _e( 'Enforce the maximum cache size' ); ?></label>
+						</dt>
+						<dd><?php _e( 'Note: Only enforce the cache size if you know you will never make a larger request; for example the event list shortcode with an open ended finish date will overrun any cache size (except 30 years) because it computes repeats until January 2038. You have two options: a) set an end date on the shortcode or not to enforce the cache size.' ); ?></dd>
+					</dl></td>
+				</tr>
+				<tr>
+					<th><?php _e( 'Repeat patterns' ); ?></th>
+					<td>
+						<input id="<?php printf( '%s[custom_repeats]', ECP1_GLOBAL_OPTIONS ); ?>" name="<?php printf( '%s[custom_repeats]', ECP1_GLOBAL_OPTIONS ); ?>" type="checkbox" value="1"<?php echo '1' == _ecp1_get_option( 'allow_custom_repeats' ) ? ' checked="checked"' : '' ?> />
+						<label for="<?php printf( '%s[custom_repeats]', ECP1_GLOBAL_OPTIONS ); ?>"><?php _e( 'Enable custom repeat expressions?' ); ?></label><br/>
+						<strong><?php _e( 'Disable the following repeat templates:' ); ?></strong><br/>
 <?php
 	foreach( EveryCal_RepeatExpression::$TYPES as $key=>$dtl ) {
 		printf( '<input id="%s[disable_expressions][%s]" name="%s[disable_expressions][%s]" type="checkbox" value="1"%s /> ',
@@ -159,49 +200,33 @@ function ecp1_render_options_page() {
 		printf( '<label for="%s[disable_expressions][%s]">%s</label><br/>', ECP1_GLOBAL_OPTIONS, $key, __( $dtl['desc'] ) );
 	}
 ?>
-		</div>
 					</td>
 				</tr>
-				<tr valign="top">
-					<th scope="row"><?php _e( 'Featured Calendars' ); ?></th>
+			</table>
+
+			<h3>Calendar Export Settings (iCAL / RSS)</h3>
+			<table class="form-table">
+				<tr>
+					<th><?php _e( 'When to publish' ); ?></th>
 					<td>
 <?php
-	// List all of the available calendars with checkboxes
-	$calendars = _ecp1_current_user_calendars();
-	$display_counter = 0;
-	foreach( $calendars as $cal ) {
-		if ( 0 == $display_counter )
-			printf( '<div class="ecp1_checkbox_row">' );
-?>
-		<span class="ecp1_checkbox_block">
-			<input id="<?php printf( '%s[feature_cals][%s]', ECP1_GLOBAL_OPTIONS, $cal->ID ); ?>" name="<?php printf( '%s[feature_cals][%s]', ECP1_GLOBAL_OPTIONS, $cal->ID ); ?>" type="checkbox" value="1"<?php echo _ecp1_calendar_show_featured( $cal->ID ) ? ' checked="checked"' : ''; ?> />
-			<label for="<?php printf( '%s[feature_cals][%s]', ECP1_GLOBAL_OPTIONS, $cal->ID ); ?>"><?php echo $cal->post_title; ?></label>
-		</span>
-<?php
-		$display_counter += 1;
-		if ( 3 == $display_counter ) { // i.e. 3 displayed
-			printf( '</div>' );
-			$display_counter = 0;
-		}
+	// How far in advance to publish RSS feed items
+	printf( '<span class="ecp1_ical_q">%s</span>', __( 'RSS Date:' ) );
+	printf( '<select id="%s[rss_prequel]" name="%s[rss_prequel]"><option value="-1">%s</option>', ECP1_GLOBAL_OPTIONS, ECP1_GLOBAL_OPTIONS, __( 'Custom' ) );
+	$roffsetcustom = false;
+	foreach( $times as $val=>$time ) {
+		$roffsetcustom = $roffsetcustom || $val == _ecp1_get_option( 'rss_pubdate_prequel_range' ) ? true : false;
+		printf( '<option value="%s"%s>%s</option>', $val, $val == _ecp1_get_option( 'rss_pubdate_prequel_range' ) ? ' selected="selected"' : '', $time );
 	}
-	if ( 3 != $display_counter ) {
-		printf( '</div>' ); // close the div if not already done
-	}
-
-	// Now ask the complicated question about how to display feature event times
-	// should they event location timezone'd or calendar timezone'd?
+	printf( '</select> or <input id="%s[rss_prequel_custom]" name="%s[rss_prequel_custom]" type="text" value="%s" /> %s<br/><em>%s</em><br/>',
+			ECP1_GLOBAL_OPTIONS, ECP1_GLOBAL_OPTIONS,
+			! $roffsetcustom ? _ecp1_get_option( 'rss_pubdate_prequel_range' ) : '', __( 'seconds' ),
+			__( 'How far in advance should events be published' ) );
 ?>
-		<div class="ecp1_meta">
-			<input id="<?php printf( '%s[feature_tz_local]', ECP1_GLOBAL_OPTIONS ); ?>" name="<?php printf( '%s[feature_tz_local]', ECP1_GLOBAL_OPTIONS ); ?>" type="checkbox" value="1"<?php echo '1' == _ecp1_get_option( 'base_featured_local_to_event' ) ? ' checked="checked"' : '' ?> />
-			<label for="<?php printf( '%s[feature_tz_local]', ECP1_GLOBAL_OPTIONS ); ?>"><?php _e( 'Should feature events display their location time?' ); ?></label><br/>
-			<label for="<?php printf( '%s[feature_tz_note]', ECP1_GLOBAL_OPTIONS ); ?>"><?php _e( 'Note text:' ); ?></label>
-			<input id="<?php printf( '%s[feature_tz_note]', ECP1_GLOBAL_OPTIONS ); ?>" name="<?php printf( '%s[feature_tz_note]', ECP1_GLOBAL_OPTIONS ); ?>" type="text" class="ecp1_w75" value="<?php echo _ecp1_get_option( 'base_featured_local_note' ); ?>" /><br/>
-			<p><em><?php _e( 'Should feature events on other calendars be based in the calendar timezone or in the the event location timezone? Default is event location! For example: An Event starts are 10am (Australia/Melbourne) and is displayed on a calendar with timezone Europe/London if this setting is enabled: the event will show starting time of 10am with the note text below  the calendar; if this setting is disabled: the event will show start time as midnight on the calendar (10am Melbourne is midnight London).' ); ?></em></p>
-		</div>
 					</td>
 				</tr>
-				<tr valign="top">
-					<th scope="row"><?php _e( 'Export Offsets' ); ?><br/><?php _e( 'iCAL / RSS' ); ?></th>
+				<tr>
+					<th><?php _e( 'Period to export' ); ?></th>
 					<td>
 <?php
 	// How far back and forward should we export
@@ -228,7 +253,13 @@ function ecp1_render_options_page() {
 	printf( '</select> or <input id="%s[ical_end_custom]" name="%s[ical_end_custom]" type="text" value="%s" /> %s<br/>',
 			ECP1_GLOBAL_OPTIONS, ECP1_GLOBAL_OPTIONS,
 			! $eoffsetcustom ? _ecp1_get_option( 'export_end_offset' ) : '', __( 'seconds' ) );
-
+?>
+					</td>
+				</tr>
+				<tr>
+					<th><?php _e( 'External calendars' ); ?></th>
+					<td>
+<?php
 	// Include options for ical_export_include_external and ical_export_external_cache_life
 	printf( '<input id="%s[export_external]" name="%s[export_external]" type="checkbox" value="1"%s /> <label for="%s[export_external]">%s</label><br/>',
 			ECP1_GLOBAL_OPTIONS, ECP1_GLOBAL_OPTIONS,
@@ -244,28 +275,16 @@ function ecp1_render_options_page() {
 	printf( '</select> or <input id="%s[cache_expire_custom]" name="%s[cache_expire_custom]" type="text" value="%s" /> %s<br/>',
 			ECP1_GLOBAL_OPTIONS, ECP1_GLOBAL_OPTIONS,
 			! $eoffsetcustom ? _ecp1_get_option( 'export_external_cache_life' ) : '', __( 'seconds' ) );
-	
-	// How far in advance to publish RSS feed items
-	printf( '<span class="ecp1_ical_q">%s</span>', __( 'RSS Date:' ) );
-	printf( '<select id="%s[rss_prequel]" name="%s[rss_prequel]"><option value="-1">%s</option>', ECP1_GLOBAL_OPTIONS, ECP1_GLOBAL_OPTIONS, __( 'Custom' ) );
-	$roffsetcustom = false;
-	foreach( $times as $val=>$time ) {
-		$roffsetcustom = $roffsetcustom || $val == _ecp1_get_option( 'rss_pubdate_prequel_range' ) ? true : false;
-		printf( '<option value="%s"%s>%s</option>', $val, $val == _ecp1_get_option( 'rss_pubdate_prequel_range' ) ? ' selected="selected"' : '', $time );
-	}
-	printf( '</select> or <input id="%s[rss_prequel_custom]" name="%s[rss_prequel_custom]" type="text" value="%s" /> %s<br/><em>%s</em><br/>',
-			ECP1_GLOBAL_OPTIONS, ECP1_GLOBAL_OPTIONS,
-			! $roffsetcustom ? _ecp1_get_option( 'rss_pubdate_prequel_range' ) : '', __( 'seconds' ),
-			__( 'How far in advance should RSS items be published' ) );
 ?>
 					</td>
 				</tr>
+			</table>
+
+			<h3><?php _e( 'Calendar and Event Post Template' ); ?></h3>
+			<table class="form-table ecp1subsettings">
 				<tr valign="top">
-					<th scope="row"><?php _e( 'Template and Layout' ); ?></th>
-					<td>
-	<div class="ecp1subsettings">
-		<div>
-		<strong><?php _e( 'Export Icon' ); ?></strong>
+					<th scope="row"><?php _e( 'Export Icon' ); ?></th>
+					<td><div>
 <?php
 	printf( '
 		<input id="_export_icon" name="%s[export_icon]" type="hidden" value="%s" />
@@ -331,8 +350,8 @@ jQuery(document).ready(function($){
 					} ) ) );
 	} );
 
-	$('div.expandable > strong').click(function() {
-		$(this).parent().children('.expandtarget').toggle();
+	$('th.clickexpand').click(function() {
+		$(this).parent().find('.expandtarget').toggle();
 	});
 } );
 ENDOFSCRIPT;
@@ -346,46 +365,51 @@ ENDOFSCRIPT;
 			ECP1_GLOBAL_OPTIONS, __( 'Show export icon on calendar posts?' ) );
 
 ?>
-		</div>
-
-		<div>
-		<strong><?php _e( 'Actions and Display Options' ); ?></strong>
-		<input id="<?php echo ECP1_GLOBAL_OPTIONS; ?>[show_time_on_all_day]" name="<?php echo ECP1_GLOBAL_OPTIONS; ?>[show_time_on_all_day]" type="checkbox" value="1" <?php echo '1' == _ecp1_get_option( 'show_time_on_all_day' ) ? 'checked="checked"' : ''; ?> />
-		<label for="<?php echo ECP1_GLOBAL_OPTIONS; ?>[show_time_on_all_day]"><?php _e( 'Show time on all day events?' ); ?></label><br/>
-		<input id="<?php echo ECP1_GLOBAL_OPTIONS; ?>[show_all_day_message]" name="<?php echo ECP1_GLOBAL_OPTIONS; ?>[show_all_day_message]" type="checkbox" value="1" <?php echo '1' == _ecp1_get_option( 'show_all_day_message' ) ? 'checked="checked"' : ''; ?> />
-		<label for="<?php echo ECP1_GLOBAL_OPTIONS; ?>[show_all_day_message]"><?php _e( 'Show (all day) on all day events?' ); ?></label><br/>
-		<input id="<?php echo ECP1_GLOBAL_OPTIONS; ?>[popup_on_click]" name="<?php echo ECP1_GLOBAL_OPTIONS; ?>[popup_on_click]" type="checkbox" value="1" <?php echo '1' == _ecp1_get_option( 'popup_on_click' ) ? 'checked="checked"' : ''; ?> />
-		<label for="<?php echo ECP1_GLOBAL_OPTIONS; ?>[popup_on_click]"><?php _e( 'Show popup on click?' ); ?></label><br/>
-		</div>
-
-		<div class="expandable">
-		<strong><?php _e( 'Calendar Template - Click to Show Help' ); ?></strong>
-		<label for="<?php echo ECP1_GLOBAL_OPTIONS; ?>[week_time_format]"><?php _e( 'Time Format Week:' ); ?></label>
-		<input type="text" id="<?php echo ECP1_GLOBAL_OPTIONS; ?>[week_time_format]" name="<?php echo ECP1_GLOBAL_OPTIONS; ?>[week_time_format]" value="<?php echo _ecp1_get_option( 'week_time_format' ); ?>" />
-		<label for="<?php echo ECP1_GLOBAL_OPTIONS; ?>[month_time_format]"><?php _e( ' Month:' ); ?></label>
-		<input type="text" id="<?php echo ECP1_GLOBAL_OPTIONS; ?>[month_time_format]" name="<?php echo ECP1_GLOBAL_OPTIONS; ?>[month_time_format]" value="<?php echo _ecp1_get_option( 'month_time_format' ); ?>" /><br/>
-		<p><a href="http://arshaw.com/fullcalendar/docs/utilities/formatDate/"><?php _e( 'See FullCalendar documentation for format options.' ); ?></a></p>
-		<textarea id="<?php echo ECP1_GLOBAL_OPTIONS; ?>[calendar_template]" name="<?php echo ECP1_GLOBAL_OPTIONS; ?>[calendar_template]">
-<?php echo _ecp1_get_option( 'calendar_template' ); ?>
-		</textarea>
-		<ul>
-			<li><?php _e( 'You must use id="ecp1_calendar" on the main container element' ); ?></li>
-			<li><?php _e( 'You must use class="fullcal" on the calendar container element' ); ?></li>
-		</ul>
-		<div class="expandtarget">
-		<em><?php _e( 'Placeholders' ); ?></em>
-		<ul>
-			<li>+FEEDS+ +ENDFEEDS+<br/><?php _e( 'How to layout feeds icon; must have id="ecp1_show_feeds" as clickable' ); ?></li>
-			<li>+DESCRIPTION_TEXT+<br/><?php _e( 'Event description text' ); ?></li>
-			<li>+TIMEZONE_DISCLAIMER+<br/><?php _e( 'Which timezone the calendar is in' ); ?></li>
-			<li>+FEATURE_EVENT_NOTICE+<br/><?php _e( 'The Featured Calendar Note text from above' ); ?></li>
-			<li>+FEATURE_TEXT_COLOR+ / +FEATURE_BACKGROUND+<br/><?php _e( 'Replaced with calendar settings; if these are missing your users will not be able to pick their own colors' ); ?></li>
-			<li>+CALENDAR_LOADING+<br/><?php _e( 'Where to put the calendar loading message' ); ?></li>
-			<li>+FEED_LINK+<br/><?php _e( 'Replaced with the plugin generated feed link' ); ?></li>
-			<li>+FEED_ICON+<br/><?php _e( 'URL for the Export Icon above' ); ?></li>
-		</ul>
-		<em><?php _e( 'An Example' ); ?></em>
-		<pre>
+					</div></td>
+				</tr>
+				<tr>
+					<th><?php _e('Actions and Content' ); ?></th>
+					<td><div>
+						<input id="<?php echo ECP1_GLOBAL_OPTIONS; ?>[show_time_on_all_day]" name="<?php echo ECP1_GLOBAL_OPTIONS; ?>[show_time_on_all_day]" type="checkbox" value="1" <?php echo '1' == _ecp1_get_option( 'show_time_on_all_day' ) ? 'checked="checked"' : ''; ?> />
+						<label for="<?php echo ECP1_GLOBAL_OPTIONS; ?>[show_time_on_all_day]"><?php _e( 'Show time on all day events?' ); ?></label><br/>
+						<input id="<?php echo ECP1_GLOBAL_OPTIONS; ?>[show_all_day_message]" name="<?php echo ECP1_GLOBAL_OPTIONS; ?>[show_all_day_message]" type="checkbox" value="1" <?php echo '1' == _ecp1_get_option( 'show_all_day_message' ) ? 'checked="checked"' : ''; ?> />
+						<label for="<?php echo ECP1_GLOBAL_OPTIONS; ?>[show_all_day_message]"><?php _e( 'Show (all day) on all day events?' ); ?></label><br/>
+						<input id="<?php echo ECP1_GLOBAL_OPTIONS; ?>[popup_on_click]" name="<?php echo ECP1_GLOBAL_OPTIONS; ?>[popup_on_click]" type="checkbox" value="1" <?php echo '1' == _ecp1_get_option( 'popup_on_click' ) ? 'checked="checked"' : ''; ?> />
+						<label for="<?php echo ECP1_GLOBAL_OPTIONS; ?>[popup_on_click]"><?php _e( 'Show popup on click?' ); ?></label><br/>
+					</div></td>
+				</tr>
+				<tr>
+					<th><?php _e( 'Time Format' ); ?></th>
+					<td>
+						<label for="<?php echo ECP1_GLOBAL_OPTIONS; ?>[week_time_format]"><?php _e( 'Week display:' ); ?></label>
+						<input type="text" id="<?php echo ECP1_GLOBAL_OPTIONS; ?>[week_time_format]" name="<?php echo ECP1_GLOBAL_OPTIONS; ?>[week_time_format]" value="<?php echo _ecp1_get_option( 'week_time_format' ); ?>" /><br/>
+						<label for="<?php echo ECP1_GLOBAL_OPTIONS; ?>[month_time_format]"><?php _e( 'Month display:' ); ?></label>
+						<input type="text" id="<?php echo ECP1_GLOBAL_OPTIONS; ?>[month_time_format]" name="<?php echo ECP1_GLOBAL_OPTIONS; ?>[month_time_format]" value="<?php echo _ecp1_get_option( 'month_time_format' ); ?>" /><br/>
+						<p><a href="http://arshaw.com/fullcalendar/docs/utilities/formatDate/"><?php _e( 'See FullCalendar documentation for format options.' ); ?></a></p>
+					</td>
+				</tr>
+				<tr>
+					<th class="clickexpand"><?php _e( 'Calendar Template<br/>Click to Toggle Help' ); ?></th>
+					<td>
+						<textarea id="<?php echo ECP1_GLOBAL_OPTIONS; ?>[calendar_template]" name="<?php echo ECP1_GLOBAL_OPTIONS; ?>[calendar_template]"><?php echo _ecp1_get_option( 'calendar_template' ); ?></textarea>
+						<ul>
+							<li><?php _e( 'You must use id="ecp1_calendar" on the main container element' ); ?></li>
+							<li><?php _e( 'You must use class="fullcal" on the calendar container element' ); ?></li>
+						</ul>
+						<div class="expandtarget">
+							<em><?php _e( 'Placeholders' ); ?></em>
+							<ul>
+								<li>+FEEDS+ +ENDFEEDS+<br/><?php _e( 'How to layout feeds icon; must have id="ecp1_show_feeds" as clickable' ); ?></li>
+								<li>+DESCRIPTION_TEXT+<br/><?php _e( 'Event description text' ); ?></li>
+								<li>+TIMEZONE_DISCLAIMER+<br/><?php _e( 'Which timezone the calendar is in' ); ?></li>
+								<li>+FEATURE_EVENT_NOTICE+<br/><?php _e( 'The Featured Calendar Note text from above' ); ?></li>
+								<li>+FEATURE_TEXT_COLOR+ / +FEATURE_BACKGROUND+<br/><?php _e( 'Replaced with calendar settings; if these are missing your users will not be able to pick their own colors' ); ?></li>
+								<li>+CALENDAR_LOADING+<br/><?php _e( 'Where to put the calendar loading message' ); ?></li>
+								<li>+FEED_LINK+<br/><?php _e( 'Replaced with the plugin generated feed link' ); ?></li>
+								<li>+FEED_ICON+<br/><?php _e( 'URL for the Export Icon above' ); ?></li>
+							</ul>
+							<em><?php _e( 'An Example' ); ?></em>
+							<pre>
 <?php echo htmlentities( '<div id="ecp1_calendar">
 	+FEEDS+<div class="feeds">
 		<a id="ecp1_show_feeds" href="+FEED_LINK+">
@@ -402,31 +426,30 @@ ENDOFSCRIPT;
 		</div>
 	</div>
 </div>' ); ?>
-		</pre>
-		</div><!-- expandtarget -->
-		</div><!-- expandable -->
-
-		<div class="expandable">
-		<strong><?php _e( 'Event Template - Click to Show Help' ); ?></strong>
-		<textarea id="<?php echo ECP1_GLOBAL_OPTIONS; ?>[event_template]" name="<?php echo ECP1_GLOBAL_OPTIONS; ?>[event_template]">
-<?php echo _ecp1_get_option( 'event_template' ); ?>
-		</textarea>
-		<ul>
-			<li><?php _e( 'You must use id="ecp1_event" on the main container element' ); ?></li>
-		</ul>
-		<div class="expandtarget">
-		<em><?php _e( 'Placeholders' ); ?></em>
-		<ul>
-			<li>+TITLE_TIME+, +TITLE_LOCATION+,  +TITLE_SUMMARY+, +TITLE_DETAILS+<br/><?php _e( 'Replaced with titles as appropriate' ); ?></li>
-			<li>+FEATURE_IMAGE+<br/><?php _e( 'Replaced with an image element of the post thumbnail if theme supports it' ); ?></li>
-			<li>+EVENT_TIME+<br/><?php _e( 'Replaced with a formatted string of the event start and end time' ); ?></li>
-			<li>+EVENT_LOCATION+<br/><?php _e( 'Replaced with the event location' ); ?></li>
-			<li>+EVENT_SUMMARY+<br/><?php _e( 'Replaced with the event summary' ); ?></li>
-			<li>+EVENT_DETAILS+<br/><?php _e( 'Replaced with the event details and an offsite link if available' ); ?></li>
-			<li>+MAP_CONTAINER+<br/><?php _e( 'Replaced with a div element that will have the map loaded into it' ); ?></li>
-		</ul>
-		<em><?php _e( 'An Example' ); ?></em>
-		<pre>
+							</pre>
+						</div><!-- expandtarget -->
+					</td>
+				</tr>
+				<tr>
+					<th class="clickexpand"><?php _e( 'Event Template<br/>Click to Toggle Help' ); ?></th>
+					<td>
+						<textarea id="<?php echo ECP1_GLOBAL_OPTIONS; ?>[event_template]" name="<?php echo ECP1_GLOBAL_OPTIONS; ?>[event_template]"><?php echo _ecp1_get_option( 'event_template' ); ?></textarea>
+						<ul>
+							<li><?php _e( 'You must use id="ecp1_event" on the main container element' ); ?></li>
+						</ul>
+						<div class="expandtarget">
+							<em><?php _e( 'Placeholders' ); ?></em>
+							<ul>
+								<li>+TITLE_TIME+, +TITLE_LOCATION+,  +TITLE_SUMMARY+, +TITLE_DETAILS+<br/><?php _e( 'Replaced with titles as appropriate' ); ?></li>
+								<li>+FEATURE_IMAGE+<br/><?php _e( 'Replaced with an image element of the post thumbnail if theme supports it' ); ?></li>
+								<li>+EVENT_TIME+<br/><?php _e( 'Replaced with a formatted string of the event start and end time' ); ?></li>
+								<li>+EVENT_LOCATION+<br/><?php _e( 'Replaced with the event location' ); ?></li>
+								<li>+EVENT_SUMMARY+<br/><?php _e( 'Replaced with the event summary' ); ?></li>
+								<li>+EVENT_DETAILS+<br/><?php _e( 'Replaced with the event details and an offsite link if available' ); ?></li>
+								<li>+MAP_CONTAINER+<br/><?php _e( 'Replaced with a div element that will have the map loaded into it' ); ?></li>
+							</ul>
+							<em><?php _e( 'An Example' ); ?></em>
+							<pre>
 <?php echo htmlentities( '<div id="ecp1_event">
 	<span id="ecp1_feature">+FEATURE_IMAGE+</span>
 	<ul class="ecp1_event-details">
@@ -443,16 +466,12 @@ ENDOFSCRIPT;
 				<span class="ecp1_event-text_wide">+EVENT_DETAILS+</span></li>
 	</ul>
 </div>' ); ?>
-		</pre>
-		</div><!-- expandtarget -->
-		</div><!-- expandable -->
-	</div><!-- subsettings -->
+							</pre>
+						</div><!-- expandtarget -->
 					</td>
 				</tr>
 			</table>
-			<p class="submit">
-				<input type="submit" class="button-primary" value="<?php _e('Save Changes') ?>" />
-			</p>
+			<p class="submit"><input type="submit" class="button-primary" value="<?php _e('Save Changes') ?>" /></p>
 		</form>
 	</div>
 <?php	
@@ -487,6 +506,7 @@ function ecp1_validate_options_page( $input ) {
 	// If the checkbox setting is given then set to true otherwise to false
 	$boolean_options = array( 
 		'use_maps'=>'use_maps',
+		'cdnjs'=>'cdnjs',
 		'tz_change'=>'tz_change',
 		'feature_tz_local'=>'base_featured_local_to_event',
 		'force_cache'=>'enforce_repeat_cache_size',

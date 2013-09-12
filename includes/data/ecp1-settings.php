@@ -22,6 +22,9 @@ $_ecp1_settings = array(
 
 	// Should a map be available for the event location: default true
 	'use_maps' => array( 'default' => 1 ),
+
+	// Should FullCalendar come from CDNJS or local files
+	'cdnjs' => array( 'default' => 1 ),
 	
 	// Which Map Provider should be used: default none
 	// Should be set to a key out of the Map Providers array
