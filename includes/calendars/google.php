@@ -15,6 +15,9 @@ require_once( ECP1_DIR . '/includes/calendars/calendar-interface.php' );
 // Google Calendar Implementation
 class ECP1GoogleCalendar extends ECP1Calendar {
 
+	// Indicates that this calendar provider has an supported URL
+	public function has_url() { return true; }
+
 	// Takes the offset number of seconds that a cached set of events
 	// is valid for, compares against the cached meta update timestamp
 	// and returns boolean true if expired or false if still valid.

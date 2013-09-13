@@ -13,6 +13,16 @@ require( ECP1_DIR . '/includes/check-ecp1-defined.php' );
 // The abstract maps class
 abstract class ECP1Calendar {
 
+	// Abstract function that should return TRUE or FALSE to indicate
+	// if this calendar provider sources events from an external source
+	// which has a supported, addressable, public URL (e.g. Google Cal)
+	// or if the event data is proxied through EveryCal+1 with a custom
+	// URL that serves up the events as JSON.
+	//
+	// Returns TRUE if the events can be fetched directly, and FALSE if
+	// the events need to be proxied through EveryCal+1.
+	abstract public function has_url();
+
 	// Abstract function that takes an offset in seconds: 
 	//   ecp1_ical_cache_time = seconds to cache ical before refetch
 	//
@@ -125,7 +135,7 @@ abstract class ECP1Calendar {
 	// Function that looks up a meta key and returns the value.
 	// The optional $default parameter is the value that will
 	// be returned if the key does not exist (default is null).
-	protected function get_meta( $key, $default=null ) {
+	public function get_meta( $key, $default=null ) {
 		if ( ! is_array( $this->events ) )
 			return $default;
 		if ( ! array_key_exists( '_meta', $this->events ) || ! array_key_exists( $key, $this->events['_meta'] ) )
