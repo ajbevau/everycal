@@ -235,7 +235,7 @@ function _ecp1_template_error( $msg=null, $http_code=200, $http_msg='Every Calen
 		header( 'Content-Type:text/html' );
 		header( sprintf( 'HTTP/1.1 %s %s', $http_code, $http_msg ), 1 );
 		header( sprintf( 'Status: %s %s', $http_code, $http_msg ), 1 );
-		printf( '<!DOCTYPE html><html><body><p>%s</p></body></html>', $msg );
+		printf( '<!DOCTYPE html><html><title>%s</title><body><p>%s</p></body></html>', $http_msg, $msg );
 		exit(); // finish the stream
 	}
 }
