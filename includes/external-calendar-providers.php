@@ -7,10 +7,13 @@
 require( ECP1_DIR . '/includes/check-ecp1-defined.php' );
 
 // Define the calendar providers
+// Array key must be a-z only to match in rewrite rules
 $_ecp1_calendars = array(
 	'google' => array( 'name' => __( 'Google Calendar'),
 				'fullcal_plugin' => 'gcal.js', 'fullcal_datatype' => 'gcal',
 				'ecp1_ical_plugin' => 'google.php', 'ecp1_ical_class'=>'ECP1GoogleCalendar' ),
+	'civicrm' => array( 'name' => __( 'CiviCRM Proxy no URL required' ),
+				'ecp1_ical_plugin' => 'civicrm.php', 'ecp1_ical_class'=>'ECP1CiviCRMProxy' ),
 );
 
 // Function that shamelessly returns the above array so we don't have to global it
