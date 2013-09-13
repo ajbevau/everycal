@@ -81,17 +81,31 @@ function ecp1_render_calendar( $calendar ) {
 	foreach( $ecp1_cals as $id=>$cal ) {
 		if ( array_key_exists( $cal['provider'], $providers ) ) {
 			$provider = $providers[$cal['provider']];
-
+			$provinst = ecp1_get_calendar_provider_instance( $cal['provider'], _ecp1_calendar_meta_id(), urldecode( $cal['url'] ) );
+			
+			// eventSources array items
 			$ns = $event_source_params['_defaults']; // New Source
-			$ns['url'] = sprintf( "'%s'", urldecode( $cal['url'] ) );
-			unset( $ns['startParam'] );
-			unset( $ns['endParam'] );
+			
+			// If the provider instance has a valid URL then use it
+			if ( $provinst->has_url() ) {
+				$ns['url'] = sprintf( "'%s'", urldecode( $cal['url'] ) );
+				unset( $ns['startParam'] ); // because we assume a FullCalendar plugin
+				unset( $ns['endParam'] ); // supports this so knows the correct ones
+			} else {
+				// The events are proxied through EveryCal+1 so build proxy URL
+				$ns['url'] = sprintf( "'%s/ecp1proxy/%s/%s/events.json'", home_url(), $calendar['slug'], $cal['provider'] );
+				$ns['ignoreTimezone'] = 'true'; # show events at their specified time on calendar
+			}
+
 			// Peg to the calendar timezone so don't get funny date/times
 			$ns['currentTimezone'] = "'$raw_timezone'"; # Quoted see _defaults
 			$ns['color'] = sprintf( "'%s'", $cal['color'] );
 			$ns['textColor'] = sprintf( "'%s'", $cal['text'] );
+
 			// Data type for FullCalendar helps to pick the plugin
-			$ns['dataType'] = sprintf( "'%s'", $provider['fullcal_datatype'] );
+			if ( array_key_exists( 'fullcal_datatype', $provider ) ) {
+				$ns['dataType'] = sprintf( "'%s'", $provider['fullcal_datatype'] );
+			}
 		
 			// Add to the event sources array
 			$event_source_params['external' + $id] = $ns;
