@@ -177,7 +177,7 @@ function ecp1_calendar_meta_form() {
 		$ecp1_existing_cals = 0;
 		$ecp1_cals['new'] = array( 'color'=>$ecp1_calendar_fields['ecp1_local_event_color'][1],
 					'text'=>$ecp1_calendar_fields['ecp1_local_event_textcolor'][1],
-					'url'=>__( 'New External Calendar' ), 'provider'=>'none' );
+					'url'=>__( 'Calendar URL (if required)' ), 'provider'=>'none' );
 		foreach( $ecp1_cals as $_e_id => $line ) {
 ?>
 					<div id="ecp1_ex_<?php echo $_e_id; ?>" class="ecp1_ex_container">
@@ -343,15 +343,13 @@ function ecp1_calendar_save() {
 
 			if ( ! array_key_exists( $prv, $providers ) )
 				$prv = null;
-			if ( '' == $url )
-				$url = null;
 			if ( ! preg_match( '/#[0-9A-Fa-f]{6}/', $col ) )
 				$col = $ecp1_calendar_fields['ecp1_local_event_color'][1];
 			if ( ! preg_match( '/#[0-9A-Fa-f]{6}/', $txt ) )
 				$txt = $ecp1_calendar_fields['ecp1_local_event_textcolor'][1];
 
-			if ( null != $prv && null != $url )
-				$ecp1_external_cals[] = array( 'color'=>$col, 'text'=>$txt, 'url'=>urlencode( $url ), 'provider'=>$prv );
+			if ( null != $prv )
+				$ecp1_external_cals[] = array( 'color'=>$col, 'text'=>$txt, 'url'=>''==$url?'':urlencode( trim( $url ) ), 'provider'=>$prv );
 				// Note: this re-bases the numeric index key when items removed
 				// the index key is not important it's just used for form names
 		}
@@ -367,15 +365,15 @@ function ecp1_calendar_save() {
 
 		if ( ! array_key_exists( $prv, $providers ) )
 			$prv = null;
-		if ( '' == $url || __( 'New External Calendar' ) == $url )
-			$url = null;
+		if ( __( 'Calendar URL (if required)' ) == $url )
+			$url = '';
 		if ( ! preg_match( '/#[0-9A-Fa-f]{6}/', $col ) )
 			$col = $ecp1_calendar_fields['ecp1_local_event_color'][1];
 		if ( ! preg_match( '/#[0-9A-Fa-f]{6}/', $txt ) )
 			$txt = $ecp1_calendar_fields['ecp1_local_event_textcolor'][1];
 
-		if ( null != $prv && null != $url )
-			$ecp1_external_cals[] = array( 'color'=>$col, 'text'=>$txt, 'url'=>urlencode( trim( $url ) ), 'provider'=>$prv );
+		if ( null != $prv )
+			$ecp1_external_cals[] = array( 'color'=>$col, 'text'=>$txt, 'url'=>''==$url?'':urlencode( trim( $url ) ), 'provider'=>$prv );
 	}
 
 	
