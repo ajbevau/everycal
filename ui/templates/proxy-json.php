@@ -147,7 +147,9 @@ foreach( $events as $keyid => $event ) {
 
 		// Create an entry in the JSON array and write the some summary details
 		$events_json[$loop_counter] = array(
-			'title'  => $etitle,
+			// The JS escapes HTML entities but doesn't check if &amp; is already there
+			// and so that means we have to make sure there are no &amp;'s here
+			'title'  => str_replace( '&amp;', '&', $etitle ),
 			'start'  => $estart->format( 'c' ),	 // ISO8601 automatically handling DST and
 			'end'	=> $eend->format( 'c' ),	   // the other seasonal variations in offset
 			'allDay' => 'Y' == $event['all_day'],
@@ -156,8 +158,9 @@ foreach( $events as $keyid => $event ) {
 		);
 
 		// Set the URL if one is given
+		// As with the title revert &amp;'s
 		if ( ! is_null( $ecp1_url ) )
-			$events_json[$loop_counter]['url'] = $ecp1_url;
+			$events_json[$loop_counter]['url'] = str_replace( '&amp;', '&', $ecp1_url );
 
 		// Enable map visibility if enabled and have a location
 		if ( '1' == _ecp1_get_option( 'use_maps' ) ) {

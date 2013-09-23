@@ -151,7 +151,9 @@ foreach( $events as $event ) {
 
 		// Create an entry in the JSON array and write the some summary details
 		$events_json[$loop_counter] = array(
-			'title'  => get_the_title( $event['post_id'] ), // allow wordpress actions
+			// The JS escapes HTML entities but doesn't check if &amp; is already there
+			// but we want to filter the title so that means we have to undo the &amp;'s
+			'title'  => str_replace( '&amp;', '&', get_the_title( $event['post_id'] ) ),
 			'start'  => $estart->format( 'c' ),     // ISO8601 automatically handling DST and
 			'end'    => $eend->format( 'c' ),       // the other seasonal variations in offset
 			'allDay' => 'Y' == $event['ecp1_full_day']
