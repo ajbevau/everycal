@@ -90,6 +90,10 @@ class ECP1CiviCRMProxy extends ECP1Calendar {
 								'0000' == $eend->format( 'Hi' ) )
 							$fd = true;
 
+						// Make sure event starts in the range
+						if ( ( $estart >= $start && $estart <= $end ) ||
+							 ( $eend >= $start && $eend <= $end ) ):
+
 						// Lookup the location for this event
 						$elocation = null; $lat = null; $lng = null;
 						if ( '1' == $event->is_show_location ) {
@@ -136,6 +140,8 @@ class ECP1CiviCRMProxy extends ECP1Calendar {
 							if ( ! is_null( $lng ) ) $meta['lng'] = $lng;
 							$this->add_meta( 'civiproxy-' . $event->id, $meta );
 						}
+
+						endif; // event is in the range
 					} catch( Exception $_ee ) {} // ignore invalid dates
 				}
 			}
