@@ -9,6 +9,25 @@ require( ECP1_DIR . '/includes/check-ecp1-defined.php' );
 // Also we need the plugin functions
 require_once( ECP1_DIR . '/functions.php' );
 
+// Array sorting comparison function for when externals are included
+// $order is used to reverse the order if sorting in reverse
+function event_compare( $a, $b, $order ) {
+	try {
+		// If the starts are equal then return 0 otherwise a +/- 1 as appropriate
+		$as = $a['start']->format( 'U' ); // PHP 5.2 
+		$bs = $b['start']->format( 'U' ); // again
+		if ( $as == $bs ) return 0;
+		return ( $as < $bs ) ? -1*$order : 1*$order;
+	} catch( Exception $ez ) {
+		// Assume stable order if something is wrong
+		return 0;
+	}
+}
+
+// Wrapper around the above function for next first sort
+function next_first( $a, $b ) { return event_compare( $a, $b, 1 ); }
+function last_first( $a, $b ) { return event_compare( $a, $b, -1 ); }
+
 /**
  * Widget for listing events by date
  *
@@ -72,25 +91,25 @@ class ECP1_TitleListWidget extends WP_Widget {
 		// Loop over each event and render an iCal block
 		foreach( $db_events as $event ) {
 			
-		    // Make sure there are start and end times
-		    if ( _ecp1_render_default( $event, 'ecp1_start_ts' ) || _ecp1_render_default( $event, 'ecp1_end_ts' ) )
+			// Make sure there are start and end times
+			if ( _ecp1_render_default( $event, 'ecp1_start_ts' ) || _ecp1_render_default( $event, 'ecp1_end_ts' ) )
 				continue;
 
-		    // The events timestamps will be a unix timestamp at the localtime of the
-		    // calendar that event is published on. If this event is published on a
-		    // diferent calendar then the timezone may need to be adjusted.
-		    try {
+			// The events timestamps will be a unix timestamp at the localtime of the
+			// calendar that event is published on. If this event is published on a
+			// diferent calendar then the timezone may need to be adjusted.
+			try {
 				// Build UTC DateTime objects to begin with
 				$estart = new DateTime( '@' . $event['ecp1_start_ts'] );
 				$eend   = new DateTime( '@' . $event['ecp1_end_ts'] );
 
-		        // Is this event on this calendar?
+				// Is this event on this calendar?
 				if ( $event['ecp1_calendar'] == $cal->ID ) { // YES SAME CALENDAR
 					$estart->setTimezone( $dtz );
 					$eend->setTimezone( $dtz );
 				} else { // NO DIFFERENT CALENDAR
 
-		            // Get the source calendar timezone and check it's different
+					// Get the source calendar timezone and check it's different
 					$scaltz = new DateTimeZone( $event['_meta']['calendar_tz'] );
 					if ( $dtz->getOffset( $now ) == $scaltz->getOffset( $now ) ) {
 						$estart->setTimezone( $scaltz );
@@ -120,33 +139,85 @@ class ECP1_TitleListWidget extends WP_Widget {
 				}
 				
 				// Get the event attributes for output
-				$dateformat = 'j/M'; // get_option( 'date_format' ) . ' ' . get_option( 'time_format' );
-				$startstr = $estart->format( $dateformat );
 				$titlestr = get_the_title( $event['post_id'] );
 				$linkstr  = ecp1_permalink_event( $event );
 
 				// Set the array element
-				$events[] = array( 'when' => $startstr, 'title' => $titlestr, 'link' => $linkstr );
+				$events[] = array( 'title' => $titlestr, 'link' => $linkstr, 'start' => $estart );
 
 			// Some form of error occured (probably with the dates)
 			} catch( Exception $datex ) {
 				continue; // ignore bad timestamps they shouldn't happen
 			}
 
-			// Increment the counter and break the loop if done
+			// Increment the counter
 			$iter_counter += 1;
-			if ( $iter_counter >= $instance['count'] )
-				break;
 
 		} // End loop of events
 
+		// If externals are meant to be included then loop and get them 
+		// then add them to the output array if they sit in the correct range
+		// The key check is needed as this was an option added to the widget
+		if ( array_key_exists( 'include_externals', $instance ) && 1 == $instance['include_externals'] ) {
+
+			foreach( $ex_cals as $ex_cal ) {
+				$calprov = ecp1_get_calendar_provider_instance( $ex_cal['provider'], $my_id, urldecode( $ex_cal['url'] ) );
+				if ( null == $calprov )
+					continue; // failed to load
+				$continue = true;
+				if ( $calprov->cache_expired( _ecp1_get_option( 'ical_export_external_cache_life' ) ) )
+					$continue = $calprov->fetch( $start, $end, $dtz );
+
+				// If the provider is ready to go fetch the events
+				if ( $continue ) {
+					$calevents = $calprov->get_events();
+					foreach( $calevents as $keyid => $event ) {
+						// Load the meta for this event
+						$emeta = $calprov->get_meta( $keyid, array() );
+
+						// The events timestamps will be a unix timestamp at the localtime of the
+						// calendar that event is published on. If this event is published on a
+						// diferent calendar then the timezone may need to be adjusted.
+						try {
+							// Build UTC DateTime objects to begin with
+							$estart = new DateTime( '@' . $event['start'] );
+							$estart->setTimezone( $dtz );
+							// If the timezone has an offset then move in opposite direction
+							$start_offset = $dtz->getOffset( $now );
+							if ( $start_offset < 0 ) $estart->modify( '+' . abs( $start_offset ) . ' second' );
+							if ( $start_offset > 0 ) $estart->modify( '-' . abs( $start_offset ) . ' second' );
+							$etitle = $event['title'];
+							$elink = is_null( $event['url'] ) ? null : urldecode( $event['url'] );
+
+							// Add the event to the set and we'll sort / filter later
+							$events[] = array( 'title' => $etitle, 'link' => $elink, 'start' => $estart );
+
+						} catch( Exception $datex ) {
+							continue; // ignore bad timestamps
+						}
+					}
+				}
+			}
+
+		} // external calendars 
+
 		if ( count( $events ) > 0 ) {
+			// Sort the array and if over the item limit truncate it
+			if ( self::SORT_NEXT_FIRST == $instance['sort_order'] )
+				usort( $events, 'next_first' );
+			if ( self::SORT_LAST_FIRST == $instance['sort_order'] )
+				usort( $events, 'last_first' );
+			if ( count( $events ) >=  $instance['count'] )
+				$events = array_slice( $events, 0, $instance['count'] );
+
 			// Loop over the events and display them in a list
 			printf( '<ol class="%s">', esc_attr( $instance['list_class'] ) );
 			foreach( $events as $event ) {
-				printf( '<li class="%s"><span>%s:</span> <a href="%s" title="Visit event page">%s</a></li>',
-					esc_attr( $instance['item_class'] ),
-					$event['when'], $event['link'], $event['title'] );
+				$tmpl = '<li class="%1$s"><span>%2$s:</span> <a href="%4$s" title="Visit event page">%3$s</a></li>';
+				if ( is_null( $event['link'] ) )
+					$tmpl = '<li class="%1$s"><span>%2$s:</span> %3$s</li>';
+				printf( $tmpl, esc_attr( $instance['item_class'] ),
+					$event['start']->format( 'j/M' ), $event['title'], $event['link'] );
 			}
 			print( '</ol>' );
 		} else {
@@ -168,6 +239,7 @@ class ECP1_TitleListWidget extends WP_Widget {
 	 *  sort_order: Newest first or oldest first
 	 *  list_class: CSS Class for list element
 	 *  item_class: CSS Class for list item elements
+	 *  include_externals: 0|1 if should include external events
 	 *
 	 * @param $new_instance New instance of values from the form
 	 * @param $old_instance Previous instance values
@@ -186,6 +258,7 @@ class ECP1_TitleListWidget extends WP_Widget {
 		$ins['sort_order'] = intval( $new_instance['sort_order'] );
 		$ins['list_class'] = sanitize_text_field( $new_instance['list_class'] );
 		$ins['item_class'] = sanitize_text_field( $new_instance['item_class'] );
+		$ins['include_externals'] = intval( $new_instance['include_externals'] );
 		return $ins;
 	}
 
@@ -207,6 +280,7 @@ class ECP1_TitleListWidget extends WP_Widget {
 			'list_class' => 'ecp1_list',
 			'item_class' => 'ecp1_list_item',
 			'sort_order' => self::SORT_NEXT_FIRST,
+			'include_externals' => 0,
 		);
 
 		// Parse the arguments in instance and merge with defaults
@@ -228,7 +302,9 @@ class ECP1_TitleListWidget extends WP_Widget {
 				self::SORT_NEXT_FIRST => __( 'Next event first' ),
 				self::SORT_LAST_FIRST => __( 'Next event last' ) ) ),
 			'list_class' => array( 'label' => __( 'Ordered list CSS class' ), 'type' => 'text', 'length' => 20 ),
-			'item_class' => array( 'label' => __( 'List item CSS class' ), 'type' => 'text', 'length' => 20 )
+			'item_class' => array( 'label' => __( 'List item CSS class' ), 'type' => 'text', 'length' => 20 ),
+			'include_externals' => array( 'label' => __( 'Include external calendar events?' ), 'type' => 'select',
+				'options' => array( 0 => __( 'No' ), 1 => __( 'Yes' ) ) ),
 		);
 		print( '<ul class="ecp1_admin_form_list">' );
 		foreach( $fields as $key=>$dtl ) {
