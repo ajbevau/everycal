@@ -20,12 +20,15 @@ function _ecp1_load_civievents() {
 	$ecp1_civiroot = null;
 	if ( ! isset( $civicrm_root ) ) {
 		// maybe settings haven't been loaded yet
-		if ( defined( 'CIVICRM_SETTINGS_PATH' ) ) {
-			$ecp1_civiroot = dirname( CIVICRM_SETTINGS_PATH ) . DIRECTORY_SEPARATOR . 'civicrm' . DIRECTORY_SEPARATOR;
-		} else {
+		// This doesn't work for WAMP because CIVICRM_SETTINGS_PATH is redefined
+		// by the CiviCRM config file as plugins/civicrm/civicrm/..\ which dirname
+		// properly translates to plugins/civicrm/civicrm so we'll just hardcode
+		//if ( defined( 'CIVICRM_SETTINGS_PATH' ) ) {
+		//	$ecp1_civiroot = dirname( CIVICRM_SETTINGS_PATH ) . DIRECTORY_SEPARATOR . 'civicrm' . DIRECTORY_SEPARATOR;
+		//} else {
 			// Hard coded (which is what CiviCRM does anyway) as a fallback
 			$ecp1_civiroot = WP_PLUGIN_DIR . DIRECTORY_SEPARATOR . 'civicrm' . DIRECTORY_SEPARATOR;
-		}
+		//}
 	} else {
 		$ecp1_civiroot = $civicrm_root;
 	}
