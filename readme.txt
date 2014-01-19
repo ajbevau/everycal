@@ -3,8 +3,8 @@ Contributors: andrewbevitt
 Donate link: http://andrewbevitt.com/code/everycalplus1/
 Tags: calendar, events
 Requires at least: 3.5
-Tested up to: 3.7.1
-Stable tag: 2.1.0
+Tested up to: 3.8
+Stable tag: 2.1.1
 
 A WordPress plugin that integrates calendars, repeating events, custom post types, maps, offsite linking and has widget support.
 
@@ -145,6 +145,10 @@ For the initial release only Google Calendar will be supported. This is more bec
 
 
 == Changelog ==
+
+= 2.1.1 =
+* Fix issue with CIVICRM_SETTINGS_PATH redefinition leading to include failure
+* WP 3.8 compatibility checks
 
 = 2.1.0 =
 * Updated to FullCalendar 1.6.4 - includes new visuals
